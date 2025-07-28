@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "GhostScan Privacy Tool",
+  "version": "1.0.1",
+  "description": "AI-powered privacy tool that detects, explains, and helps you eliminate digital exposure",
+  "permissions": [
+    "storage",
+    "cookies",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "webNavigation",
+    "identity",
+    "history"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://dashboard.ghostscan.com/*",
+      "https://api.ghostscan.com/*",
+      "https://*.ghostscan.com/*",
+      "https://ghostscan-dashboard.vercel.app/*",
+      "https://ghostscan-dashboard.netlify.app/*"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "GhostScan"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+} 

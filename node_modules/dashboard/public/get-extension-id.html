@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Extension ID</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 5px;
+        }
+        .code {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .result {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Get GhostScan Extension ID</h1>
+        
+        <div class="step">
+            <h3>Step 1: Open Chrome Extensions Page</h3>
+            <p>Go to: <span class="code">chrome://extensions/</span></p>
+            <button onclick="window.open('chrome://extensions/')">Open Extensions Page</button>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Enable Developer Mode</h3>
+            <p>Toggle "Developer mode" in the top right corner</p>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Find GhostScan Extension</h3>
+            <p>Look for "GhostScan Privacy Tool" in the list</p>
+            <p>The extension ID will be displayed under the extension name</p>
+        </div>
+        
+        <div class="step">
+            <h3>Step 4: Copy the Extension ID</h3>
+            <p>It should look something like: <span class="code">lldnikolaejjojgiabojpfhmpaafeige</span></p>
+        </div>
+        
+        <div class="step">
+            <h3>Step 5: Test Extension ID</h3>
+            <p>Enter the extension ID below and test the connection:</p>
+            <input type="text" id="extensionId" placeholder="Enter extension ID here" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <button onclick="testExtensionId()">Test Connection</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+        
+        <div class="step">
+            <h3>Step 6: Update Files</h3>
+            <p>If the connection works, update these files with the correct extension ID:</p>
+            <ul>
+                <li><span class="code">apps/dashboard/src/services/extensionService.ts</span></li>
+                <li><span class="code">apps/dashboard/src/App.tsx</span></li>
+                <li><span class="code">apps/dashboard/public/extension-test.html</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function testExtensionId() {
+            const extensionId = document.getElementById('extensionId').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!extensionId) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+                resultDiv.textContent = 'Please enter an extension ID';
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#d1ecf1';
+            resultDiv.style.color = '#0c5460';
+            resultDiv.textContent = 'Testing connection...';
+            
+            // Test the extension ID
+            if (typeof window.chrome !== 'undefined' && window.chrome.runtime) {
+                window.chrome.runtime.sendMessage(extensionId, { action: 'PING' }, (response) => {
+                    if (window.chrome?.runtime?.lastError) {
+                        resultDiv.style.background = '#f8d7da';
+                        resultDiv.style.color = '#721c24';
+                        resultDiv.textContent = `❌ Connection failed: ${window.chrome.runtime.lastError.message}`;
+                    } else if (response) {
+                        resultDiv.style.background = '#d4edda';
+                        resultDiv.style.color = '#155724';
+                        resultDiv.textContent = `✅ Connection successful! Extension ID: ${extensionId}`;
+                    } else {
+                        resultDiv.style.background = '#f8d7da';
+                        resultDiv.style.color = '#721c24';
+                        resultDiv.textContent = '❌ No response from extension';
+                    }
+                });
+            } else {
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+                resultDiv.textContent = '❌ Chrome APIs not available';
+            }
+        }
+        
+        // Auto-focus the input
+        window.addEventListener('load', () => {
+            document.getElementById('extensionId').focus();
+        });
+    </script>
+</body>
+</html> 
