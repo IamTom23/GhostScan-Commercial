@@ -3,16 +3,7 @@
   "buildCommand": "npm run build",
   "installCommand": "npm ci --ignore-scripts",
   "outputDirectory": "GhostScan-Commercial/apps/dashboard/dist",
-  "functions": {
-    "GhostScan-Commercial/apps/backend/src/index.ts": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/GhostScan-Commercial/apps/backend/src/index.ts"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
