@@ -2,7 +2,7 @@
 
 export const PRODUCTION_CONFIG = {
   // Dashboard URLs
-  dashboardUrl: process.env.DASHBOARD_URL || 'https://dashboard.ghostscan.com',
+  dashboardUrl: process.env.DASHBOARD_URL || 'https://dashboard-qnho4scmf-toms-projects-0165a016.vercel.app',
   apiUrl: process.env.API_URL || 'https://api.ghostscan.com',
   
   // Extension Configuration
@@ -38,7 +38,9 @@ export const PRODUCTION_CONFIG = {
       'https://dashboard.ghostscan.com',
       'https://*.ghostscan.com',
       'https://ghostscan-dashboard.vercel.app',
-      'https://ghostscan-dashboard.netlify.app'
+      'https://ghostscan-dashboard.netlify.app',
+      'https://dashboard-qnho4scmf-toms-projects-0165a016.vercel.app',
+      'https://dashboard-*.vercel.app'
     ],
     maxScanDuration: 30000, // 30 seconds
     rateLimit: {

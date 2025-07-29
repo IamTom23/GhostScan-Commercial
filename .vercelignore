@@ -1,41 +1,55 @@
-# Husky git hooks (not needed in production)
-.husky/
+# Exclude everything except what's needed for the dashboard
+*
 
-# Development files
-*.log
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Include only the dashboard app and its dependencies
+!GhostScan-Commercial/apps/dashboard/
+!GhostScan-Commercial/apps/dashboard/src/
+!GhostScan-Commercial/apps/dashboard/public/
+!GhostScan-Commercial/apps/dashboard/package.json
+!GhostScan-Commercial/apps/dashboard/tsconfig.json
+!GhostScan-Commercial/apps/dashboard/vite.config.ts
+!GhostScan-Commercial/apps/dashboard/index.html
 
-# Build artifacts (will be rebuilt)
-dist/
-build/
+# Include shared packages that dashboard might need
+!GhostScan-Commercial/packages/shared/
+!GhostScan-Commercial/packages/shared/src/
+!GhostScan-Commercial/packages/shared/package.json
+!GhostScan-Commercial/packages/shared/tsconfig.json
 
-# Node modules (will be installed fresh)
-node_modules/
+# Include root package.json for workspace setup
+!package.json
+!package-lock.json
 
-# Git files
-.git/
-.gitignore
+# Include Vercel configuration
+!vercel.json
+!.vercelignore
 
-# IDE files
-.vscode/
-.idea/
+# Exclude extension files (not needed for dashboard deployment)
+GhostScan-Commercial/apps/extension/
+GhostScan-Commercial/apps/backend/
 
-# Test files
-coverage/
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
+# Exclude build artifacts and node_modules
+**/node_modules/
+**/dist/
+**/.vercel/
+**/.git/
+**/.gitignore
 
-# Debug files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Exclude development files
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+**/.env*
+**/.vscode/
+**/.idea/
 
-# Temporary files
-*.tmp
-*.temp 
+# Exclude test files
+**/*.test.*
+**/*.spec.*
+**/coverage/
+**/__tests__/
+
+# Exclude documentation (not needed for deployment)
+**/*.md
+**/docs/
+**/README.md 

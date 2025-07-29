@@ -2,10 +2,30 @@
   "version": 2,
   "buildCommand": "cd GhostScan-Commercial/apps/dashboard && npm install && npm run build",
   "outputDirectory": "GhostScan-Commercial/apps/dashboard/dist",
-  "routes": [
+  "installCommand": "npm install",
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
     }
   ]
 } 
