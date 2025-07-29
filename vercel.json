@@ -1,5 +1,0 @@
-{
-  "version": 2,
-  "buildCommand": "cd GhostScan-Commercial/apps/dashboard && npm install && npm run build",
-  "outputDirectory": "GhostScan-Commercial/apps/dashboard/dist"
-} 
