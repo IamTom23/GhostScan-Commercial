@@ -1,8 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "installCommand": "npm ci --ignore-scripts",
-  "outputDirectory": "GhostScan-Commercial/apps/dashboard/dist",
+  "builds": [
+    {
+      "src": "GhostScan-Commercial/apps/dashboard/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
