@@ -1,55 +1,51 @@
-# Exclude everything except what's needed for the dashboard
-*
+# Exclude unnecessary files and directories
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
 
-# Include only the dashboard app and its dependencies
-!GhostScan-Commercial/apps/dashboard/
-!GhostScan-Commercial/apps/dashboard/src/
-!GhostScan-Commercial/apps/dashboard/public/
-!GhostScan-Commercial/apps/dashboard/package.json
-!GhostScan-Commercial/apps/dashboard/tsconfig.json
-!GhostScan-Commercial/apps/dashboard/vite.config.ts
-!GhostScan-Commercial/apps/dashboard/index.html
+# Git files
+.git/
+**/.git/
 
-# Include shared packages that dashboard might need
-!GhostScan-Commercial/packages/shared/
-!GhostScan-Commercial/packages/shared/src/
-!GhostScan-Commercial/packages/shared/package.json
-!GhostScan-Commercial/packages/shared/tsconfig.json
+# Development files
+.env*
+**/.env*
+*.log
+**/*.log
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
 
-# Include root package.json for workspace setup
-!package.json
-!package-lock.json
+# IDE files
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
 
-# Include Vercel configuration
-!vercel.json
-!.vercelignore
+# Test files
+**/*.test.*
+**/*.spec.*
+coverage/
+**/coverage/
+__tests__/
+**/__tests__/
 
-# Exclude extension files (not needed for dashboard deployment)
+# Documentation
+**/*.md
+**/docs/
+**/README.md
+
+# Exclude extension and backend (not needed for dashboard deployment)
 GhostScan-Commercial/apps/extension/
 GhostScan-Commercial/apps/backend/
 
-# Exclude build artifacts and node_modules
-**/node_modules/
-**/dist/
+# Exclude AI package (not needed for dashboard)
+GhostScan-Commercial/packages/ai/
+
+# Exclude build artifacts
 **/.vercel/
-**/.git/
-**/.gitignore
-
-# Exclude development files
-**/*.log
-**/.DS_Store
-**/Thumbs.db
-**/.env*
-**/.vscode/
-**/.idea/
-
-# Exclude test files
-**/*.test.*
-**/*.spec.*
-**/coverage/
-**/__tests__/
-
-# Exclude documentation (not needed for deployment)
-**/*.md
-**/docs/
-**/README.md 
+**/.gitignore 
