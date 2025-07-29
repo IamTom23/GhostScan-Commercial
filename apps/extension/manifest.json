@@ -42,7 +42,10 @@
       "http://[::1]:5175/*",
       "http://[::1]:5176/*",
       "http://[::1]:5177/*",
-      "http://[::1]:5178/*"
+      "http://[::1]:5178/*",
+      "https://dashboard-qnho4scmf-toms-projects-0165a016.vercel.app/*",
+      "https://dashboard-*.vercel.app/*",
+      "https://*.ghostscan.com/*"
     ]
   },
   "background": {
