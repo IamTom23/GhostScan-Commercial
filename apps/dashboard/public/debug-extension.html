@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Extension Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 5px;
+        }
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        .success {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+        .code {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Extension Connection</h1>
+        
+        <div class="step">
+            <h3>Step 1: Check Chrome APIs</h3>
+            <button onclick="checkChromeAPIs()">Check Chrome APIs</button>
+            <div id="chromeAPIs" class="code"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: List All Extensions</h3>
+            <button onclick="listExtensions()">List Extensions</button>
+            <div id="extensionsList" class="code"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Test Extension IDs</h3>
+            <input type="text" id="testExtensionId" placeholder="Enter extension ID to test" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <button onclick="testExtensionId()">Test Extension ID</button>
+            <div id="testResult" class="code"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 4: Manual Extension Check</h3>
+            <p>Go to <span class="code">chrome://extensions/</span> and check:</p>
+            <ul>
+                <li>Is "Developer mode" enabled?</li>
+                <li>Is "GhostScan Privacy Tool" listed?</li>
+                <li>Is it enabled (toggle is ON)?</li>
+                <li>What is the extension ID shown?</li>
+                <li>Are there any error messages?</li>
+            </ul>
+            <button onclick="window.open('chrome://extensions/')">Open Extensions Page</button>
+        </div>
+        
+        <div class="step">
+            <h3>Step 5: Load Extension (if not loaded)</h3>
+            <p>If the extension is not listed:</p>
+            <ol>
+                <li>Go to <span class="code">chrome://extensions/</span></li>
+                <li>Enable "Developer mode"</li>
+                <li>Click "Load unpacked"</li>
+                <li>Navigate to: <span class="code">GhostScan-Commercial/apps/extension/dist</span></li>
+                <li>Select the <span class="code">dist</span> folder</li>
+            </ol>
+            <button onclick="window.open('chrome://extensions/')">Load Extension</button>
+        </div>
+        
+        <div class="step">
+            <h3>Debug Log</h3>
+            <button onclick="clearLog()">Clear Log</button>
+            <div id="debugLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const logElement = document.getElementById('debugLog');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            logElement.textContent += logEntry;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function clearLog() {
+            logElement.textContent = '';
+        }
+        
+        function checkChromeAPIs() {
+            const resultDiv = document.getElementById('chromeAPIs');
+            const checks = {
+                'window.chrome': typeof window.chrome !== 'undefined',
+                'window.chrome.runtime': typeof window.chrome?.runtime !== 'undefined',
+                'window.chrome.runtime.sendMessage': typeof window.chrome?.runtime?.sendMessage === 'function',
+                'window.chrome.storage': typeof window.chrome?.storage !== 'undefined',
+                'window.chrome.storage.local': typeof window.chrome?.storage?.local !== 'undefined'
+            };
+            
+            let result = 'Chrome API Check Results:\n';
+            for (const [api, available] of Object.entries(checks)) {
+                result += `${available ? '✅' : '❌'} ${api}: ${available}\n`;
+            }
+            
+            resultDiv.textContent = result;
+            log('Chrome APIs checked', 'info');
+        }
+        
+        function listExtensions() {
+            const resultDiv = document.getElementById('extensionsList');
+            resultDiv.textContent = 'Attempting to list extensions...';
+            
+            // Try to get extension info
+            if (typeof window.chrome !== 'undefined' && window.chrome.management) {
+                window.chrome.management.getAll((extensions) => {
+                    let result = 'Installed Extensions:\n';
+                    extensions.forEach(ext => {
+                        result += `- ${ext.name} (${ext.id}) - ${ext.enabled ? 'Enabled' : 'Disabled'}\n`;
+                    });
+                    resultDiv.textContent = result;
+                    log(`Found ${extensions.length} extensions`, 'info');
+                });
+            } else {
+                resultDiv.textContent = '❌ Chrome management API not available\n\nManual check required:\n1. Go to chrome://extensions/\n2. Look for "GhostScan Privacy Tool"\n3. Note the extension ID';
+                log('Chrome management API not available', 'error');
+            }
+        }
+        
+        function testExtensionId() {
+            const extensionId = document.getElementById('testExtensionId').value.trim();
+            const resultDiv = document.getElementById('testResult');
+            
+            if (!extensionId) {
+                resultDiv.textContent = 'Please enter an extension ID';
+                return;
+            }
+            
+            resultDiv.textContent = `Testing extension ID: ${extensionId}...`;
+            log(`Testing extension ID: ${extensionId}`, 'info');
+            
+            if (typeof window.chrome !== 'undefined' && window.chrome.runtime) {
+                window.chrome.runtime.sendMessage(extensionId, { action: 'PING' }, (response) => {
+                    if (window.chrome?.runtime?.lastError) {
+                        const error = window.chrome.runtime.lastError.message;
+                        resultDiv.textContent = `❌ Connection failed: ${error}\n\nPossible causes:\n- Extension not loaded\n- Extension ID incorrect\n- Extension not responding`;
+                        log(`Extension test failed: ${error}`, 'error');
+                    } else if (response) {
+                        resultDiv.textContent = `✅ Connection successful!\nResponse: ${JSON.stringify(response, null, 2)}`;
+                        log(`Extension test successful: ${JSON.stringify(response)}`, 'success');
+                    } else {
+                        resultDiv.textContent = '❌ No response received\n\nExtension might be loaded but not responding to messages';
+                        log('Extension test: no response', 'error');
+                    }
+                });
+            } else {
+                resultDiv.textContent = '❌ Chrome runtime API not available';
+                log('Chrome runtime API not available', 'error');
+            }
+        }
+        
+        // Auto-run checks on page load
+        window.addEventListener('load', () => {
+            log('Debug page loaded', 'info');
+            setTimeout(() => {
+                checkChromeAPIs();
+                listExtensions();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 
