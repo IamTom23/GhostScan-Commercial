@@ -320,7 +320,7 @@ class ExtensionService {
     const debugInfo = {
       chromeAvailable: typeof window !== 'undefined' && typeof window.chrome !== 'undefined',
       runtimeAvailable: typeof window !== 'undefined' && typeof window.chrome?.runtime !== 'undefined',
-      storageAvailable: false, // Can't access extension storage from webpage
+      storageAvailable: typeof window !== 'undefined' && typeof window.chrome?.storage !== 'undefined',
       testMessageSent: false,
     };
 
