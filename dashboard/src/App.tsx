@@ -70,147 +70,147 @@ const formatDate = (date: Date): string => {
   }).format(date);
 };
 
-// Mock data for demonstration
-const mockUserProfile: UserProfile = {
-  id: '1',
-  email: 'user@example.com',
-  riskScore: 45,
-  totalApps: 23,
-  highRiskApps: 3,
-  lastScanDate: new Date(),
-  preferences: {
-    breachAlerts: true,
-    weeklyReports: true,
-    autoPrivacyRequests: false,
-  },
-};
+// Mock data for demonstration (commented out - using empty states)
+// const mockUserProfile: UserProfile = {
+//   id: '1',
+//   email: 'user@example.com',
+//   riskScore: 45,
+//   totalApps: 23,
+//   highRiskApps: 3,
+//   lastScanDate: new Date(),
+//   preferences: {
+//     breachAlerts: true,
+//     weeklyReports: true,
+//     autoPrivacyRequests: false,
+//   },
+// };
 
-const mockApps: SaaSApp[] = [
-  {
-    id: '1',
-    name: 'Canva',
-    domain: 'canva.com',
-    riskLevel: 'MEDIUM',
-    dataTypes: ['personal', 'creative'],
-    hasBreaches: false,
-    thirdPartySharing: true,
-    lastAccessed: new Date('2024-01-15'),
-    oauthProvider: 'Google',
-    accountStatus: 'ACTIVE',
-    passwordStrength: 'STRONG',
-  },
-  {
-    id: '2',
-    name: 'Grammarly',
-    domain: 'grammarly.com',
-    riskLevel: 'HIGH',
-    dataTypes: ['personal', 'writing', 'documents'],
-    hasBreaches: true,
-    thirdPartySharing: true,
-    lastAccessed: new Date('2024-01-10'),
-    accountStatus: 'ACTIVE',
-    passwordStrength: 'WEAK',
-    isReused: true,
-  },
-  {
-    id: '3',
-    name: 'Adobe Creative Cloud',
-    domain: 'adobe.com',
-    riskLevel: 'LOW',
-    dataTypes: ['personal', 'creative'],
-    hasBreaches: false,
-    thirdPartySharing: false,
-    lastAccessed: new Date('2024-01-20'),
-    accountStatus: 'ACTIVE',
-    passwordStrength: 'STRONG',
-  },
-];
+// const mockApps: SaaSApp[] = [
+//   {
+//     id: '1',
+//     name: 'Canva',
+//     domain: 'canva.com',
+//     riskLevel: 'MEDIUM',
+//     dataTypes: ['personal', 'creative'],
+//     hasBreaches: false,
+//     thirdPartySharing: true,
+//     lastAccessed: new Date('2024-01-15'),
+//     oauthProvider: 'Google',
+//     accountStatus: 'ACTIVE',
+//     passwordStrength: 'STRONG',
+//   },
+//   {
+//     id: '2',
+//     name: 'Grammarly',
+//     domain: 'grammarly.com',
+//     riskLevel: 'HIGH',
+//     dataTypes: ['personal', 'writing', 'documents'],
+//     hasBreaches: true,
+//     thirdPartySharing: true,
+//     lastAccessed: new Date('2024-01-10'),
+//     accountStatus: 'ACTIVE',
+//     passwordStrength: 'WEAK',
+//     isReused: true,
+//   },
+//   {
+//     id: '3',
+//     name: 'Adobe Creative Cloud',
+//     domain: 'adobe.com',
+//     riskLevel: 'LOW',
+//     dataTypes: ['personal', 'creative'],
+//     hasBreaches: false,
+//     thirdPartySharing: false,
+//     lastAccessed: new Date('2024-01-20'),
+//     accountStatus: 'ACTIVE',
+//     passwordStrength: 'STRONG',
+//   },
+// ];
 
-const mockBreachAlerts: BreachAlert[] = [
-  {
-    id: '1',
-    appId: '2',
-    breachDate: new Date('2024-01-05'),
-    dataTypes: ['emails', 'passwords'],
-    severity: 'HIGH',
-    description: 'Data breach affecting 3.2M users',
-    isNew: true,
-  },
-];
+// const mockBreachAlerts: BreachAlert[] = [
+//   {
+//     id: '1',
+//     appId: '2',
+//     breachDate: new Date('2024-01-05'),
+//     dataTypes: ['emails', 'passwords'],
+//     severity: 'HIGH',
+//     description: 'Data breach affecting 3.2M users',
+//     isNew: true,
+//   },
+// ];
 
-const mockGhostProfiles: GhostProfile[] = [
-  {
-    id: '1',
-    platform: 'LinkedIn',
-    email: 'user@example.com',
-    username: 'user_profile',
-    foundVia: 'SHADOW_PROFILE',
-    confidence: 0.95,
-    dataExposed: ['name', 'email', 'work_history'],
-  },
-];
+// const mockGhostProfiles: GhostProfile[] = [
+//   {
+//     id: '1',
+//     platform: 'LinkedIn',
+//     email: 'user@example.com',
+//     username: 'user_profile',
+//     foundVia: 'SHADOW_PROFILE',
+//     confidence: 0.95,
+//     dataExposed: ['name', 'email', 'work_history'],
+//   },
+// ];
 
 // Consumer-focused action items
-const mockActionItems = [
-  {
-    id: '1',
-    title: 'Change Grammarly Password',
-    priority: 'HIGH',
-    type: 'PASSWORD',
-    description: 'Grammarly was breached and uses a weak password',
-    estimatedTime: '2 minutes',
-    completed: false,
-  },
-  {
-    id: '2',
-    title: 'Review Canva Privacy Settings',
-    priority: 'MEDIUM',
-    type: 'PRIVACY',
-    description: 'Canva shares data with third parties',
-    estimatedTime: '5 minutes',
-    completed: false,
-  },
-  {
-    id: '3',
-    title: 'Remove LinkedIn Ghost Profile',
-    priority: 'MEDIUM',
-    type: 'GHOST_PROFILE',
-    description: 'Found shadow profile with 95% confidence',
-    estimatedTime: '10 minutes',
-    completed: false,
-  },
-];
+// const mockActionItems = [
+//   {
+//     id: '1',
+//     title: 'Change Grammarly Password',
+//     priority: 'HIGH',
+//     type: 'PASSWORD',
+//     description: 'Grammarly was breached and uses a weak password',
+//     estimatedTime: '2 minutes',
+//     completed: false,
+//   },
+//   {
+//     id: '2',
+//     title: 'Review Canva Privacy Settings',
+//     priority: 'MEDIUM',
+//     type: 'PRIVACY',
+//     description: 'Canva shares data with third parties',
+//     estimatedTime: '5 minutes',
+//     completed: false,
+//   },
+//   {
+//     id: '3',
+//     title: 'Remove LinkedIn Ghost Profile',
+//     priority: 'MEDIUM',
+//     type: 'GHOST_PROFILE',
+//     description: 'Found shadow profile with 95% confidence',
+//     estimatedTime: '10 minutes',
+//     completed: false,
+//   },
+// ];
 
 // Privacy tips for consumers
-const mockPrivacyTips = [
-  {
-    id: '1',
-    title: 'Use a Password Manager',
-    description: 'Generate unique, strong passwords for each account',
-    category: 'SECURITY',
-    difficulty: 'EASY',
-    timeEstimate: '5 minutes',
-    completed: false,
-  },
-  {
-    id: '2',
-    title: 'Enable Two-Factor Authentication',
-    description: 'Add an extra layer of security to your accounts',
-    category: 'SECURITY',
-    difficulty: 'EASY',
-    timeEstimate: '10 minutes',
-    completed: false,
-  },
-  {
-    id: '3',
-    title: 'Review App Permissions',
-    description: 'Check what data your apps can access',
-    category: 'PRIVACY',
-    difficulty: 'MEDIUM',
-    timeEstimate: '15 minutes',
-    completed: false,
-  },
-];
+// const mockPrivacyTips = [
+//   {
+//     id: '1',
+//     title: 'Use a Password Manager',
+//     description: 'Generate unique, strong passwords for each account',
+//     category: 'SECURITY',
+//     difficulty: 'EASY',
+//     timeEstimate: '5 minutes',
+//     completed: false,
+//   },
+//   {
+//     id: '2',
+//     title: 'Enable Two-Factor Authentication',
+//     description: 'Add an extra layer of security to your accounts',
+//     category: 'SECURITY',
+//     difficulty: 'EASY',
+//     timeEstimate: '10 minutes',
+//     completed: false,
+//   },
+//   {
+//     id: '3',
+//     title: 'Review App Permissions',
+//     description: 'Check what data your apps can access',
+//     category: 'PRIVACY',
+//     difficulty: 'MEDIUM',
+//     timeEstimate: '15 minutes',
+//     completed: false,
+//   },
+// ];
 
 // Progress tracking
 const mockProgressData = {
@@ -222,12 +222,12 @@ const mockProgressData = {
 };
 
 function App() {
-  const [userProfile, setUserProfile] = useState<UserProfile>(mockUserProfile);
-  const [apps, setApps] = useState<SaaSApp[]>(mockApps);
-  const [breachAlerts, setBreachAlerts] = useState<BreachAlert[]>(mockBreachAlerts);
-  const [ghostProfiles] = useState<GhostProfile[]>(mockGhostProfiles);
-  const [actionItems, setActionItems] = useState(mockActionItems);
-  const [privacyTips, setPrivacyTips] = useState(mockPrivacyTips);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [apps, setApps] = useState<SaaSApp[]>([]);
+  const [breachAlerts, setBreachAlerts] = useState<BreachAlert[]>([]);
+  const [ghostProfiles] = useState<GhostProfile[]>([]);
+  const [actionItems, setActionItems] = useState<any[]>([]);
+  const [privacyTips, setPrivacyTips] = useState<any[]>([]);
   const [progressData] = useState(mockProgressData);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isScanning, setIsScanning] = useState(false);
@@ -244,6 +244,7 @@ function App() {
     };
   }>({ available: false, installed: false, lastScan: null, privacyScore: null });
   const [showDebug, setShowDebug] = useState(false);
+  const [hasData, setHasData] = useState(false);
   const [aiMessages, setAiMessages] = useState([
     {
       id: '1',
@@ -281,19 +282,20 @@ function App() {
           const extensionData = await extensionService.getExtensionData();
           if (extensionData) {
             const dashboardData = extensionService.convertToDashboardFormat(extensionData);
-                    if (dashboardData) {
-          setUserProfile(dashboardData.userProfile);
-          setApps(dashboardData.apps);
-          setBreachAlerts(dashboardData.breachAlerts);
-          // Use real actions and privacy tips if available
-          if (dashboardData.actions) {
-            setActionItems(dashboardData.actions);
+                              if (dashboardData) {
+            setUserProfile(dashboardData.userProfile);
+            setApps(dashboardData.apps);
+            setBreachAlerts(dashboardData.breachAlerts);
+            // Use real actions and privacy tips if available
+            if (dashboardData.actions) {
+              setActionItems(dashboardData.actions);
+            }
+            if (dashboardData.privacyTips) {
+              setPrivacyTips(dashboardData.privacyTips);
+            }
+            setHasData(true);
+            console.log('Loaded real data from extension:', dashboardData);
           }
-          if (dashboardData.privacyTips) {
-            setPrivacyTips(dashboardData.privacyTips);
-          }
-          console.log('Loaded real data from extension:', dashboardData);
-        }
           }
         } else {
           console.log('Extension not available or not responding, using mock data');
@@ -335,6 +337,7 @@ function App() {
             if (dashboardData.privacyTips) {
               setPrivacyTips(dashboardData.privacyTips);
             }
+            setHasData(true);
             console.log('Scan completed with real data:', dashboardData);
           }
         } else {
@@ -367,7 +370,7 @@ function App() {
 
   const getPrivacyScore = () => {
     const maxScore = 100;
-    const deductions = userProfile.riskScore + (breachAlerts.length * 10) + (ghostProfiles.length * 5);
+    const deductions = (userProfile?.riskScore || 0) + (breachAlerts.length * 10) + (ghostProfiles.length * 5);
     return Math.max(0, maxScore - deductions);
   };
 
@@ -438,6 +441,26 @@ function App() {
     }
   };
 
+  const testExtensionIDs = () => {
+    console.log('Testing extension IDs...');
+    if (typeof window !== 'undefined' && window.chrome?.runtime) {
+      const possibleIds = [
+        'lldnikolaejjojgiabojpfhmpaafeige',
+        'test-extension-id',
+        'another-possible-id'
+      ];
+      
+      possibleIds.forEach(id => {
+        window.chrome!.runtime!.sendMessage(id, { action: 'PING' }, (response) => {
+          console.log(`Extension ID ${id}:`, response);
+          if (window.chrome?.runtime?.lastError) {
+            console.log(`Extension ID ${id} error:`, window.chrome.runtime.lastError);
+          }
+        });
+      });
+    }
+  };
+
   const testContentScript = () => {
     console.log('Testing content script...');
     
@@ -464,6 +487,53 @@ function App() {
     document.addEventListener('ghostscan-response', handler);
   };
 
+  // Show welcome screen if no data has been loaded
+  if (!hasData) {
+    return (
+      <div className="app">
+        <div className="welcome-screen">
+          <div className="welcome-content">
+            <h1>🔒 Welcome to GhostScan</h1>
+            <p>Your privacy monitoring dashboard is ready!</p>
+            <div className="welcome-steps">
+              <div className="step">
+                <span className="step-number">1</span>
+                <span>Make sure the GhostScan extension is installed</span>
+              </div>
+              <div className="step">
+                <span className="step-number">2</span>
+                <span>Click "New Scan" to analyze your privacy</span>
+              </div>
+              <div className="step">
+                <span className="step-number">3</span>
+                <span>View your personalized privacy insights</span>
+              </div>
+            </div>
+            <button onClick={startScan} className="start-scan-button">
+              🚀 Start Your First Scan
+            </button>
+          </div>
+        </div>
+        
+        {/* Debug buttons for development */}
+        <div className="debug-buttons" style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
+          <button onClick={() => setShowDebug(!showDebug)} className="debug-button">
+            {showDebug ? 'Hide Debug' : 'Show Debug'}
+          </button>
+          <button onClick={testExtensionIDs} className="test-button">
+            Test Extension IDs
+          </button>
+          <button onClick={testConnection} className="test-button">
+            Test Connection
+          </button>
+          <button onClick={testContentScript} className="test-button">
+            Test Content Script
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       {/* Header */}
@@ -475,7 +545,7 @@ function App() {
             <span className="company-tag">by Virtrus</span>
           </div>
           <div className="user-info">
-            <span>{userProfile.email}</span>
+            <span>{userProfile?.email || 'User'}</span>
             <div className="extension-status">
               {extensionStatus.available && extensionStatus.installed ? (
                 <span className="status-connected">🔗 Extension Connected</span>
@@ -720,12 +790,12 @@ function App() {
             <div className="stats-grid">
               <div className="stat-card">
                 <h3>Total Apps</h3>
-                <div className="stat-value">{userProfile.totalApps}</div>
+                <div className="stat-value">{userProfile?.totalApps || 0}</div>
                 <div className="stat-change">+2 this week</div>
               </div>
               <div className="stat-card">
                 <h3>High Risk Apps</h3>
-                <div className="stat-value danger">{userProfile.highRiskApps}</div>
+                <div className="stat-value danger">{userProfile?.highRiskApps || 0}</div>
                 <div className="stat-change">-1 this week</div>
               </div>
               <div className="stat-card">
