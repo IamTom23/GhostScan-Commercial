@@ -388,26 +388,45 @@ class ExtensionService {
     this.log('Testing extension connection...');
     
     try {
-      const status = await this.getExtensionStatus();
-      
-      if (!status.available) {
+      // Check if Chrome APIs are available
+      if (typeof window === 'undefined') {
         return {
           success: false,
-          message: 'Chrome APIs not available',
-          details: status.debugInfo,
+          message: 'Not in browser environment',
+          details: {},
         };
       }
 
-      // Try a simple PING test first
-      this.log('Sending PING test...');
-      const pingResponse = await new Promise<any>((resolve, reject) => {
-        if (!window.chrome?.runtime) {
-          reject(new Error('Chrome runtime not available'));
-          return;
-        }
+      if (!window.chrome) {
+        return {
+          success: false,
+          message: 'Chrome APIs not available',
+          details: {},
+        };
+      }
 
-        const extensionId = this.extensionId;
-        window.chrome.runtime.sendMessage(extensionId, { action: 'PING' }, (response: any) => {
+      if (!window.chrome.runtime) {
+        return {
+          success: false,
+          message: 'Chrome runtime not available',
+          details: {},
+        };
+      }
+
+      this.log('Chrome APIs available, testing extension communication...');
+
+      // Try a simple PING test first
+      this.log('Sending PING test to extension ID:', this.extensionId);
+      const pingResponse = await new Promise<any>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Extension communication timeout (5s)'));
+        }, 5000);
+
+        window.chrome!.runtime!.sendMessage(this.extensionId, { action: 'PING' }, (response: any) => {
+          clearTimeout(timeout);
+          this.log('PING response received:', response);
+          this.log('Chrome runtime lastError:', window.chrome?.runtime?.lastError);
+          
           if (window.chrome?.runtime?.lastError) {
             reject(new Error(window.chrome.runtime.lastError.message));
           } else {
@@ -422,13 +441,13 @@ class ExtensionService {
         return {
           success: true,
           message: 'Extension connected successfully (PING/PONG test passed)',
-          details: { ...status, pingResponse },
+          details: { pingResponse },
         };
       } else {
         return {
           success: false,
           message: 'Extension not responding to PING test',
-          details: { ...status, pingResponse },
+          details: { pingResponse },
         };
       }
     } catch (error) {
@@ -436,7 +455,7 @@ class ExtensionService {
       return {
         success: false,
         message: `Connection test failed: ${error}`,
-        details: { error },
+        details: { error: String(error) },
       };
     }
   }
