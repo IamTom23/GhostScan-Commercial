@@ -226,8 +226,8 @@ function App() {
   const [apps, setApps] = useState<SaaSApp[]>(mockApps);
   const [breachAlerts, setBreachAlerts] = useState<BreachAlert[]>(mockBreachAlerts);
   const [ghostProfiles] = useState<GhostProfile[]>(mockGhostProfiles);
-  const [actionItems] = useState(mockActionItems);
-  const [privacyTips] = useState(mockPrivacyTips);
+  const [actionItems, setActionItems] = useState(mockActionItems);
+  const [privacyTips, setPrivacyTips] = useState(mockPrivacyTips);
   const [progressData] = useState(mockProgressData);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isScanning, setIsScanning] = useState(false);
@@ -281,12 +281,19 @@ function App() {
           const extensionData = await extensionService.getExtensionData();
           if (extensionData) {
             const dashboardData = extensionService.convertToDashboardFormat(extensionData);
-            if (dashboardData) {
-              setUserProfile(dashboardData.userProfile);
-              setApps(dashboardData.apps);
-              setBreachAlerts(dashboardData.breachAlerts);
-              console.log('Loaded real data from extension:', dashboardData);
-            }
+                    if (dashboardData) {
+          setUserProfile(dashboardData.userProfile);
+          setApps(dashboardData.apps);
+          setBreachAlerts(dashboardData.breachAlerts);
+          // Use real actions and privacy tips if available
+          if (dashboardData.actions) {
+            setActionItems(dashboardData.actions);
+          }
+          if (dashboardData.privacyTips) {
+            setPrivacyTips(dashboardData.privacyTips);
+          }
+          console.log('Loaded real data from extension:', dashboardData);
+        }
           }
         } else {
           console.log('Extension not available or not responding, using mock data');
@@ -321,6 +328,13 @@ function App() {
             setUserProfile(dashboardData.userProfile);
             setApps(dashboardData.apps);
             setBreachAlerts(dashboardData.breachAlerts);
+            // Use real actions and privacy tips from scan
+            if (dashboardData.actions) {
+              setActionItems(dashboardData.actions);
+            }
+            if (dashboardData.privacyTips) {
+              setPrivacyTips(dashboardData.privacyTips);
+            }
             console.log('Scan completed with real data:', dashboardData);
           }
         } else {

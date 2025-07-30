@@ -272,7 +272,190 @@ class ExtensionService {
         })),
       recommendations: scanResult.recommendations,
       privacyScore: extensionData.privacyScore || (100 - scanResult.totalRiskScore),
+      actions: this.generateRealActions(scanResult.apps, scanResult),
+      privacyTips: this.generateRealPrivacyTips(scanResult.apps, scanResult, extensionData.privacyScore || (100 - scanResult.totalRiskScore))
     };
+  }
+
+  // Generate real actions based on scan data
+  private generateRealActions(apps: ExtensionApp[], scanResult: ExtensionScanResult) {
+    const actions = [];
+
+    // Action 1: Review high-risk apps
+    const highRiskApps = apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL');
+    if (highRiskApps.length > 0) {
+      actions.push({
+        id: 'review-high-risk',
+        title: `Review ${highRiskApps.length} High-Risk Apps`,
+        description: `Review privacy settings for ${highRiskApps.map(app => app.name).join(', ')}`,
+        priority: 'HIGH',
+        type: 'PRIVACY_REVIEW',
+        estimatedTime: '15 min',
+        completed: false
+      });
+    }
+
+    // Action 2: Remove unused OAuth connections
+    const oauthApps = apps.filter(app => app.oauthProvider);
+    const unusedOAuth = oauthApps.filter(app => {
+      const lastAccess = new Date(app.lastAccessed);
+      const daysSinceAccess = (Date.now() - lastAccess.getTime()) / (1000 * 60 * 60 * 24);
+      return daysSinceAccess > 30; // Unused for 30+ days
+    });
+    
+    if (unusedOAuth.length > 0) {
+      actions.push({
+        id: 'remove-unused-oauth',
+        title: `Remove ${unusedOAuth.length} Unused OAuth Connections`,
+        description: `Remove access for apps you haven't used in 30+ days: ${unusedOAuth.map(app => app.name).join(', ')}`,
+        priority: 'MEDIUM',
+        type: 'OAUTH_CLEANUP',
+        estimatedTime: '10 min',
+        completed: false
+      });
+    }
+
+    // Action 3: Block tracking domains
+    const trackingApps = apps.filter(app => app.dataTypes.includes('tracking'));
+    if (trackingApps.length > 0) {
+      actions.push({
+        id: 'block-tracking',
+        title: `Block ${trackingApps.length} Tracking Domains`,
+        description: `Block tracking from: ${trackingApps.map(app => app.name).join(', ')}`,
+        priority: 'HIGH',
+        type: 'TRACKING_PROTECTION',
+        estimatedTime: '5 min',
+        completed: false
+      });
+    }
+
+    // Action 4: Review breach-affected apps
+    const breachedApps = apps.filter(app => app.hasBreaches);
+    if (breachedApps.length > 0) {
+      actions.push({
+        id: 'review-breaches',
+        title: `Review ${breachedApps.length} Breach-Affected Apps`,
+        description: `Change passwords and review security for: ${breachedApps.map(app => app.name).join(', ')}`,
+        priority: 'CRITICAL',
+        type: 'SECURITY',
+        estimatedTime: '20 min',
+        completed: false
+      });
+    }
+
+    // Action 5: Improve privacy score
+    if (scanResult.totalRiskScore > 50) {
+      actions.push({
+        id: 'improve-privacy-score',
+        title: 'Improve Your Privacy Score',
+        description: `Your current score is ${100 - scanResult.totalRiskScore}. Follow recommendations to improve it.`,
+        priority: 'MEDIUM',
+        type: 'PRIVACY_IMPROVEMENT',
+        estimatedTime: '30 min',
+        completed: false
+      });
+    }
+
+    return actions;
+  }
+
+  // Generate real privacy tips based on scan data
+  private generateRealPrivacyTips(apps: ExtensionApp[], _scanResult: ExtensionScanResult, privacyScore: number) {
+    const tips = [];
+
+    // Tip 1: Based on number of OAuth connections
+    const oauthApps = apps.filter(app => app.oauthProvider);
+    if (oauthApps.length > 5) {
+      tips.push({
+        id: 'oauth-cleanup',
+        title: 'Too Many OAuth Connections',
+        description: `You have ${oauthApps.length} OAuth connections. Consider removing unused ones to reduce your attack surface.`,
+        category: 'OAUTH',
+        difficulty: 'MEDIUM',
+        timeEstimate: '10 min',
+        completed: false
+      });
+    }
+
+    // Tip 2: Based on tracking domains
+    const trackingApps = apps.filter(app => app.dataTypes.includes('tracking'));
+    if (trackingApps.length > 3) {
+      tips.push({
+        id: 'tracking-protection',
+        title: 'Multiple Tracking Domains Detected',
+        description: `You have ${trackingApps.length} tracking domains. Consider using a tracker blocker to improve privacy.`,
+        category: 'TRACKING',
+        difficulty: 'HIGH',
+        timeEstimate: '5 min',
+        completed: false
+      });
+    }
+
+    // Tip 3: Based on privacy score
+    if (privacyScore < 50) {
+      tips.push({
+        id: 'low-privacy-score',
+        title: 'Low Privacy Score',
+        description: `Your privacy score is ${privacyScore}. Focus on removing high-risk apps and blocking trackers.`,
+        category: 'GENERAL',
+        difficulty: 'HIGH',
+        timeEstimate: '30 min',
+        completed: false
+      });
+    } else if (privacyScore > 80) {
+      tips.push({
+        id: 'good-privacy-score',
+        title: 'Great Privacy Score!',
+        description: `Your privacy score is ${privacyScore}. Keep up the good work and maintain these practices.`,
+        category: 'GENERAL',
+        difficulty: 'LOW',
+        timeEstimate: '5 min',
+        completed: false
+      });
+    }
+
+    // Tip 4: Based on breach-affected apps
+    const breachedApps = apps.filter(app => app.hasBreaches);
+    if (breachedApps.length > 0) {
+      tips.push({
+        id: 'breach-alert',
+        title: 'Data Breach Alert',
+        description: `${breachedApps.length} of your connected apps have been involved in data breaches. Change passwords immediately.`,
+        category: 'SECURITY',
+        difficulty: 'CRITICAL',
+        timeEstimate: '20 min',
+        completed: false
+      });
+    }
+
+    // Tip 5: Based on third-party sharing
+    const sharingApps = apps.filter(app => app.thirdPartySharing);
+    if (sharingApps.length > 3) {
+      tips.push({
+        id: 'third-party-sharing',
+        title: 'Third-Party Data Sharing',
+        description: `${sharingApps.length} apps share your data with third parties. Review their privacy policies.`,
+        category: 'DATA_SHARING',
+        difficulty: 'MEDIUM',
+        timeEstimate: '15 min',
+        completed: false
+      });
+    }
+
+    // Tip 6: Based on app count
+    if (apps.length > 20) {
+      tips.push({
+        id: 'app-overload',
+        title: 'Too Many Connected Apps',
+        description: `You have ${apps.length} connected apps. Consider removing unused ones to reduce data exposure.`,
+        category: 'GENERAL',
+        difficulty: 'MEDIUM',
+        timeEstimate: '25 min',
+        completed: false
+      });
+    }
+
+    return tips;
   }
 
   // Check if extension is available
