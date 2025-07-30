@@ -388,7 +388,7 @@ class ExtensionService {
     this.log('Testing extension connection...');
     
     try {
-      // Check if Chrome APIs are available
+      // Check if we're in a browser environment
       if (typeof window === 'undefined') {
         return {
           success: false,
@@ -397,59 +397,110 @@ class ExtensionService {
         };
       }
 
-      if (!window.chrome) {
-        return {
-          success: false,
-          message: 'Chrome APIs not available',
-          details: {},
-        };
-      }
+      // Try to communicate with the extension through the content script
+      this.log('Attempting to communicate with extension through content script...');
+      
+      // Method 1: Try direct Chrome API (might not work on web pages)
+      if (window.chrome && window.chrome.runtime) {
+        this.log('Chrome APIs available, trying direct communication...');
+        try {
+          const pingResponse = await new Promise<any>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Extension communication timeout (5s)'));
+            }, 5000);
 
-      if (!window.chrome.runtime) {
-        return {
-          success: false,
-          message: 'Chrome runtime not available',
-          details: {},
-        };
-      }
+            window.chrome!.runtime!.sendMessage(this.extensionId, { action: 'PING' }, (response: any) => {
+              clearTimeout(timeout);
+              this.log('PING response received:', response);
+              this.log('Chrome runtime lastError:', window.chrome?.runtime?.lastError);
+              
+              if (window.chrome?.runtime?.lastError) {
+                reject(new Error(window.chrome.runtime.lastError.message));
+              } else {
+                resolve(response);
+              }
+            });
+          });
 
-      this.log('Chrome APIs available, testing extension communication...');
-
-      // Try a simple PING test first
-      this.log('Sending PING test to extension ID:', this.extensionId);
-      const pingResponse = await new Promise<any>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Extension communication timeout (5s)'));
-        }, 5000);
-
-        window.chrome!.runtime!.sendMessage(this.extensionId, { action: 'PING' }, (response: any) => {
-          clearTimeout(timeout);
-          this.log('PING response received:', response);
-          this.log('Chrome runtime lastError:', window.chrome?.runtime?.lastError);
-          
-          if (window.chrome?.runtime?.lastError) {
-            reject(new Error(window.chrome.runtime.lastError.message));
-          } else {
-            resolve(response);
+          if (pingResponse && pingResponse.success && pingResponse.message === 'PONG') {
+            return {
+              success: true,
+              message: 'Extension connected successfully (direct API)',
+              details: { pingResponse },
+            };
           }
-        });
-      });
-
-      this.log('PING response:', pingResponse);
-
-      if (pingResponse && pingResponse.success && pingResponse.message === 'PONG') {
-        return {
-          success: true,
-          message: 'Extension connected successfully (PING/PONG test passed)',
-          details: { pingResponse },
-        };
-      } else {
-        return {
-          success: false,
-          message: 'Extension not responding to PING test',
-          details: { pingResponse },
-        };
+        } catch (error) {
+          this.log('Direct API communication failed:', error);
+        }
       }
+
+      // Method 2: Try to detect if content script is running
+      this.log('Trying to detect content script...');
+      
+      // Check if the content script has injected any elements or made any changes
+      const contentScriptDetected = document.querySelector('[data-ghostscan]') || 
+                                   window.hasOwnProperty('ghostScanExtension') ||
+                                   document.head.querySelector('script[src*="content.js"]');
+      
+      if (contentScriptDetected) {
+        this.log('Content script detected, trying to communicate...');
+        
+        // Try to send a message through the content script
+        const event = new CustomEvent('ghostscan-test-connection', {
+          detail: { action: 'PING' }
+        });
+        document.dispatchEvent(event);
+        
+        // Wait for response
+        const response = await new Promise<any>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Content script communication timeout (3s)'));
+          }, 3000);
+          
+          const handler = (event: any) => {
+            clearTimeout(timeout);
+            document.removeEventListener('ghostscan-response', handler);
+            resolve(event.detail);
+          };
+          
+          document.addEventListener('ghostscan-response', handler);
+        });
+        
+        if (response && response.success) {
+          return {
+            success: true,
+            message: 'Extension connected successfully (content script)',
+            details: { response },
+          };
+        }
+      }
+
+      // Method 3: Check if extension is installed by trying to access extension storage
+      this.log('Trying to access extension storage...');
+      try {
+        if (window.chrome && window.chrome.storage) {
+          const storageData = await window.chrome.storage.local.get(null);
+          if (storageData && Object.keys(storageData).length > 0) {
+            return {
+              success: true,
+              message: 'Extension detected (storage access)',
+              details: { storageData },
+            };
+          }
+        }
+      } catch (error) {
+        this.log('Storage access failed:', error);
+      }
+
+      return {
+        success: false,
+        message: 'Extension not detected or not responding',
+        details: { 
+          chromeAvailable: !!window.chrome,
+          runtimeAvailable: !!(window.chrome && window.chrome.runtime),
+          contentScriptDetected: !!contentScriptDetected
+        },
+      };
     } catch (error) {
       this.log('Connection test error:', error);
       return {
