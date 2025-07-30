@@ -258,11 +258,25 @@ function App() {
   useEffect(() => {
     const loadExtensionData = async () => {
       try {
-        // Check extension status
-        const status = await extensionService.getExtensionStatus();
-        setExtensionStatus(status);
+        // Check extension status using the new testConnection method
+        const connectionResult = await extensionService.testConnection();
+        console.log('Connection test result:', connectionResult);
+        
+        if (connectionResult.success) {
+          // Update extension status to show it's working
+          setExtensionStatus({
+            available: true,
+            installed: true,
+            lastScan: null,
+            privacyScore: null,
+            debugInfo: {
+              chromeAvailable: true,
+              runtimeAvailable: true,
+              storageAvailable: true,
+              testMessageSent: true
+            }
+          });
 
-        if (status.available && status.debugInfo.testMessageSent) {
           // Get extension data
           const extensionData = await extensionService.getExtensionData();
           if (extensionData) {
@@ -276,6 +290,7 @@ function App() {
           }
         } else {
           console.log('Extension not available or not responding, using mock data');
+          console.log('Connection error:', connectionResult.message);
         }
       } catch (error) {
         console.error('Error loading extension data:', error);
