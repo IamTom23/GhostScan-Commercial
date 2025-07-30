@@ -399,6 +399,42 @@ function App() {
   const privacyScore = getPrivacyScore();
   const privacyGrade = getPrivacyGrade(privacyScore);
 
+  const testConnection = async () => {
+    console.log('Testing extension connection...');
+    try {
+      const result = await extensionService.testConnection();
+      alert(`Connection Test: ${result.success ? 'SUCCESS' : 'FAILED'}\n\n${result.message}`);
+    } catch (error) {
+      alert(`Connection Test FAILED:\n\nError: ${error}`);
+    }
+  };
+
+  const testContentScript = () => {
+    console.log('Testing content script...');
+    
+    // Check if content script marker exists
+    const marker = document.querySelector('[data-ghostscan]');
+    console.log('Content script marker:', marker);
+    
+    // Check if global property exists
+    const globalProp = (window as any).ghostScanExtension;
+    console.log('Global property:', globalProp);
+    
+    // Try to dispatch a test event
+    const event = new CustomEvent('ghostscan-test-connection', {
+      detail: { action: 'PING' }
+    });
+    document.dispatchEvent(event);
+    console.log('Test event dispatched');
+    
+    // Listen for response
+    const handler = (event: any) => {
+      console.log('Response received:', event.detail);
+      document.removeEventListener('ghostscan-response', handler);
+    };
+    document.addEventListener('ghostscan-response', handler);
+  };
+
   return (
     <div className="app">
       {/* Header */}
@@ -528,6 +564,12 @@ function App() {
               }}
             >
               Test Extension IDs
+            </button>
+            <button onClick={testConnection} className="test-button">
+              Test Connection
+            </button>
+            <button onClick={testContentScript} className="test-button">
+              Test Content Script
             </button>
           </div>
         </div>
