@@ -150,55 +150,36 @@ class ExtensionService {
         return null;
       }
 
-      if (!window.chrome?.runtime) {
-        this.log('Chrome runtime not available');
-        return null;
-      }
-
-      // First, test if the extension is actually responding
-      this.log('Testing extension connection before scan...');
-      const pingResponse = await new Promise<any>((resolve, reject) => {
-        const extensionId = this.extensionId;
+      // Try to trigger scan through content script
+      this.log('Triggering scan through content script...');
+      
+      const scanResponse = await new Promise<any>((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error('Extension connection timeout'));
-        }, 5000);
+          reject(new Error('Scan timeout (30s)'));
+        }, 30000); // 30 second timeout for scan
         
-        window.chrome!.runtime!.sendMessage(extensionId, { action: 'PING' }, (response: any) => {
+        const handler = (event: any) => {
           clearTimeout(timeout);
-          if (window.chrome?.runtime?.lastError) {
-            reject(new Error(window.chrome.runtime.lastError.message));
-          } else {
-            resolve(response);
-          }
+          document.removeEventListener('ghostscan-response', handler);
+          resolve(event.detail);
+        };
+        
+        document.addEventListener('ghostscan-response', handler);
+        
+        // Dispatch scan event
+        const event = new CustomEvent('ghostscan-start-scan', {
+          detail: { action: 'START_SCAN' }
         });
+        document.dispatchEvent(event);
       });
 
-      this.log('Ping response:', pingResponse);
+      this.log('Scan response:', scanResponse);
 
-              // Now trigger the scan
-        const response = await new Promise<any>((resolve, reject) => {
-          const extensionId = this.extensionId;
-        
-        // Add timeout to prevent hanging
-        const timeout = setTimeout(() => {
-          reject(new Error('Scan request timeout'));
-        }, 10000); // 10 second timeout for scan
-        
-        window.chrome!.runtime!.sendMessage(extensionId, { action: 'START_SCAN' }, (response: any) => {
-          clearTimeout(timeout);
-          if (window.chrome?.runtime?.lastError) {
-            reject(new Error(window.chrome.runtime.lastError.message));
-          } else {
-            resolve(response);
-          }
-        });
-      });
-
-      if (response && response.success) {
-        this.log('Scan completed successfully:', response.data);
-        return response.data as ExtensionScanResult;
+      if (scanResponse && scanResponse.success && scanResponse.data) {
+        return scanResponse.data as ExtensionScanResult;
       } else {
-        throw new Error(response?.error || 'Scan failed');
+        this.log('Scan failed or returned invalid data');
+        return null;
       }
     } catch (error) {
       this.log('Error triggering extension scan:', error);
