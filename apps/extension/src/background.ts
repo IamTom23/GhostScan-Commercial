@@ -98,6 +98,21 @@ class GhostScanBackground {
         return true;
       }
     });
+
+    // Handle messages from external web pages (like the dashboard)
+    console.log('🔍 Setting up external message listener...');
+    chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+      console.log('🔍 EXTERNAL MESSAGE LISTENER CALLED!');
+      console.log('🔍 External message:', message);
+      console.log('🔍 External sender:', sender);
+      console.log('🔍 External sender origin:', sender.origin);
+      
+      // Handle the message the same way as internal messages
+      this.handleMessage(message, sender, sendResponse);
+      
+      // Return true to keep message channel open for async response
+      return true;
+    });
     
     console.log('🔍 Message listener set up successfully');
 
@@ -190,6 +205,30 @@ class GhostScanBackground {
           sendResponse({ success: true, message: 'PONG', timestamp: new Date() });
           break;
 
+        case 'SAAS_APPLICATION_DETECTED':
+          console.log('🔍 SaaS application detected:', message);
+          await this.storeDetectedApplication(message);
+          sendResponse({ success: true, message: 'SaaS application stored' });
+          break;
+
+        case 'OAUTH_DETECTED':
+          console.log('🔍 OAuth provider detected:', message);
+          await this.storeOAuthDetection(message);
+          sendResponse({ success: true, message: 'OAuth detection stored' });
+          break;
+
+        case 'TRACKING_DETECTED':
+          console.log('🔍 Tracking script detected:', message);
+          await this.storeTrackingDetection(message);
+          sendResponse({ success: true, message: 'Tracking detection stored' });
+          break;
+
+        case 'SENSITIVE_FORM_DETECTED':
+          console.log('🔍 Sensitive form detected:', message);
+          await this.storeFormDetection(message);
+          sendResponse({ success: true, message: 'Form detection stored' });
+          break;
+
         default:
           console.log('Unknown action:', message.action);
           sendResponse({ success: false, error: 'Unknown action' });
@@ -219,8 +258,8 @@ class GhostScanBackground {
       await this.updateProgress('Analyzing OAuth connections...', 30);
       const oauthData = await this.analyzeOAuthConnections();
       
-      // Step 3: Check browsing history
-      await this.updateProgress('Checking browsing history...', 50);
+      // Step 3: Check browsing history for SaaS applications
+      await this.updateProgress('Analyzing browsing history for SaaS applications...', 50);
       const historyData = await this.analyzeBrowsingHistory();
       
       // Step 4: Detect tracking scripts
@@ -306,7 +345,7 @@ class GhostScanBackground {
       // Check if history API is available
       if (typeof chrome.history === 'undefined') {
         console.log('History API not available, skipping history analysis');
-        return { totalVisits: 0, uniqueDomains: 0, topDomains: [] };
+        return { totalVisits: 0, uniqueDomains: 0, topDomains: [], saasApplications: [] };
       }
 
       // Get recent browsing history (last 30 days)
@@ -319,24 +358,111 @@ class GhostScanBackground {
 
       // Group by domain
       const domainStats = new Map<string, number>();
+      const saasApplications: any[] = [];
+      
+      // Common domains to skip
+      const skipDomains = [
+        'google.com', 'google.co.uk', 'google.ca',
+        'facebook.com', 'twitter.com', 'linkedin.com',
+        'github.com', 'stackoverflow.com', 'reddit.com',
+        'youtube.com', 'amazon.com', 'netflix.com',
+        'localhost', '127.0.0.1', 'chrome://', 'chrome-extension://',
+        'vercel.app', 'github.io', 'netlify.app'
+      ];
+
+      // Known SaaS application patterns
+      const saasPatterns = [
+        'notion', 'figma', 'slack', 'discord', 'zoom', 'teams',
+        'asana', 'trello', 'monday', 'clickup', 'airtable',
+        'canva', 'figma', 'sketch', 'invision', 'framer',
+        'stripe', 'paypal', 'square', 'shopify', 'woocommerce',
+        'hubspot', 'salesforce', 'pipedrive', 'zoho',
+        'mailchimp', 'sendgrid', 'convertkit', 'klaviyo',
+        'intercom', 'zendesk', 'freshdesk', 'helpscout',
+        'deepseek', 'claude', 'perplexity', 'anthropic',
+        'openai', 'chatgpt', 'bard', 'bing', 'duckduckgo',
+        'dropbox', 'box', 'onedrive', 'icloud', 'mega',
+        'spotify', 'apple', 'microsoft', 'adobe', 'autodesk'
+      ];
+
       history.forEach(item => {
         if (item.url) {
           const domain = new URL(item.url).hostname;
           domainStats.set(domain, (domainStats.get(domain) || 0) + 1);
+          
+          // Check if this domain looks like a SaaS application
+          const isSaaS = saasPatterns.some(pattern => 
+            domain.includes(pattern) || item.title?.toLowerCase().includes(pattern)
+          );
+          
+          const shouldSkip = skipDomains.some(skip => domain.includes(skip));
+          
+          if (isSaaS && !shouldSkip) {
+            // Check if we already have this application
+            const existingIndex = saasApplications.findIndex(app => app.domain === domain);
+            
+            if (existingIndex === -1) {
+              // Determine risk level based on domain characteristics
+              let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM';
+              const dataTypes: string[] = ['saas_application'];
+              
+              // Check for Chinese-owned domains
+              const chineseDomains = ['deepseek', 'baidu', 'alibaba', 'tencent', 'bytedance'];
+              if (chineseDomains.some(chinese => domain.includes(chinese))) {
+                riskLevel = 'CRITICAL';
+                dataTypes.push('international_data_sharing');
+              }
+              
+              // Check for AI/ML applications (higher risk)
+              const aiDomains = ['openai', 'anthropic', 'claude', 'deepseek', 'perplexity'];
+              if (aiDomains.some(ai => domain.includes(ai))) {
+                riskLevel = riskLevel === 'CRITICAL' ? 'CRITICAL' : 'HIGH';
+                dataTypes.push('ai_processing');
+              }
+              
+              // Check for financial applications
+              const financialDomains = ['stripe', 'paypal', 'square', 'shopify'];
+              if (financialDomains.some(financial => domain.includes(financial))) {
+                riskLevel = riskLevel === 'CRITICAL' ? 'CRITICAL' : 'HIGH';
+                dataTypes.push('financial_data');
+              }
+              
+              saasApplications.push({
+                id: `saas_${domain}`,
+                name: item.title || this.getAppNameFromDomain(domain),
+                domain: domain,
+                riskLevel: riskLevel,
+                dataTypes: dataTypes,
+                hasBreaches: false,
+                thirdPartySharing: true,
+                lastAccessed: new Date(item.lastVisitTime || Date.now()),
+                accountStatus: 'UNKNOWN' as const,
+                passwordStrength: 'MEDIUM' as const,
+                visitCount: domainStats.get(domain) || 1,
+                url: item.url
+              });
+            } else {
+              // Update visit count for existing application
+              saasApplications[existingIndex].visitCount = domainStats.get(domain) || 1;
+            }
+          }
         }
       });
 
       console.log(`Analyzed ${history.length} history items from ${domainStats.size} domains`);
+      console.log(`Found ${saasApplications.length} potential SaaS applications`);
+      
       return {
         totalVisits: history.length,
         uniqueDomains: domainStats.size,
         topDomains: Array.from(domainStats.entries())
           .sort((a, b) => b[1] - a[1])
-          .slice(0, 10)
+          .slice(0, 10),
+        saasApplications: saasApplications
       };
     } catch (error) {
       console.error('Error analyzing browsing history:', error);
-      return { totalVisits: 0, uniqueDomains: 0, topDomains: [] };
+      return { totalVisits: 0, uniqueDomains: 0, topDomains: [], saasApplications: [] };
     }
   }
 
@@ -375,6 +501,9 @@ class GhostScanBackground {
     historyData: any,
     trackingData: string[]
   ): Promise<ScanResult> {
+    // Get detected applications from storage
+    const result = await chrome.storage.local.get(['detectedApplications']);
+    const detectedApplications = result.detectedApplications || [];
     const apps: AppData[] = [];
     let totalRiskScore = 0;
 
@@ -415,6 +544,48 @@ class GhostScanBackground {
       apps.push(app);
       totalRiskScore += this.calculateAppRiskScore(app);
     });
+
+    // Process detected SaaS applications from real-time detection
+    detectedApplications.forEach((detectedApp: any) => {
+      const app: AppData = {
+        id: detectedApp.id,
+        name: detectedApp.name,
+        domain: detectedApp.domain,
+        riskLevel: detectedApp.riskLevel,
+        dataTypes: detectedApp.dataTypes,
+        hasBreaches: detectedApp.hasBreaches,
+        thirdPartySharing: detectedApp.thirdPartySharing,
+        lastAccessed: new Date(detectedApp.lastAccessed),
+        accountStatus: detectedApp.accountStatus,
+        passwordStrength: detectedApp.passwordStrength
+      };
+      apps.push(app);
+      totalRiskScore += this.calculateAppRiskScore(app);
+    });
+
+    // Process SaaS applications from browsing history
+    if (historyData.saasApplications) {
+      historyData.saasApplications.forEach((saasApp: any) => {
+        // Check if this app is already included from real-time detection
+        const existingApp = apps.find(app => app.domain === saasApp.domain);
+        if (!existingApp) {
+          const app: AppData = {
+            id: saasApp.id,
+            name: saasApp.name,
+            domain: saasApp.domain,
+            riskLevel: saasApp.riskLevel,
+            dataTypes: saasApp.dataTypes,
+            hasBreaches: saasApp.hasBreaches,
+            thirdPartySharing: saasApp.thirdPartySharing,
+            lastAccessed: saasApp.lastAccessed,
+            accountStatus: saasApp.accountStatus,
+            passwordStrength: saasApp.passwordStrength
+          };
+          apps.push(app);
+          totalRiskScore += this.calculateAppRiskScore(app);
+        }
+      });
+    }
 
     // Generate recommendations
     const recommendations = this.generateRecommendations(apps, cookies, historyData);
@@ -574,6 +745,122 @@ class GhostScanBackground {
       console.log('Scan data cleared');
     } catch (error) {
       console.error('Error clearing scan data:', error);
+    }
+  }
+
+  // Store detected SaaS applications
+  private async storeDetectedApplication(message: any): Promise<void> {
+    try {
+      const { domain, title, url, riskLevel, riskFactors, dataTypes, timestamp } = message;
+      
+      // Get existing detected applications
+      const result = await chrome.storage.local.get(['detectedApplications']);
+      const detectedApplications = result.detectedApplications || [];
+      
+      // Check if this application is already stored
+      const existingIndex = detectedApplications.findIndex((app: any) => app.domain === domain);
+      
+      const newApp = {
+        id: `saas_${domain}`,
+        name: title || this.getAppNameFromDomain(domain),
+        domain: domain,
+        riskLevel: riskLevel,
+        dataTypes: dataTypes,
+        hasBreaches: false, // Would need to check against breach database
+        thirdPartySharing: riskFactors.includes('THIRD_PARTY_COOKIES'),
+        lastAccessed: new Date(timestamp),
+        accountStatus: 'UNKNOWN' as const,
+        passwordStrength: 'MEDIUM' as const,
+        riskFactors: riskFactors,
+        url: url,
+        detectedAt: timestamp
+      };
+      
+      if (existingIndex >= 0) {
+        // Update existing application
+        detectedApplications[existingIndex] = {
+          ...detectedApplications[existingIndex],
+          lastAccessed: new Date(timestamp),
+          riskLevel: riskLevel,
+          riskFactors: riskFactors
+        };
+      } else {
+        // Add new application
+        detectedApplications.push(newApp);
+      }
+      
+      // Store updated list
+      await chrome.storage.local.set({ detectedApplications });
+      console.log(`Stored detected application: ${domain}`);
+    } catch (error) {
+      console.error('Error storing detected application:', error);
+    }
+  }
+
+  // Store OAuth detections
+  private async storeOAuthDetection(message: any): Promise<void> {
+    try {
+      const { provider, url } = message;
+      
+      // Get existing OAuth detections
+      const result = await chrome.storage.local.get(['oauthDetections']);
+      const oauthDetections = result.oauthDetections || [];
+      
+      const newDetection = {
+        provider: provider,
+        url: url,
+        detectedAt: new Date().toISOString()
+      };
+      
+      oauthDetections.push(newDetection);
+      
+      // Store updated list
+      await chrome.storage.local.set({ oauthDetections });
+      console.log(`Stored OAuth detection: ${provider} at ${url}`);
+    } catch (error) {
+      console.error('Error storing OAuth detection:', error);
+    }
+  }
+
+  // Store tracking detections
+  private async storeTrackingDetection(message: any): Promise<void> {
+    try {
+      const { tracker, url } = message;
+      const result = await chrome.storage.local.get(['trackingDetections']);
+      const trackingDetections = result.trackingDetections || [];
+      
+      const newDetection = {
+        tracker: tracker,
+        url: url,
+        detectedAt: new Date().toISOString()
+      };
+      
+      trackingDetections.push(newDetection);
+      await chrome.storage.local.set({ trackingDetections });
+      console.log(`Stored tracking detection: ${tracker} at ${url}`);
+    } catch (error) {
+      console.error('Error storing tracking detection:', error);
+    }
+  }
+
+  // Store form detections
+  private async storeFormDetection(message: any): Promise<void> {
+    try {
+      const { fields, url } = message;
+      const result = await chrome.storage.local.get(['formDetections']);
+      const formDetections = result.formDetections || [];
+      
+      const newDetection = {
+        fields: fields,
+        url: url,
+        detectedAt: new Date().toISOString()
+      };
+      
+      formDetections.push(newDetection);
+      await chrome.storage.local.set({ formDetections });
+      console.log(`Stored form detection: ${fields.join(', ')} at ${url}`);
+    } catch (error) {
+      console.error('Error storing form detection:', error);
     }
   }
 }
