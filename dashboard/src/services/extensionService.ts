@@ -150,36 +150,55 @@ class ExtensionService {
         return null;
       }
 
-      // Try to trigger scan through content script
-      this.log('Triggering scan through content script...');
-      
-      const scanResponse = await new Promise<any>((resolve, reject) => {
+      if (!window.chrome?.runtime) {
+        this.log('Chrome runtime not available');
+        return null;
+      }
+
+      // First, test if the extension is actually responding
+      this.log('Testing extension connection before scan...');
+      const pingResponse = await new Promise<any>((resolve, reject) => {
+        const extensionId = this.extensionId;
         const timeout = setTimeout(() => {
-          reject(new Error('Scan timeout (30s)'));
-        }, 30000); // 30 second timeout for scan
+          reject(new Error('Extension connection timeout'));
+        }, 5000);
         
-        const handler = (event: any) => {
+        window.chrome!.runtime!.sendMessage(extensionId, { action: 'PING' }, (response: any) => {
           clearTimeout(timeout);
-          document.removeEventListener('ghostscan-response', handler);
-          resolve(event.detail);
-        };
-        
-        document.addEventListener('ghostscan-response', handler);
-        
-        // Dispatch scan event
-        const event = new CustomEvent('ghostscan-start-scan', {
-          detail: { action: 'START_SCAN' }
+          if (window.chrome?.runtime?.lastError) {
+            reject(new Error(window.chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
         });
-        document.dispatchEvent(event);
       });
 
-      this.log('Scan response:', scanResponse);
+      this.log('Ping response:', pingResponse);
 
-      if (scanResponse && scanResponse.success && scanResponse.data) {
-        return scanResponse.data as ExtensionScanResult;
+              // Now trigger the scan
+        const response = await new Promise<any>((resolve, reject) => {
+          const extensionId = this.extensionId;
+        
+        // Add timeout to prevent hanging
+        const timeout = setTimeout(() => {
+          reject(new Error('Scan request timeout'));
+        }, 10000); // 10 second timeout for scan
+        
+        window.chrome!.runtime!.sendMessage(extensionId, { action: 'START_SCAN' }, (response: any) => {
+          clearTimeout(timeout);
+          if (window.chrome?.runtime?.lastError) {
+            reject(new Error(window.chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+
+      if (response && response.success) {
+        this.log('Scan completed successfully:', response.data);
+        return response.data as ExtensionScanResult;
       } else {
-        this.log('Scan failed or returned invalid data');
-        return null;
+        throw new Error(response?.error || 'Scan failed');
       }
     } catch (error) {
       this.log('Error triggering extension scan:', error);
@@ -272,190 +291,7 @@ class ExtensionService {
         })),
       recommendations: scanResult.recommendations,
       privacyScore: extensionData.privacyScore || (100 - scanResult.totalRiskScore),
-      actions: this.generateRealActions(scanResult.apps, scanResult),
-      privacyTips: this.generateRealPrivacyTips(scanResult.apps, scanResult, extensionData.privacyScore || (100 - scanResult.totalRiskScore))
     };
-  }
-
-  // Generate real actions based on scan data
-  private generateRealActions(apps: ExtensionApp[], scanResult: ExtensionScanResult) {
-    const actions = [];
-
-    // Action 1: Review high-risk apps
-    const highRiskApps = apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL');
-    if (highRiskApps.length > 0) {
-      actions.push({
-        id: 'review-high-risk',
-        title: `Review ${highRiskApps.length} High-Risk Apps`,
-        description: `Review privacy settings for ${highRiskApps.map(app => app.name).join(', ')}`,
-        priority: 'HIGH',
-        type: 'PRIVACY_REVIEW',
-        estimatedTime: '15 min',
-        completed: false
-      });
-    }
-
-    // Action 2: Remove unused OAuth connections
-    const oauthApps = apps.filter(app => app.oauthProvider);
-    const unusedOAuth = oauthApps.filter(app => {
-      const lastAccess = new Date(app.lastAccessed);
-      const daysSinceAccess = (Date.now() - lastAccess.getTime()) / (1000 * 60 * 60 * 24);
-      return daysSinceAccess > 30; // Unused for 30+ days
-    });
-    
-    if (unusedOAuth.length > 0) {
-      actions.push({
-        id: 'remove-unused-oauth',
-        title: `Remove ${unusedOAuth.length} Unused OAuth Connections`,
-        description: `Remove access for apps you haven't used in 30+ days: ${unusedOAuth.map(app => app.name).join(', ')}`,
-        priority: 'MEDIUM',
-        type: 'OAUTH_CLEANUP',
-        estimatedTime: '10 min',
-        completed: false
-      });
-    }
-
-    // Action 3: Block tracking domains
-    const trackingApps = apps.filter(app => app.dataTypes.includes('tracking'));
-    if (trackingApps.length > 0) {
-      actions.push({
-        id: 'block-tracking',
-        title: `Block ${trackingApps.length} Tracking Domains`,
-        description: `Block tracking from: ${trackingApps.map(app => app.name).join(', ')}`,
-        priority: 'HIGH',
-        type: 'TRACKING_PROTECTION',
-        estimatedTime: '5 min',
-        completed: false
-      });
-    }
-
-    // Action 4: Review breach-affected apps
-    const breachedApps = apps.filter(app => app.hasBreaches);
-    if (breachedApps.length > 0) {
-      actions.push({
-        id: 'review-breaches',
-        title: `Review ${breachedApps.length} Breach-Affected Apps`,
-        description: `Change passwords and review security for: ${breachedApps.map(app => app.name).join(', ')}`,
-        priority: 'CRITICAL',
-        type: 'SECURITY',
-        estimatedTime: '20 min',
-        completed: false
-      });
-    }
-
-    // Action 5: Improve privacy score
-    if (scanResult.totalRiskScore > 50) {
-      actions.push({
-        id: 'improve-privacy-score',
-        title: 'Improve Your Privacy Score',
-        description: `Your current score is ${100 - scanResult.totalRiskScore}. Follow recommendations to improve it.`,
-        priority: 'MEDIUM',
-        type: 'PRIVACY_IMPROVEMENT',
-        estimatedTime: '30 min',
-        completed: false
-      });
-    }
-
-    return actions;
-  }
-
-  // Generate real privacy tips based on scan data
-  private generateRealPrivacyTips(apps: ExtensionApp[], _scanResult: ExtensionScanResult, privacyScore: number) {
-    const tips = [];
-
-    // Tip 1: Based on number of OAuth connections
-    const oauthApps = apps.filter(app => app.oauthProvider);
-    if (oauthApps.length > 5) {
-      tips.push({
-        id: 'oauth-cleanup',
-        title: 'Too Many OAuth Connections',
-        description: `You have ${oauthApps.length} OAuth connections. Consider removing unused ones to reduce your attack surface.`,
-        category: 'OAUTH',
-        difficulty: 'MEDIUM',
-        timeEstimate: '10 min',
-        completed: false
-      });
-    }
-
-    // Tip 2: Based on tracking domains
-    const trackingApps = apps.filter(app => app.dataTypes.includes('tracking'));
-    if (trackingApps.length > 3) {
-      tips.push({
-        id: 'tracking-protection',
-        title: 'Multiple Tracking Domains Detected',
-        description: `You have ${trackingApps.length} tracking domains. Consider using a tracker blocker to improve privacy.`,
-        category: 'TRACKING',
-        difficulty: 'HIGH',
-        timeEstimate: '5 min',
-        completed: false
-      });
-    }
-
-    // Tip 3: Based on privacy score
-    if (privacyScore < 50) {
-      tips.push({
-        id: 'low-privacy-score',
-        title: 'Low Privacy Score',
-        description: `Your privacy score is ${privacyScore}. Focus on removing high-risk apps and blocking trackers.`,
-        category: 'GENERAL',
-        difficulty: 'HIGH',
-        timeEstimate: '30 min',
-        completed: false
-      });
-    } else if (privacyScore > 80) {
-      tips.push({
-        id: 'good-privacy-score',
-        title: 'Great Privacy Score!',
-        description: `Your privacy score is ${privacyScore}. Keep up the good work and maintain these practices.`,
-        category: 'GENERAL',
-        difficulty: 'LOW',
-        timeEstimate: '5 min',
-        completed: false
-      });
-    }
-
-    // Tip 4: Based on breach-affected apps
-    const breachedApps = apps.filter(app => app.hasBreaches);
-    if (breachedApps.length > 0) {
-      tips.push({
-        id: 'breach-alert',
-        title: 'Data Breach Alert',
-        description: `${breachedApps.length} of your connected apps have been involved in data breaches. Change passwords immediately.`,
-        category: 'SECURITY',
-        difficulty: 'CRITICAL',
-        timeEstimate: '20 min',
-        completed: false
-      });
-    }
-
-    // Tip 5: Based on third-party sharing
-    const sharingApps = apps.filter(app => app.thirdPartySharing);
-    if (sharingApps.length > 3) {
-      tips.push({
-        id: 'third-party-sharing',
-        title: 'Third-Party Data Sharing',
-        description: `${sharingApps.length} apps share your data with third parties. Review their privacy policies.`,
-        category: 'DATA_SHARING',
-        difficulty: 'MEDIUM',
-        timeEstimate: '15 min',
-        completed: false
-      });
-    }
-
-    // Tip 6: Based on app count
-    if (apps.length > 20) {
-      tips.push({
-        id: 'app-overload',
-        title: 'Too Many Connected Apps',
-        description: `You have ${apps.length} connected apps. Consider removing unused ones to reduce data exposure.`,
-        category: 'GENERAL',
-        difficulty: 'MEDIUM',
-        timeEstimate: '25 min',
-        completed: false
-      });
-    }
-
-    return tips;
   }
 
   // Check if extension is available
@@ -552,125 +388,55 @@ class ExtensionService {
     this.log('Testing extension connection...');
     
     try {
-      // Check if we're in a browser environment
-      if (typeof window === 'undefined') {
+      const status = await this.getExtensionStatus();
+      
+      if (!status.available) {
         return {
           success: false,
-          message: 'Not in browser environment',
-          details: {},
+          message: 'Chrome APIs not available',
+          details: status.debugInfo,
         };
       }
 
-      // Try to communicate with the extension through the content script
-      this.log('Attempting to communicate with extension through content script...');
-      
-      // Method 1: Try direct Chrome API (might not work on web pages)
-      if (window.chrome && window.chrome.runtime) {
-        this.log('Chrome APIs available, trying direct communication...');
-        try {
-          const pingResponse = await new Promise<any>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              reject(new Error('Extension communication timeout (5s)'));
-            }, 5000);
+      // Try a simple PING test first
+      this.log('Sending PING test...');
+      const pingResponse = await new Promise<any>((resolve, reject) => {
+        if (!window.chrome?.runtime) {
+          reject(new Error('Chrome runtime not available'));
+          return;
+        }
 
-            window.chrome!.runtime!.sendMessage(this.extensionId, { action: 'PING' }, (response: any) => {
-              clearTimeout(timeout);
-              this.log('PING response received:', response);
-              this.log('Chrome runtime lastError:', window.chrome?.runtime?.lastError);
-              
-              if (window.chrome?.runtime?.lastError) {
-                reject(new Error(window.chrome.runtime.lastError.message));
-              } else {
-                resolve(response);
-              }
-            });
-          });
-
-          if (pingResponse && pingResponse.success && pingResponse.message === 'PONG') {
-            return {
-              success: true,
-              message: 'Extension connected successfully (direct API)',
-              details: { pingResponse },
-            };
+        const extensionId = this.extensionId;
+        window.chrome.runtime.sendMessage(extensionId, { action: 'PING' }, (response: any) => {
+          if (window.chrome?.runtime?.lastError) {
+            reject(new Error(window.chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
           }
-        } catch (error) {
-          this.log('Direct API communication failed:', error);
-        }
-      }
-
-      // Method 2: Try to detect if content script is running
-      this.log('Trying to detect content script...');
-      
-      // Check if the content script has injected any elements or made any changes
-      const contentScriptDetected = document.querySelector('[data-ghostscan]') || 
-                                   window.hasOwnProperty('ghostScanExtension') ||
-                                   document.head.querySelector('script[src*="content.js"]');
-      
-      if (contentScriptDetected) {
-        this.log('Content script detected, trying to communicate...');
-        
-        // Try to send a message through the content script
-        const event = new CustomEvent('ghostscan-test-connection', {
-          detail: { action: 'PING' }
         });
-        document.dispatchEvent(event);
-        
-        // Wait for response
-        const response = await new Promise<any>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Content script communication timeout (3s)'));
-          }, 3000);
-          
-          const handler = (event: any) => {
-            clearTimeout(timeout);
-            document.removeEventListener('ghostscan-response', handler);
-            resolve(event.detail);
-          };
-          
-          document.addEventListener('ghostscan-response', handler);
-        });
-        
-        if (response && response.success) {
-          return {
-            success: true,
-            message: 'Extension connected successfully (content script)',
-            details: { response },
-          };
-        }
-      }
+      });
 
-      // Method 3: Check if extension is installed by trying to access extension storage
-      this.log('Trying to access extension storage...');
-      try {
-        if (window.chrome && window.chrome.storage) {
-          const storageData = await window.chrome.storage.local.get(null);
-          if (storageData && Object.keys(storageData).length > 0) {
-            return {
-              success: true,
-              message: 'Extension detected (storage access)',
-              details: { storageData },
-            };
-          }
-        }
-      } catch (error) {
-        this.log('Storage access failed:', error);
-      }
+      this.log('PING response:', pingResponse);
 
-      return {
-        success: false,
-        message: 'Extension not detected or not responding',
-        details: { 
-          chromeAvailable: !!window.chrome,
-          runtimeAvailable: !!(window.chrome && window.chrome.runtime),
-          contentScriptDetected: !!contentScriptDetected
-        },
-      };
+      if (pingResponse && pingResponse.success && pingResponse.message === 'PONG') {
+        return {
+          success: true,
+          message: 'Extension connected successfully (PING/PONG test passed)',
+          details: { ...status, pingResponse },
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Extension not responding to PING test',
+          details: { ...status, pingResponse },
+        };
+      }
     } catch (error) {
       this.log('Connection test error:', error);
       return {
         success: false,
         message: `Connection test failed: ${error}`,
-        details: { error: String(error) },
+        details: { error },
       };
     }
   }
