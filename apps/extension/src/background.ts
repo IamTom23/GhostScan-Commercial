@@ -2,6 +2,11 @@
 
 console.log('🔍 GhostScan Background Service Worker loaded');
 
+// Performance optimization: Limit concurrent operations
+let isProcessingScan = false;
+let lastScanTime = 0;
+const SCAN_COOLDOWN = 10000; // 10 seconds between scans
+
 // Add a global message listener as a backup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('🔍 GLOBAL MESSAGE LISTENER CALLED!');
@@ -59,7 +64,7 @@ class GhostScanBackground {
     console.log('🔍 GhostScanBackground initialization complete');
   }
 
-    private initializeListeners() {
+  private initializeListeners() {
     console.log('🔍 Initializing listeners...');
     
     // Handle extension installation
@@ -70,10 +75,9 @@ class GhostScanBackground {
       }
     });
 
-    // Handle messages from popup and content scripts
+    // Handle messages from popup and content scripts (SINGLE LISTENER)
     console.log('🔍 Setting up message listener...');
     
-    // Test if the listener is working by adding a simple test
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.log('🔍 MESSAGE LISTENER CALLED!');
       console.log('🔍 Background received message:', message);
@@ -87,16 +91,6 @@ class GhostScanBackground {
       
       // Return true to keep message channel open for async response
       return true;
-    });
-    
-    // Also try setting up a simple test listener
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log('🔍 SIMPLE TEST LISTENER CALLED!');
-      if (message.action === 'PING') {
-        console.log('🔍 PING received in simple listener');
-        sendResponse({ success: true, message: 'PONG from simple listener' });
-        return true;
-      }
     });
 
     // Handle messages from external web pages (like the dashboard)
@@ -116,30 +110,26 @@ class GhostScanBackground {
     
     console.log('🔍 Message listener set up successfully');
 
-    // Test the message listener immediately after setup
-    console.log('🔍 Testing message listener...');
-    setTimeout(() => {
-      console.log('🔍 Sending test message to self...');
-      chrome.runtime.sendMessage({action: 'PING'}, (response) => {
-        console.log('🔍 Test message response:', response);
-        if (chrome.runtime.lastError) {
-          console.log('🔍 Test message error:', chrome.runtime.lastError);
-        }
-      });
-    }, 1000);
-
-    // Track navigation to build domain history
+    // Track navigation to build domain history (optimized)
     chrome.webNavigation.onCompleted.addListener((details) => {
       if (details.url) {
         const domain = new URL(details.url).hostname;
         this.visitedDomains.add(domain);
+        // Limit stored domains to prevent memory issues
+        if (this.visitedDomains.size > 1000) {
+          const domainsArray = Array.from(this.visitedDomains);
+          this.visitedDomains = new Set(domainsArray.slice(-500));
+        }
         console.log('Tracked domain:', domain);
       }
     });
 
-    // Track cookie changes
+    // Track cookie changes (limited logging)
     chrome.cookies.onChanged.addListener((changeInfo) => {
-      console.log('Cookie changed:', changeInfo.cookie.name, 'on', changeInfo.cookie.domain);
+      // Only log significant cookie changes to reduce console spam
+      if (changeInfo.cookie.name.includes('session') || changeInfo.cookie.name.includes('auth')) {
+        console.log('Cookie changed:', changeInfo.cookie.name, 'on', changeInfo.cookie.domain);
+      }
     });
   }
 
@@ -170,9 +160,28 @@ class GhostScanBackground {
     try {
       switch (message.action) {
         case 'START_SCAN':
-          const scanResult = await this.startScan();
-          console.log('Scan completed:', scanResult);
-          sendResponse({ success: true, data: scanResult });
+          // Prevent multiple concurrent scans
+          if (isProcessingScan) {
+            sendResponse({ success: false, error: 'Scan already in progress' });
+            return;
+          }
+          
+          const now = Date.now();
+          if (now - lastScanTime < SCAN_COOLDOWN) {
+            sendResponse({ success: false, error: 'Please wait before starting another scan' });
+            return;
+          }
+          
+          isProcessingScan = true;
+          lastScanTime = now;
+          
+          try {
+            const scanResult = await this.startScan();
+            console.log('Scan completed:', scanResult);
+            sendResponse({ success: true, data: scanResult });
+          } finally {
+            isProcessingScan = false;
+          }
           break;
 
         case 'GET_SCAN_PROGRESS':
@@ -250,19 +259,19 @@ class GhostScanBackground {
     try {
       console.log('Starting real privacy scan...');
       
-      // Step 1: Collect cookies
+      // Step 1: Collect cookies (limited)
       await this.updateProgress('Collecting cookies...', 10);
       const cookies = await this.collectCookies();
       
-      // Step 2: Analyze OAuth connections
+      // Step 2: Analyze OAuth connections (optimized)
       await this.updateProgress('Analyzing OAuth connections...', 30);
       const oauthData = await this.analyzeOAuthConnections();
       
-      // Step 3: Check browsing history for SaaS applications
+      // Step 3: Check browsing history for SaaS applications (limited)
       await this.updateProgress('Analyzing browsing history for SaaS applications...', 50);
       const historyData = await this.analyzeBrowsingHistory();
       
-      // Step 4: Detect tracking scripts
+      // Step 4: Detect tracking scripts (optimized)
       await this.updateProgress('Detecting tracking scripts...', 70);
       const trackingData = await this.detectTrackingScripts();
       
@@ -290,7 +299,7 @@ class GhostScanBackground {
   private async updateProgress(message: string, progress: number): Promise<void> {
     console.log(message);
     this.scanProgress = progress;
-    await new Promise(resolve => setTimeout(resolve, 300)); // Brief pause for UI
+    await new Promise(resolve => setTimeout(resolve, 100)); // Reduced pause for better performance
   }
 
   private async collectCookies(): Promise<CookieData[]> {
@@ -298,7 +307,10 @@ class GhostScanBackground {
       const cookies = await chrome.cookies.getAll({});
       console.log(`Collected ${cookies.length} cookies`);
       
-      return cookies.map(cookie => ({
+      // Limit cookie processing to prevent freezing
+      const limitedCookies = cookies.slice(0, 500);
+      
+      return limitedCookies.map(cookie => ({
         name: cookie.name,
         domain: cookie.domain,
         value: cookie.value,
@@ -348,12 +360,12 @@ class GhostScanBackground {
         return { totalVisits: 0, uniqueDomains: 0, topDomains: [], saasApplications: [] };
       }
 
-      // Get recent browsing history (last 30 days)
-      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      // Get recent browsing history (limited to last 7 days and 500 results)
+      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
       const history = await chrome.history.search({
         text: '',
-        startTime: thirtyDaysAgo,
-        maxResults: 1000
+        startTime: sevenDaysAgo,
+        maxResults: 500 // Reduced from 1000
       });
 
       // Group by domain
@@ -385,7 +397,10 @@ class GhostScanBackground {
         'spotify', 'apple', 'microsoft', 'adobe', 'autodesk'
       ];
 
-      history.forEach(item => {
+      // Process history items with limits
+      const processedItems = history.slice(0, 300); // Limit processing
+      
+      processedItems.forEach(item => {
         if (item.url) {
           const domain = new URL(item.url).hostname;
           domainStats.set(domain, (domainStats.get(domain) || 0) + 1);
@@ -397,7 +412,7 @@ class GhostScanBackground {
           
           const shouldSkip = skipDomains.some(skip => domain.includes(skip));
           
-          if (isSaaS && !shouldSkip) {
+          if (isSaaS && !shouldSkip && saasApplications.length < 50) { // Limit SaaS apps
             // Check if we already have this application
             const existingIndex = saasApplications.findIndex(app => app.domain === domain);
             
@@ -449,11 +464,11 @@ class GhostScanBackground {
         }
       });
 
-      console.log(`Analyzed ${history.length} history items from ${domainStats.size} domains`);
+      console.log(`Analyzed ${processedItems.length} history items from ${domainStats.size} domains`);
       console.log(`Found ${saasApplications.length} potential SaaS applications`);
       
       return {
-        totalVisits: history.length,
+        totalVisits: processedItems.length,
         uniqueDomains: domainStats.size,
         topDomains: Array.from(domainStats.entries())
           .sort((a, b) => b[1] - a[1])
