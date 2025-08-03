@@ -11,7 +11,7 @@ class GhostScanBackground {
     this.initializeCookieTracking();
   }
 
-  private initializeListeners() {
+    private initializeListeners() {
     // Handle messages from popup and content scripts
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.log('Background received message:', message);
@@ -50,11 +50,11 @@ class GhostScanBackground {
         
         case 'TEST_CONNECTION':
           sendResponse({ success: true, message: 'Background script is running' });
-          return true;
+      return true;
         
         default:
           sendResponse({ error: 'Unknown action' });
-          return true;
+        return true;
       }
     });
 
@@ -89,10 +89,10 @@ class GhostScanBackground {
     console.log('Initializing GhostScan extension...');
     
     // Set initial data
-    await chrome.storage.local.set({
+      await chrome.storage.local.set({
       privacyScore: 85,
-      totalApps: 0,
-      highRiskApps: 0,
+        totalApps: 0,
+        highRiskApps: 0,
       lastScan: null,
       scanResult: null,
       detectedApplications: [],
@@ -490,17 +490,17 @@ class GhostScanBackground {
             if (domain.includes(saasDomain)) {
               const existingApp = saasApplications.find(app => app.name === saasInfo.name);
               if (!existingApp) {
-                saasApplications.push({
+              saasApplications.push({
                   name: saasInfo.name,
-                  domain: domain,
+                domain: domain,
                   type: saasInfo.type,
                   riskLevel: saasInfo.riskLevel,
                   dataTypes: ['account_info', 'usage_data'],
                   visitCount: 1,
                   lastVisit: item.lastVisitTime,
                   oauthProvider: null
-                });
-              } else {
+              });
+            } else {
                 existingApp.visitCount++;
                 if (item.lastVisitTime > existingApp.lastVisit) {
                   existingApp.lastVisit = item.lastVisitTime;
@@ -511,7 +511,7 @@ class GhostScanBackground {
           }
         }
       });
-
+      
       return {
         totalVisits: history.length,
         uniqueDomains: visitedDomains.size,
@@ -521,7 +521,7 @@ class GhostScanBackground {
 
     } catch (error) {
       console.error('Error analyzing browsing history:', error);
-      return {
+    return {
         totalVisits: 0,
         uniqueDomains: 0,
         saasApplications: [],

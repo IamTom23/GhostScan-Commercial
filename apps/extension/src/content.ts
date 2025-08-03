@@ -75,9 +75,9 @@ class GhostScanContent {
         
         default:
           sendResponse({ error: 'Unknown action' });
-      }
-    });
-  }
+    }
+  });
+}
 
   private detectOAuthElements() {
     const oauthSelectors = [
@@ -115,7 +115,7 @@ class GhostScanContent {
         }
       });
     });
-  }
+}
 
   private detectTrackingScripts() {
     const scripts = document.querySelectorAll('script[src]');
@@ -137,7 +137,7 @@ class GhostScanContent {
       'tiktok',
       'snapchat'
     ];
-
+    
     scripts.forEach(script => {
       const src = script.getAttribute('src') || '';
       const trackingPattern = trackingPatterns.find(pattern => 
@@ -154,13 +154,13 @@ class GhostScanContent {
 
         // Send to background script
         chrome.runtime.sendMessage({
-          action: 'TRACKING_DETECTED',
+            action: 'TRACKING_DETECTED',
           tracker: trackingPattern,
-          url: window.location.href
-        });
-      }
+            url: window.location.href
+          });
+        }
     });
-  }
+}
 
   private detectFormFields() {
     const forms = document.querySelectorAll('form');
@@ -188,7 +188,7 @@ class GhostScanContent {
         });
       }
     });
-  }
+}
 
   private detectSaaSApplication() {
     const domain = window.location.hostname;
