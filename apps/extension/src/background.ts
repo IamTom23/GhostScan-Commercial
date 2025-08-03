@@ -291,31 +291,42 @@ class GhostScanBackground {
     this.scanProgress = 0;
 
     try {
-      console.log('Starting real privacy scan...');
+      console.log('🔍 Starting privacy scan...');
       
-      // Step 1: Collect cookies (limited)
-      await this.updateProgress('Collecting cookies...', 10);
+      // Step 1: Clear previous detection data
+      await this.updateProgress('Preparing scan...', 5);
+      await this.clearScanData();
+      
+      // Step 2: Trigger content script detections and wait for results
+      await this.updateProgress('Scanning current pages...', 20);
+      await this.triggerContentScriptScans();
+      
+      // Step 3: Wait for content script detections to complete
+      await this.updateProgress('Collecting detection results...', 40);
+      await this.waitForContentScriptResults();
+      
+      // Step 4: Collect cookies (limited)
+      await this.updateProgress('Collecting cookies...', 60);
       const cookies = await this.collectCookies();
       
-      // Step 2: Analyze OAuth connections (optimized)
-      await this.updateProgress('Analyzing OAuth connections...', 30);
-      const oauthData = await this.analyzeOAuthConnections();
-      
-      // Step 3: Check browsing history for SaaS applications (limited)
-      await this.updateProgress('Analyzing browsing history for SaaS applications...', 50);
+      // Step 5: Analyze browsing history for SaaS applications (limited)
+      await this.updateProgress('Analyzing browsing history...', 80);
       const historyData = await this.analyzeBrowsingHistory();
       
-      // Step 4: Detect tracking scripts (optimized)
-      await this.updateProgress('Detecting tracking scripts...', 70);
-      const trackingData = await this.detectTrackingScripts();
+      // Step 6: Get stored detection data from content scripts
+      const storedData = await this.getStorageData();
+      const oauthData = storedData.oauthDetections || [];
+      const trackingData = storedData.trackingDetections || [];
+      const detectedApps = storedData.detectedApplications || [];
       
-      // Step 5: Generate comprehensive report
+      // Step 7: Generate comprehensive report
       await this.updateProgress('Generating privacy report...', 90);
       const scanResult = await this.generateComprehensiveReport(
         cookies, 
         oauthData, 
         historyData, 
-        trackingData
+        trackingData,
+        detectedApps
       );
 
       // Store scan result
@@ -328,6 +339,38 @@ class GhostScanBackground {
       this.isScanning = false;
       this.scanProgress = 0;
     }
+  }
+
+  private async triggerContentScriptScans(): Promise<void> {
+    try {
+      // Get all tabs
+      const tabs = await chrome.tabs.query({});
+      let scanCount = 0;
+      
+      for (const tab of tabs) {
+        if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
+          try {
+            await chrome.tabs.sendMessage(tab.id, { action: 'START_SCAN' });
+            scanCount++;
+            console.log(`🔍 Triggered scan on tab ${tab.id}`);
+          } catch (error) {
+            // Content script might not be loaded on this tab
+            console.log(`🔍 Could not trigger scan on tab ${tab.id}:`, error);
+          }
+        }
+      }
+      
+      console.log(`🔍 Triggered scans on ${scanCount} tabs`);
+    } catch (error) {
+      console.error('🔍 Error triggering content script scans:', error);
+    }
+  }
+
+  private async waitForContentScriptResults(): Promise<void> {
+    // Wait for content scripts to complete their detections
+    // Give them time to process and send data
+    await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds
+    console.log('🔍 Content script detection time completed');
   }
 
   private async updateProgress(message: string, progress: number): Promise<void> {
@@ -548,7 +591,8 @@ class GhostScanBackground {
     cookies: CookieData[],
     oauthData: any[],
     historyData: any,
-    trackingData: string[]
+    trackingData: string[],
+    detectedApps: any[] = []
   ): Promise<ScanResult> {
     // Get detected applications from storage
     const result = await chrome.storage.local.get(['detectedApplications']);
@@ -595,7 +639,8 @@ class GhostScanBackground {
     });
 
     // Process detected SaaS applications from real-time detection
-    detectedApplications.forEach((detectedApp: any) => {
+    const allDetectedApps = [...detectedApplications, ...detectedApps];
+    allDetectedApps.forEach((detectedApp: any) => {
       const app: AppData = {
         id: detectedApp.id,
         name: detectedApp.name,
