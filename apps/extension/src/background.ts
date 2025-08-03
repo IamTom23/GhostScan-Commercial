@@ -248,9 +248,9 @@ class GhostScanBackground {
           console.log('🔍 Unknown message action:', message.action);
           sendResponse({ success: false, error: 'Unknown action' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('🔍 Error handling message:', error);
-      sendResponse({ success: false, error: (error as Error).message });
+      sendResponse({ success: false, error: error.message || String(error) });
     } finally {
       activeOperations--;
     }
@@ -262,21 +262,41 @@ class GhostScanBackground {
     try {
       console.log('🔍 Handling external message:', message);
       
-      // Only allow specific external actions for security
+      // Handle dashboard communication
       if (message.action === 'GET_EXTENSION_STATUS') {
         sendResponse({ 
           success: true, 
           status: 'active',
           version: '1.0.1'
         });
+      } else if (message.action === 'START_SCAN') {
+        // Handle scan request from dashboard
+        if (isProcessingScan) {
+          sendResponse({ success: false, error: 'Scan already in progress' });
+          return;
+        }
+        const now = Date.now();
+        if (now - lastScanTime < SCAN_COOLDOWN) {
+          sendResponse({ success: false, error: 'Please wait before starting another scan' });
+          return;
+        }
+        isProcessingScan = true;
+        lastScanTime = now;
+        
+        try {
+          const scanResult = await this.startScan();
+          sendResponse({ success: true, data: scanResult });
+        } finally {
+          isProcessingScan = false;
+        }
       } else if (message.action === 'PING') {
         sendResponse({ success: true, message: 'PONG from external' });
       } else {
         sendResponse({ success: false, error: 'Unauthorized action' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('🔍 Error handling external message:', error);
-      sendResponse({ success: false, error: (error as Error).message });
+      sendResponse({ success: false, error: error.message || String(error) });
     } finally {
       activeOperations--;
     }
