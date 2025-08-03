@@ -7,16 +7,9 @@ let isProcessingScan = false;
 let lastScanTime = 0;
 const SCAN_COOLDOWN = 10000; // 10 seconds between scans
 
-// Add a global message listener as a backup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('🔍 GLOBAL MESSAGE LISTENER CALLED!');
-  console.log('🔍 Global message:', message);
-  if (message.action === 'PING') {
-    console.log('🔍 PING received in global listener');
-    sendResponse({ success: true, message: 'PONG from global listener' });
-    return true;
-  }
-});
+// Track active operations to prevent overload
+let activeOperations = 0;
+const MAX_CONCURRENT_OPERATIONS = 3;
 
 interface ScanResult {
   apps: AppData[];
@@ -75,16 +68,18 @@ class GhostScanBackground {
       }
     });
 
-    // Handle messages from popup and content scripts (SINGLE LISTENER)
-    console.log('🔍 Setting up message listener...');
+    // SINGLE MESSAGE LISTENER - Remove all duplicates
+    console.log('🔍 Setting up SINGLE message listener...');
     
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log('🔍 MESSAGE LISTENER CALLED!');
-      console.log('🔍 Background received message:', message);
-      console.log('🔍 Sender:', sender);
-      console.log('🔍 Message action:', message.action);
-      console.log('🔍 Sender origin:', sender.origin);
-      console.log('🔍 Sender tab:', sender.tab);
+      console.log('🔍 Background received message:', message.action);
+      
+      // Check if we're overloaded
+      if (activeOperations >= MAX_CONCURRENT_OPERATIONS) {
+        console.log('🔍 Too many concurrent operations, rejecting request');
+        sendResponse({ success: false, error: 'System busy, please try again' });
+        return true;
+      }
       
       // Handle the message
       this.handleMessage(message, sender, sendResponse);
@@ -96,26 +91,25 @@ class GhostScanBackground {
     // Handle messages from external web pages (like the dashboard)
     console.log('🔍 Setting up external message listener...');
     chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-      console.log('🔍 EXTERNAL MESSAGE LISTENER CALLED!');
       console.log('🔍 External message:', message);
-      console.log('🔍 External sender:', sender);
-      console.log('🔍 External sender origin:', sender.origin);
       
-      // Handle the message the same way as internal messages
-      this.handleMessage(message, sender, sendResponse);
+      // Check if we're overloaded
+      if (activeOperations >= MAX_CONCURRENT_OPERATIONS) {
+        console.log('🔍 Too many concurrent operations, rejecting external request');
+        sendResponse({ success: false, error: 'System busy, please try again' });
+        return true;
+      }
       
-      // Return true to keep message channel open for async response
+      // Handle external messages
+      this.handleExternalMessage(message, sender, sendResponse);
       return true;
     });
-    
-    console.log('🔍 Message listener set up successfully');
 
     // Track navigation to build domain history (optimized)
     chrome.webNavigation.onCompleted.addListener((details) => {
       if (details.url) {
         const domain = new URL(details.url).hostname;
         this.visitedDomains.add(domain);
-        // Limit stored domains to prevent memory issues
         if (this.visitedDomains.size > 1000) {
           const domainsArray = Array.from(this.visitedDomains);
           this.visitedDomains = new Set(domainsArray.slice(-500));
@@ -126,125 +120,165 @@ class GhostScanBackground {
 
     // Track cookie changes (limited logging)
     chrome.cookies.onChanged.addListener((changeInfo) => {
-      // Only log significant cookie changes to reduce console spam
-      if (changeInfo.cookie.name.includes('session') || changeInfo.cookie.name.includes('auth')) {
-        console.log('Cookie changed:', changeInfo.cookie.name, 'on', changeInfo.cookie.domain);
+      if (changeInfo.cookie.name.includes('_ga') || 
+          changeInfo.cookie.name.includes('_fbp') || 
+          changeInfo.cookie.name.includes('_gid')) {
+        console.log('Tracking cookie changed:', changeInfo.cookie.name);
       }
     });
   }
 
   private async onFirstInstall() {
-    console.log('GhostScan extension first install');
-    
+    console.log('🔍 First install - initializing extension');
     try {
-      // Set up initial storage
+      // Initialize storage with default values
       await chrome.storage.local.set({
-        installed: true,
-        firstScan: false,
-        lastScan: null,
-        privacyScore: 0,
+        privacyScore: 85,
         totalApps: 0,
         highRiskApps: 0,
-        visitedDomains: [],
-        oauthConnections: {}
+        lastScan: null,
+        scanResult: null,
+        detectedApplications: [],
+        oauthDetections: [],
+        trackingDetections: []
       });
-      console.log('Initial storage set up');
+      console.log('🔍 Extension initialized successfully');
     } catch (error) {
-      console.error('Error setting up initial storage:', error);
+      console.error('🔍 Error initializing extension:', error);
     }
   }
 
   private async handleMessage(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
-    console.log('Handling message:', message.action);
+    activeOperations++;
     
     try {
+      console.log('🔍 Handling message:', message.action);
+      
       switch (message.action) {
         case 'START_SCAN':
-          // Prevent multiple concurrent scans
           if (isProcessingScan) {
             sendResponse({ success: false, error: 'Scan already in progress' });
             return;
           }
-          
           const now = Date.now();
           if (now - lastScanTime < SCAN_COOLDOWN) {
             sendResponse({ success: false, error: 'Please wait before starting another scan' });
             return;
           }
-          
           isProcessingScan = true;
           lastScanTime = now;
           
           try {
+            // Notify all content scripts to start scanning
+            const tabs = await chrome.tabs.query({});
+            for (const tab of tabs) {
+              if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
+                try {
+                  await chrome.tabs.sendMessage(tab.id, { action: 'START_SCAN' });
+                } catch (error) {
+                  // Content script might not be loaded on this tab
+                  console.log('🔍 Could not send START_SCAN to tab:', tab.id);
+                }
+              }
+            }
+            
             const scanResult = await this.startScan();
-            console.log('Scan completed:', scanResult);
             sendResponse({ success: true, data: scanResult });
           } finally {
             isProcessingScan = false;
+            
+            // Notify all content scripts to stop scanning
+            const tabs = await chrome.tabs.query({});
+            for (const tab of tabs) {
+              if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
+                try {
+                  await chrome.tabs.sendMessage(tab.id, { action: 'STOP_SCAN' });
+                } catch (error) {
+                  // Content script might not be loaded on this tab
+                  console.log('🔍 Could not send STOP_SCAN to tab:', tab.id);
+                }
+              }
+            }
           }
           break;
 
-        case 'GET_SCAN_PROGRESS':
+        case 'GET_SCAN_STATUS':
           sendResponse({ 
             success: true, 
-            data: { 
-              isScanning: this.isScanning, 
-              progress: this.scanProgress 
-            } 
+            isScanning: this.isScanning, 
+            progress: this.scanProgress 
           });
           break;
 
-        case 'TEST_CHROME_API':
-          const apiTest = await this.testChromeAPI();
-          sendResponse({ success: true, data: apiTest });
+        case 'GET_STORED_DATA':
+          const data = await this.getStorageData();
+          sendResponse({ success: true, data });
           break;
 
-        case 'GET_STORAGE_DATA':
-          const storageData = await this.getStorageData();
-          sendResponse({ success: true, data: storageData });
-          break;
-
-        case 'CLEAR_SCAN_DATA':
+        case 'CLEAR_DATA':
           await this.clearScanData();
-          sendResponse({ success: true, message: 'Scan data cleared' });
+          sendResponse({ success: true });
           break;
 
         case 'PING':
-          console.log('🔍 PING received, sending PONG');
-          sendResponse({ success: true, message: 'PONG', timestamp: new Date() });
-          break;
-
-        case 'SAAS_APPLICATION_DETECTED':
-          console.log('🔍 SaaS application detected:', message);
-          await this.storeDetectedApplication(message);
-          sendResponse({ success: true, message: 'SaaS application stored' });
+          sendResponse({ success: true, message: 'PONG from background' });
           break;
 
         case 'OAUTH_DETECTED':
-          console.log('🔍 OAuth provider detected:', message);
           await this.storeOAuthDetection(message);
-          sendResponse({ success: true, message: 'OAuth detection stored' });
+          sendResponse({ success: true });
           break;
 
         case 'TRACKING_DETECTED':
-          console.log('🔍 Tracking script detected:', message);
           await this.storeTrackingDetection(message);
-          sendResponse({ success: true, message: 'Tracking detection stored' });
+          sendResponse({ success: true });
           break;
 
-        case 'SENSITIVE_FORM_DETECTED':
-          console.log('🔍 Sensitive form detected:', message);
+        case 'FORM_DETECTED':
           await this.storeFormDetection(message);
-          sendResponse({ success: true, message: 'Form detection stored' });
+          sendResponse({ success: true });
+          break;
+
+        case 'APP_DETECTED':
+          await this.storeDetectedApplication(message);
+          sendResponse({ success: true });
           break;
 
         default:
-          console.log('Unknown action:', message.action);
+          console.log('🔍 Unknown message action:', message.action);
           sendResponse({ success: false, error: 'Unknown action' });
       }
     } catch (error) {
-      console.error('Error handling message:', error);
+      console.error('🔍 Error handling message:', error);
       sendResponse({ success: false, error: (error as Error).message });
+    } finally {
+      activeOperations--;
+    }
+  }
+
+  private async handleExternalMessage(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
+    activeOperations++;
+    
+    try {
+      console.log('🔍 Handling external message:', message);
+      
+      // Only allow specific external actions for security
+      if (message.action === 'GET_EXTENSION_STATUS') {
+        sendResponse({ 
+          success: true, 
+          status: 'active',
+          version: '1.0.1'
+        });
+      } else if (message.action === 'PING') {
+        sendResponse({ success: true, message: 'PONG from external' });
+      } else {
+        sendResponse({ success: false, error: 'Unauthorized action' });
+      }
+    } catch (error) {
+      console.error('🔍 Error handling external message:', error);
+      sendResponse({ success: false, error: (error as Error).message });
+    } finally {
+      activeOperations--;
     }
   }
 

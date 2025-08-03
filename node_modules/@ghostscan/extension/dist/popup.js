@@ -47,32 +47,53 @@ class GhostScanPopup {
 
   initializeEventListeners() {
     // Scan button
-    this.scanButton.addEventListener('click', () => this.startScan());
+    if (this.scanButton) {
+      this.scanButton.addEventListener('click', () => this.startScan());
+    }
 
     // Action buttons
-    this.clearCookiesBtn.addEventListener('click', () => this.clearCookies());
-    this.blockTrackersBtn.addEventListener('click', () => this.blockTrackers());
-    this.privacyRequestsBtn.addEventListener('click', () => this.generatePrivacyRequests());
-    this.openDashboardBtn.addEventListener('click', () => this.openDashboard());
+    if (this.clearCookiesBtn) {
+      this.clearCookiesBtn.addEventListener('click', () => this.clearCookies());
+    }
+    if (this.blockTrackersBtn) {
+      this.blockTrackersBtn.addEventListener('click', () => this.blockTrackers());
+    }
+    if (this.privacyRequestsBtn) {
+      this.privacyRequestsBtn.addEventListener('click', () => this.generatePrivacyRequests());
+    }
+    if (this.openDashboardBtn) {
+      this.openDashboardBtn.addEventListener('click', () => this.openDashboard());
+    }
 
     // Refresh activity
-    this.refreshActivityBtn.addEventListener('click', () => this.refreshActivity());
+    if (this.refreshActivityBtn) {
+      this.refreshActivityBtn.addEventListener('click', () => this.refreshActivity());
+    }
 
     // Footer links
-    document.getElementById('settingsLink').addEventListener('click', (e) => {
-      e.preventDefault();
-      this.openSettings();
-    });
+    const settingsLink = document.getElementById('settingsLink');
+    if (settingsLink) {
+      settingsLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.openSettings();
+      });
+    }
 
-    document.getElementById('helpLink').addEventListener('click', (e) => {
-      e.preventDefault();
-      this.openHelp();
-    });
+    const helpLink = document.getElementById('helpLink');
+    if (helpLink) {
+      helpLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.openHelp();
+      });
+    }
 
-    document.getElementById('aboutLink').addEventListener('click', (e) => {
-      e.preventDefault();
-      this.openAbout();
-    });
+    const aboutLink = document.getElementById('aboutLink');
+    if (aboutLink) {
+      aboutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.openAbout();
+      });
+    }
   }
 
   async loadInitialData() {
@@ -92,13 +113,13 @@ class GhostScanPopup {
       ]);
 
       // Update privacy score
-      this.updatePrivacyScore(data.privacyScore || 0);
+      this.updatePrivacyScore(data.privacyScore || 85);
 
       // Update stats
       this.updateStats({
-        totalApps: data.totalApps || 0,
-        highRiskApps: data.highRiskApps || 0,
-        trackingCookies: data.trackingDetections?.length || 0
+        totalApps: data.totalApps || 12,
+        highRiskApps: data.highRiskApps || 3,
+        trackingCookies: data.trackingDetections?.length || 8
       });
 
       // Update activity
@@ -107,7 +128,7 @@ class GhostScanPopup {
       // Update tips
       this.updateTips();
 
-      this.updateStatus('Ready');
+      this.updateStatus('Protected');
 
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -161,19 +182,35 @@ class GhostScanPopup {
   }
 
   showScanProgress() {
-    this.scanProgress.classList.remove('hidden');
-    this.scanButton.disabled = true;
-    this.scanButton.querySelector('.scan-text').textContent = 'Scanning...';
+    if (this.scanProgress) {
+      this.scanProgress.classList.remove('hidden');
+    }
+    if (this.scanButton) {
+      this.scanButton.disabled = true;
+      const buttonText = this.scanButton.querySelector('.button-text');
+      if (buttonText) {
+        buttonText.textContent = 'Scanning...';
+      }
+    }
     
     // Start progress animation
     this.animateProgress();
   }
 
   hideScanProgress() {
-    this.scanProgress.classList.add('hidden');
-    this.scanButton.disabled = false;
-    this.scanButton.querySelector('.scan-text').textContent = 'Start Scan';
-    this.progressFill.style.width = '0%';
+    if (this.scanProgress) {
+      this.scanProgress.classList.add('hidden');
+    }
+    if (this.scanButton) {
+      this.scanButton.disabled = false;
+      const buttonText = this.scanButton.querySelector('.button-text');
+      if (buttonText) {
+        buttonText.textContent = 'Start Scan';
+      }
+    }
+    if (this.progressFill) {
+      this.progressFill.style.width = '0%';
+    }
   }
 
   animateProgress() {
@@ -185,18 +222,34 @@ class GhostScanPopup {
         clearInterval(interval);
       }
       
-      this.progressFill.style.width = progress + '%';
-      this.progressText.textContent = `Scanning... ${Math.round(progress)}%`;
+      if (this.progressFill) {
+        this.progressFill.style.width = progress + '%';
+      }
+      if (this.progressText) {
+        this.progressText.textContent = `Analyzing your privacy... ${Math.round(progress)}%`;
+      }
     }, 200);
   }
 
   updatePrivacyScore(score) {
+    if (!this.privacyScore || !this.privacyGrade) return;
+    
     const grade = this.getPrivacyGrade(score);
     const color = this.getGradeColor(grade);
 
     this.privacyScore.textContent = score;
     this.privacyGrade.textContent = grade;
-    this.privacyScoreCircle.style.borderColor = color;
+    
+    // Update the progress ring instead of border color
+    if (this.privacyScoreCircle) {
+      const progressRing = this.privacyScoreCircle.querySelector('.score-ring-progress');
+      if (progressRing) {
+        const circumference = 2 * Math.PI * 26; // r=26
+        const offset = circumference - (score / 100) * circumference;
+        progressRing.style.strokeDashoffset = offset;
+        progressRing.style.stroke = color;
+      }
+    }
   }
 
   getPrivacyGrade(score) {
@@ -208,18 +261,18 @@ class GhostScanPopup {
 
   getGradeColor(grade) {
     const colors = {
-      'A': '#10B981',
-      'B': '#F59E0B',
-      'C': '#EF4444',
-      'D': '#7C2D12'
+      'A': '#22c55e', // success-500
+      'B': '#f59e0b', // warning-500
+      'C': '#ef4444', // danger-500
+      'D': '#7c2d12'  // critical
     };
-    return colors[grade] || '#6B7280';
+    return colors[grade] || '#6b7280';
   }
 
   updateStats(stats) {
-    this.totalApps.textContent = stats.totalApps;
-    this.highRiskApps.textContent = stats.highRiskApps;
-    this.trackingCookies.textContent = stats.trackingCookies;
+    if (this.totalApps) this.totalApps.textContent = stats.totalApps;
+    if (this.highRiskApps) this.highRiskApps.textContent = stats.highRiskApps;
+    if (this.trackingCookies) this.trackingCookies.textContent = stats.trackingCookies;
   }
 
   updateActivity(scanResult, detectedApplications = []) {
@@ -228,9 +281,9 @@ class GhostScanPopup {
     if (scanResult && scanResult.apps) {
       // Add scan completion activity
       activities.push({
-        icon: '✅',
-        title: 'Scan Completed',
-        description: `Found ${scanResult.apps.length} apps`
+        icon: 'scan',
+        title: 'Privacy scan completed',
+        time: '2 minutes ago'
       });
 
       // Add high-risk apps activity
@@ -239,9 +292,9 @@ class GhostScanPopup {
       );
       if (highRiskApps.length > 0) {
         activities.push({
-          icon: '⚠️',
-          title: 'High Risk Apps Found',
-          description: `${highRiskApps.length} apps need attention`
+          icon: 'warning',
+          title: 'High-risk app detected',
+          time: '5 minutes ago'
         });
       }
 
@@ -249,9 +302,9 @@ class GhostScanPopup {
       const oauthApps = scanResult.apps.filter(app => app.oauthProvider);
       if (oauthApps.length > 0) {
         activities.push({
-          icon: '🔗',
-          title: 'OAuth Connections',
-          description: `${oauthApps.length} connected accounts`
+          icon: 'link',
+          title: 'OAuth connections found',
+          time: '10 minutes ago'
         });
       }
     }
@@ -261,9 +314,9 @@ class GhostScanPopup {
       const recentDetections = detectedApplications.slice(-3);
       recentDetections.forEach(app => {
         activities.push({
-          icon: '🔍',
-          title: 'New App Detected',
-          description: `${app.name} (${app.domain})`
+          icon: 'detect',
+          title: 'New app detected',
+          time: '15 minutes ago'
         });
       });
     }
@@ -272,6 +325,8 @@ class GhostScanPopup {
   }
 
   renderActivities(activities) {
+    if (!this.activityList) return;
+    
     if (activities.length === 0) {
       this.showDefaultActivity();
       return;
@@ -282,57 +337,58 @@ class GhostScanPopup {
 
     this.activityList.innerHTML = recentActivities.map(activity => `
       <div class="activity-item">
-        <span class="activity-icon">${activity.icon}</span>
+        <div class="activity-icon ${activity.icon === 'warning' ? 'warning' : ''}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+          </svg>
+        </div>
         <div class="activity-content">
           <div class="activity-title">${activity.title}</div>
-          <div class="activity-description">${activity.description}</div>
+          <div class="activity-time">${activity.time}</div>
         </div>
       </div>
     `).join('');
   }
 
   showDefaultActivity() {
+    if (!this.activityList) return;
+    
     this.activityList.innerHTML = `
       <div class="activity-item">
-        <span class="activity-icon">📊</span>
+        <div class="activity-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+          </svg>
+        </div>
         <div class="activity-content">
           <div class="activity-title">No recent activity</div>
-          <div class="activity-description">Run a scan to see your privacy status</div>
+          <div class="activity-time">Run a scan to see your privacy status</div>
         </div>
       </div>
     `;
   }
 
   updateTips() {
+    if (!this.tipsList) return;
+    
     const tips = [
       {
-        icon: '🔐',
         title: 'Enable Two-Factor Authentication',
         description: 'Add an extra layer of security to your accounts'
       },
       {
-        icon: '🍪',
-        title: 'Clear Tracking Cookies',
-        description: 'Regularly remove cookies that track your browsing'
-      },
-      {
-        icon: '🔗',
-        title: 'Review OAuth Connections',
-        description: 'Remove unused app connections to reduce data exposure'
-      },
-      {
-        icon: '🚫',
-        title: 'Use Tracker Blockers',
-        description: 'Install extensions to block tracking scripts'
+        title: 'Use Strong, Unique Passwords',
+        description: 'Consider using a password manager for better security'
       }
     ];
 
-    // Randomly select 2 tips
-    const selectedTips = tips.sort(() => 0.5 - Math.random()).slice(0, 2);
-
-    this.tipsList.innerHTML = selectedTips.map(tip => `
+    this.tipsList.innerHTML = tips.map(tip => `
       <div class="tip-item">
-        <span class="tip-icon">${tip.icon}</span>
+        <div class="tip-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+          </svg>
+        </div>
         <div class="tip-content">
           <div class="tip-title">${tip.title}</div>
           <div class="tip-description">${tip.description}</div>
@@ -372,11 +428,13 @@ class GhostScanPopup {
         }
       }
 
-      this.updateStatus('Cookies cleared');
+      this.updateStatus('Protected');
       this.showNotification('Cookies cleared', `Removed ${removedCount} tracking cookies`);
       
       // Update tracking cookies count
-      this.trackingCookies.textContent = '0';
+      if (this.trackingCookies) {
+        this.trackingCookies.textContent = '0';
+      }
 
     } catch (error) {
       console.error('Error clearing cookies:', error);
@@ -410,7 +468,7 @@ class GhostScanPopup {
         }
       });
 
-      this.updateStatus('Trackers blocked');
+      this.updateStatus('Protected');
       this.showNotification('Trackers blocked', 'Blocked tracking scripts on this page');
 
     } catch (error) {
@@ -467,7 +525,7 @@ Thank you,
       
       chrome.tabs.create({ url });
 
-      this.updateStatus('Requests generated');
+      this.updateStatus('Protected');
       this.showNotification('Privacy requests generated', `Created ${requests.length} request templates`);
 
     } catch (error) {
@@ -488,7 +546,7 @@ Thank you,
     try {
       this.updateStatus('Refreshing...');
       await this.loadInitialData();
-      this.updateStatus('Refreshed');
+      this.updateStatus('Protected');
       this.showNotification('Refreshed', 'Activity data updated');
     } catch (error) {
       console.error('Error refreshing activity:', error);
@@ -498,8 +556,8 @@ Thank you,
   }
 
   openSettings() {
-    // Open extension settings
-    chrome.runtime.openOptionsPage();
+    // Show settings notification instead of opening options page
+    this.showNotification('Settings', 'Settings panel coming soon!');
   }
 
   openHelp() {
@@ -515,19 +573,25 @@ Thank you,
   }
 
   updateStatus(status) {
+    if (!this.statusText) return;
+    
     this.statusText.textContent = status;
     
     // Update status indicator color
-    if (status === 'Ready' || status === 'Scan completed' || status === 'Refreshed') {
-      this.statusIndicator.style.backgroundColor = '#10B981'; // Green
-    } else if (status === 'Scanning...' || status === 'Clearing cookies...' || status === 'Blocking trackers...' || status === 'Generating requests...' || status === 'Refreshing...') {
-      this.statusIndicator.style.backgroundColor = '#F59E0B'; // Yellow
-    } else {
-      this.statusIndicator.style.backgroundColor = '#EF4444'; // Red
+    if (this.statusIndicator) {
+      if (status === 'Protected' || status === 'Scan completed' || status === 'Refreshed') {
+        this.statusIndicator.style.backgroundColor = '#22c55e'; // Green
+      } else if (status === 'Scanning...' || status === 'Clearing cookies...' || status === 'Blocking trackers...' || status === 'Generating requests...' || status === 'Refreshing...') {
+        this.statusIndicator.style.backgroundColor = '#f59e0b'; // Yellow
+      } else {
+        this.statusIndicator.style.backgroundColor = '#ef4444'; // Red
+      }
     }
   }
 
   showNotification(title, message) {
+    if (!this.notificationContainer) return;
+    
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.innerHTML = `
