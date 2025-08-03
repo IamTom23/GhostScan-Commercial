@@ -1,330 +1,470 @@
 // GhostScan Browser Extension - Content Script
 
-console.log('🔍 GhostScan Content Script loaded');
+class GhostScanContent {
+  private isInitialized: boolean = false;
+  private detectedApplications: any[] = [];
+  private oauthDetections: any[] = [];
+  private trackingDetections: any[] = [];
+  private formDetections: any[] = [];
 
-// Add a marker to indicate the content script is running
-document.documentElement.setAttribute('data-ghostscan', 'loaded');
+  constructor() {
+    this.initialize();
+  }
 
-// Add a global property to indicate extension is available
-(window as any).ghostScanExtension = {
-  version: '1.0.1',
-  available: true
-};
+  private initialize() {
+    if (this.isInitialized) return;
+    
+    console.log('GhostScan content script initialized');
+    this.isInitialized = true;
 
-// Performance optimization: Only run detections when scan is initiated
-let isProcessing = false;
-let lastDetectionTime = 0;
-const DETECTION_COOLDOWN = 10000; // 10 seconds between detections
-let detectionCount = 0;
-const MAX_DETECTIONS_PER_PAGE = 3;
-let scanMode = false; // Track if we're in scan mode
+    // Run initial detection
+    this.detectOAuthElements();
+    this.detectTrackingScripts();
+    this.detectFormFields();
+    this.detectSaaSApplication();
 
-// Helper function to safely send messages to background script
-function safeSendMessage(message: any): Promise<any> {
-  return new Promise((resolve, reject) => {
-    try {
-      if (typeof chrome === 'undefined' || !chrome.runtime) {
-        reject(new Error('Chrome runtime not available'));
-        return;
+    // Set up mutation observer to detect dynamic content
+    this.setupMutationObserver();
+
+    // Listen for messages from background script
+    this.setupMessageListener();
+  }
+
+  private setupMutationObserver() {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          // New elements added, run detection again
+          this.detectOAuthElements();
+          this.detectTrackingScripts();
+          this.detectFormFields();
+          this.detectSaaSApplication();
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  private setupMessageListener() {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log('Content script received message:', message);
+      
+      switch (message.action) {
+        case 'ANALYZE_PAGE':
+          const analysis = this.analyzePage();
+          sendResponse(analysis);
+          break;
+        
+        case 'GET_DETECTIONS':
+          sendResponse({
+            applications: this.detectedApplications,
+            oauth: this.oauthDetections,
+            tracking: this.trackingDetections,
+            forms: this.formDetections
+          });
+          break;
+        
+        case 'CLEAR_DETECTIONS':
+          this.clearDetections();
+          sendResponse({ success: true });
+          break;
+        
+        default:
+          sendResponse({ error: 'Unknown action' });
       }
-
-      chrome.runtime.sendMessage(message, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else {
-          resolve(response);
-        }
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-// Throttled detection function - only runs when scan is active
-function throttledDetection() {
-  if (!scanMode) {
-    console.log('🔍 Detection skipped - not in scan mode');
-    return;
+    });
   }
-  
-  if (isProcessing) return;
-  
-  const now = Date.now();
-  if (now - lastDetectionTime < DETECTION_COOLDOWN) return;
-  
-  if (detectionCount >= MAX_DETECTIONS_PER_PAGE) {
-    console.log('🔍 Max detections reached for this page');
-    return;
-  }
-  
-  isProcessing = true;
-  lastDetectionTime = now;
-  detectionCount++;
-  
-  try {
-    // Only run one detection at a time to prevent freezing
-    const detections = [
-      () => detectOAuthElements(),
-      () => detectTrackingScripts(),
-      () => detectFormFields(),
-      () => detectSaaSApplication()
+
+  private detectOAuthElements() {
+    const oauthSelectors = [
+      'button[data-provider]',
+      '.oauth-button',
+      '[class*="oauth"]',
+      '[class*="google"]',
+      '[class*="facebook"]',
+      '[class*="github"]',
+      '[class*="twitter"]',
+      '[class*="linkedin"]',
+      '[class*="microsoft"]',
+      '[class*="apple"]'
     ];
-    
-    // Run detections with delays to prevent blocking
-    detections.forEach((detection, index) => {
-      setTimeout(() => {
-        try {
-          detection();
-        } catch (error) {
-          console.log('🔍 Detection error:', error);
-        }
-      }, index * 100); // 100ms delay between each detection
-    });
-  } finally {
-    setTimeout(() => {
-      isProcessing = false;
-    }, 500); // 500ms cooldown
-  }
-}
 
-// Detect OAuth buttons and forms (heavily optimized)
-function detectOAuthElements() {
-  try {
-    // Very limited DOM queries to prevent freezing
-    const oauthButtons = document.querySelectorAll('button, a');
-    if (oauthButtons.length > 50) { // Reduced from 100
-      console.log('🔍 Too many elements, skipping OAuth detection');
-      return;
-    }
-    
-    const oauthProviders = ['google', 'facebook', 'github', 'twitter', 'linkedin'];
-    const detectedProviders = new Set<string>();
-    
-    // Only check first 20 elements to prevent freezing
-    const limitedButtons = Array.from(oauthButtons).slice(0, 20);
-    
-    limitedButtons.forEach(button => {
-      if (detectedProviders.size >= 3) return; // Reduced from 5
-      
-      const text = button.textContent?.toLowerCase() || '';
-      const href = (button as HTMLAnchorElement).href?.toLowerCase() || '';
-      
-      oauthProviders.forEach(provider => {
-        if (text.includes(provider) || href.includes(provider)) {
-          if (!detectedProviders.has(provider)) {
-            detectedProviders.add(provider);
-            console.log(`🔍 Found OAuth provider: ${provider}`);
-            // Send message to background script safely
-            safeSendMessage({
-              action: 'OAUTH_DETECTED',
-              provider: provider,
-              url: window.location.href
-            }).catch(error => {
-              console.log('🔍 Failed to send OAuth detection:', error);
-            });
-          }
+    oauthSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(element => {
+        const provider = this.detectOAuthProvider(element);
+        if (provider) {
+          this.oauthDetections.push({
+            provider: provider,
+            element: element.tagName,
+            text: element.textContent?.trim(),
+            url: window.location.href,
+            timestamp: new Date().toISOString()
+          });
+
+          // Send to background script
+          chrome.runtime.sendMessage({
+            action: 'OAUTH_DETECTED',
+            provider: provider,
+            url: window.location.href
+          });
         }
       });
     });
-  } catch (error) {
-    console.log('🔍 Error in detectOAuthElements:', error);
   }
-}
 
-// Detect tracking scripts (heavily optimized)
-function detectTrackingScripts() {
-  try {
-    // Only check for common tracking scripts
-    const trackingScripts = document.querySelectorAll('script[src]');
-    if (trackingScripts.length > 30) { // Reduced limit
-      console.log('🔍 Too many scripts, skipping tracking detection');
-      return;
-    }
-    
-    const trackingDomains = [
+  private detectTrackingScripts() {
+    const scripts = document.querySelectorAll('script[src]');
+    const trackingPatterns = [
       'google-analytics',
       'facebook',
       'hotjar',
       'mixpanel',
       'amplitude',
-      'segment'
+      'segment',
+      'gtag',
+      'googletagmanager',
+      'doubleclick',
+      'adwords',
+      'bing',
+      'twitter',
+      'linkedin',
+      'pinterest',
+      'tiktok',
+      'snapchat'
     ];
-    
-    const detectedTrackers = new Set<string>();
-    
-    // Only check first 15 scripts
-    const limitedScripts = Array.from(trackingScripts).slice(0, 15);
-    
-    limitedScripts.forEach(script => {
-      if (detectedTrackers.size >= 5) return; // Reduced limit
-      
-      const src = (script as HTMLScriptElement).src.toLowerCase();
-      
-      trackingDomains.forEach(domain => {
-        if (src.includes(domain) && !detectedTrackers.has(domain)) {
-          detectedTrackers.add(domain);
-          console.log(`🔍 Found tracking script: ${domain}`);
-          
-          safeSendMessage({
-            action: 'TRACKING_DETECTED',
-            tracker: domain,
-            url: window.location.href
-          }).catch(error => {
-            console.log('🔍 Failed to send tracking detection:', error);
-          });
-        }
-      });
-    });
-  } catch (error) {
-    console.log('🔍 Error in detectTrackingScripts:', error);
-  }
-}
 
-// Detect form fields (heavily optimized)
-function detectFormFields() {
-  try {
-    const forms = document.querySelectorAll('form');
-    if (forms.length > 10) { // Reduced limit
-      console.log('🔍 Too many forms, skipping form detection');
-      return;
-    }
-    
-    const sensitiveFields = ['password', 'email', 'username', 'credit', 'ssn', 'phone'];
-    let sensitiveFormFound = false;
-    
-    // Only check first 5 forms
-    const limitedForms = Array.from(forms).slice(0, 5);
-    
-    limitedForms.forEach(form => {
-      if (sensitiveFormFound) return;
-      
-      const inputs = form.querySelectorAll('input');
-      if (inputs.length > 20) return; // Skip forms with too many inputs
-      
-      inputs.forEach(input => {
-        const type = (input as HTMLInputElement).type.toLowerCase();
-        const name = (input as HTMLInputElement).name.toLowerCase();
-        const id = (input as HTMLInputElement).id.toLowerCase();
-        
-        sensitiveFields.forEach(field => {
-          if (type.includes(field) || name.includes(field) || id.includes(field)) {
-            sensitiveFormFound = true;
-            console.log(`🔍 Found sensitive form field: ${field}`);
-            
-            safeSendMessage({
-              action: 'FORM_DETECTED',
-              fieldType: field,
-              url: window.location.href
-            }).catch(error => {
-              console.log('🔍 Failed to send form detection:', error);
-            });
-          }
+    scripts.forEach(script => {
+      const src = script.getAttribute('src') || '';
+      const trackingPattern = trackingPatterns.find(pattern => 
+        src.includes(pattern)
+      );
+
+      if (trackingPattern) {
+        this.trackingDetections.push({
+          tracker: trackingPattern,
+          src: src,
+          url: window.location.href,
+          timestamp: new Date().toISOString()
         });
-      });
-    });
-  } catch (error) {
-    console.log('🔍 Error in detectFormFields:', error);
-  }
-}
 
-// Detect SaaS applications (heavily optimized)
-function detectSaaSApplication() {
-  try {
-    const domain = window.location.hostname;
-    const path = window.location.pathname;
-    
-    // Simple domain-based detection to avoid heavy processing
-    const saasDomains = [
-      'slack.com', 'notion.so', 'figma.com', 'zoom.us', 'teams.microsoft.com',
-      'discord.com', 'trello.com', 'asana.com', 'monday.com', 'clickup.com'
-    ];
-    
-    const isSaaS = saasDomains.some(saasDomain => domain.includes(saasDomain));
-    
-    if (isSaaS) {
-      console.log(`🔍 SaaS application detected: ${domain}`);
-      
-      safeSendMessage({
-        action: 'APP_DETECTED',
-        app: domain,
-        url: window.location.href,
-        type: 'saas'
-      }).catch(error => {
-        console.log('🔍 Failed to send app detection:', error);
-      });
-    }
-  } catch (error) {
-    console.log('🔍 Error in detectSaaSApplication:', error);
-  }
-}
-
-// Handle dashboard communication (optimized)
-async function handleDashboardCommunication(event: CustomEvent) {
-  try {
-    console.log('🔍 Dashboard communication received:', event.detail);
-    
-    const response = await safeSendMessage({
-      action: 'DASHBOARD_COMMUNICATION',
-      data: event.detail
-    });
-    
-    console.log('🔍 Dashboard communication response:', response);
-    
-    // Send response back to dashboard
-    window.dispatchEvent(new CustomEvent('ghostscan-response', {
-      detail: response
-    }));
-  } catch (error) {
-    console.error('🔍 Error handling dashboard communication:', error);
-  }
-}
-
-// Initialize content script - NO AUTOMATIC DETECTION
-function initialize() {
-  console.log('🔍 Initializing content script (scan mode disabled by default)...');
-  
-  // NO automatic detection on page load
-  // Only run detections when explicitly requested
-  
-  // Listen for dashboard communication
-  window.addEventListener('ghostscan-communication', handleDashboardCommunication as unknown as EventListener);
-  
-  // Listen for scan initiation messages
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'START_SCAN') {
-      console.log('🔍 Scan initiated - enabling detection mode');
-      scanMode = true;
-      detectionCount = 0; // Reset detection count
-      lastDetectionTime = 0; // Reset timer
-      
-      // Run initial detection
-      setTimeout(() => {
-        throttledDetection();
-      }, 1000);
-      
-      sendResponse({ success: true });
-    } else if (message.action === 'STOP_SCAN') {
-      console.log('🔍 Scan stopped - disabling detection mode');
-      scanMode = false;
-      sendResponse({ success: true });
-    } else if (message.action === 'ANALYZE_PAGE') {
-      console.log('🔍 Analyze page request received');
-      if (scanMode) {
-        setTimeout(() => {
-          throttledDetection();
-        }, 1000);
+        // Send to background script
+        chrome.runtime.sendMessage({
+          action: 'TRACKING_DETECTED',
+          tracker: trackingPattern,
+          url: window.location.href
+        });
       }
-      sendResponse({ success: true });
+    });
+  }
+
+  private detectFormFields() {
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      const sensitiveInputs = form.querySelectorAll('input[type="email"], input[type="password"], input[name*="email"], input[name*="password"], input[name*="phone"], input[name*="credit"], input[name*="card"]');
+      
+      if (sensitiveInputs.length > 0) {
+        const fields = Array.from(sensitiveInputs).map(input => ({
+          type: input.getAttribute('type') || 'text',
+          name: input.getAttribute('name') || '',
+          placeholder: input.getAttribute('placeholder') || ''
+        }));
+
+        this.formDetections.push({
+          fields: fields,
+          url: window.location.href,
+          timestamp: new Date().toISOString()
+        });
+
+        // Send to background script
+        chrome.runtime.sendMessage({
+          action: 'SENSITIVE_FORM_DETECTED',
+          fields: fields,
+          url: window.location.href
+        });
+      }
+    });
+  }
+
+  private detectSaaSApplication() {
+    const domain = window.location.hostname;
+    const title = document.title;
+    const url = window.location.href;
+
+    // Common SaaS application patterns
+    const saasPatterns = [
+      { name: 'Google Workspace', patterns: ['gmail.com', 'google.com', 'docs.google.com', 'drive.google.com'] },
+      { name: 'Microsoft 365', patterns: ['outlook.com', 'office.com', 'microsoft.com', 'onedrive.com'] },
+      { name: 'Slack', patterns: ['slack.com'] },
+      { name: 'Discord', patterns: ['discord.com'] },
+      { name: 'Zoom', patterns: ['zoom.us'] },
+      { name: 'Teams', patterns: ['teams.microsoft.com'] },
+      { name: 'Notion', patterns: ['notion.so'] },
+      { name: 'Figma', patterns: ['figma.com'] },
+      { name: 'Trello', patterns: ['trello.com'] },
+      { name: 'Asana', patterns: ['asana.com'] },
+      { name: 'Monday.com', patterns: ['monday.com'] },
+      { name: 'ClickUp', patterns: ['clickup.com'] },
+      { name: 'Airtable', patterns: ['airtable.com'] },
+      { name: 'Dropbox', patterns: ['dropbox.com'] },
+      { name: 'Box', patterns: ['box.com'] },
+      { name: 'GitHub', patterns: ['github.com'] },
+      { name: 'GitLab', patterns: ['gitlab.com'] },
+      { name: 'Bitbucket', patterns: ['bitbucket.org'] },
+      { name: 'Jira', patterns: ['jira.com'] },
+      { name: 'Confluence', patterns: ['confluence.com'] },
+      { name: 'Salesforce', patterns: ['salesforce.com'] },
+      { name: 'HubSpot', patterns: ['hubspot.com'] },
+      { name: 'Mailchimp', patterns: ['mailchimp.com'] },
+      { name: 'Stripe', patterns: ['stripe.com'] },
+      { name: 'PayPal', patterns: ['paypal.com'] },
+      { name: 'Shopify', patterns: ['shopify.com'] },
+      { name: 'WordPress', patterns: ['wordpress.com'] },
+      { name: 'Wix', patterns: ['wix.com'] },
+      { name: 'Squarespace', patterns: ['squarespace.com'] },
+      { name: 'Canva', patterns: ['canva.com'] },
+      { name: 'Zapier', patterns: ['zapier.com'] },
+      { name: 'IFTTT', patterns: ['ifttt.com'] },
+      { name: 'Calendly', patterns: ['calendly.com'] },
+      { name: 'Typeform', patterns: ['typeform.com'] },
+      { name: 'SurveyMonkey', patterns: ['survey-monkey.com'] },
+      { name: 'Intercom', patterns: ['intercom.com'] },
+      { name: 'Zendesk', patterns: ['zendesk.com'] },
+      { name: 'Freshdesk', patterns: ['freshdesk.com'] },
+      { name: 'Pipedrive', patterns: ['pipedrive.com'] },
+      { name: 'Linear', patterns: ['linear.app'] },
+      { name: 'Roam Research', patterns: ['roamresearch.com'] },
+      { name: 'Obsidian', patterns: ['obsidian.md'] },
+      { name: 'Logseq', patterns: ['logseq.com'] },
+      { name: 'Evernote', patterns: ['evernote.com'] },
+      { name: 'OneNote', patterns: ['onenote.com'] },
+      { name: 'Bear', patterns: ['bear.app'] },
+      { name: 'Ulysses', patterns: ['ulysses.app'] },
+      { name: 'Scrivener', patterns: ['scrivener.com'] },
+      { name: 'Grammarly', patterns: ['grammarly.com'] },
+      { name: 'Hemingway Editor', patterns: ['hemingwayapp.com'] },
+      { name: 'ProWritingAid', patterns: ['prowritingaid.com'] },
+      { name: 'WhiteSmoke', patterns: ['white-smoke.com'] },
+      { name: 'Ginger', patterns: ['ginger-software.com'] },
+      { name: 'LanguageTool', patterns: ['language-tool.org'] },
+      { name: 'Scribens', patterns: ['scribens.com'] },
+      { name: 'Reverso', patterns: ['reverso.net'] },
+      { name: 'DeepL', patterns: ['deepl.com'] },
+      { name: 'Google Translate', patterns: ['translate.google.com'] },
+      { name: 'Bing Translator', patterns: ['bing.com/translator'] },
+      { name: 'Yandex Translate', patterns: ['yandex.com/translate'] },
+      { name: 'LibreTranslate', patterns: ['libretranslate.com'] },
+      { name: 'Papago', patterns: ['papago.naver.com'] },
+      { name: 'Baidu Translate', patterns: ['baidu.com/translate'] },
+      { name: 'Tencent Translate', patterns: ['tencent.com/translate'] }
+    ];
+
+    // Check if current domain matches any SaaS pattern
+    const matchedSaaS = saasPatterns.find(saas => 
+      saas.patterns.some(pattern => domain.includes(pattern))
+    );
+
+    if (matchedSaaS) {
+      const riskLevel = this.calculateRiskLevel(matchedSaaS.name, domain);
+      const dataTypes = this.getDataTypes(matchedSaaS.name);
+      const riskFactors = this.getRiskFactors(matchedSaaS.name, domain);
+
+      const saasApp = {
+        name: matchedSaaS.name,
+        domain: domain,
+        title: title,
+        url: url,
+        riskLevel: riskLevel,
+        dataTypes: dataTypes,
+        riskFactors: riskFactors,
+        oauthProvider: this.oauthDetections.length > 0 ? 'detected' : null,
+        timestamp: new Date().toISOString()
+      };
+
+      this.detectedApplications.push(saasApp);
+
+      // Send to background script
+      chrome.runtime.sendMessage({
+        action: 'SAAS_APPLICATION_DETECTED',
+        ...saasApp
+      });
     }
-  });
-  
-  console.log('🔍 Content script initialized - waiting for scan commands');
+  }
+
+  private detectOAuthProvider(element: Element): string | null {
+    const text = element.textContent?.toLowerCase() || '';
+    const className = element.className?.toLowerCase() || '';
+    const id = element.id?.toLowerCase() || '';
+
+    if (text.includes('google') || className.includes('google') || id.includes('google')) {
+      return 'google';
+    }
+    if (text.includes('facebook') || className.includes('facebook') || id.includes('facebook')) {
+      return 'facebook';
+    }
+    if (text.includes('github') || className.includes('github') || id.includes('github')) {
+      return 'github';
+    }
+    if (text.includes('twitter') || className.includes('twitter') || id.includes('twitter')) {
+      return 'twitter';
+    }
+    if (text.includes('linkedin') || className.includes('linkedin') || id.includes('linkedin')) {
+      return 'linkedin';
+    }
+    if (text.includes('microsoft') || className.includes('microsoft') || id.includes('microsoft')) {
+      return 'microsoft';
+    }
+    if (text.includes('apple') || className.includes('apple') || id.includes('apple')) {
+      return 'apple';
+    }
+
+    return null;
+  }
+
+  private calculateRiskLevel(appName: string, domain: string): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
+    // High-risk applications
+    const highRiskApps = ['Stripe', 'PayPal', 'Salesforce', 'HubSpot'];
+    if (highRiskApps.includes(appName)) {
+      return 'HIGH';
+    }
+
+    // Critical risk applications (Chinese-owned or AI/ML focused)
+    const criticalRiskApps = ['DeepSeek', 'Claude', 'Perplexity', 'Anthropic', 'OpenAI', 'ChatGPT'];
+    if (criticalRiskApps.includes(appName)) {
+      return 'CRITICAL';
+    }
+
+    // Check for Chinese domains
+    const chineseDomains = ['deepseek', 'baidu', 'alibaba', 'tencent', 'bytedance'];
+    if (chineseDomains.some(chinese => domain.includes(chinese))) {
+      return 'CRITICAL';
+    }
+
+    // Medium risk applications
+    const mediumRiskApps = ['Dropbox', 'Box', 'Mailchimp', 'Intercom', 'Zapier', 'IFTTT'];
+    if (mediumRiskApps.includes(appName)) {
+      return 'MEDIUM';
+    }
+
+    return 'LOW';
+  }
+
+  private getDataTypes(appName: string): string[] {
+    const dataTypes: { [key: string]: string[] } = {
+      'Google Workspace': ['email', 'documents', 'calendar', 'drive', 'profile'],
+      'Microsoft 365': ['email', 'documents', 'calendar', 'onedrive', 'profile'],
+      'Slack': ['messages', 'files', 'profile', 'contacts'],
+      'Discord': ['messages', 'voice', 'profile', 'contacts'],
+      'Zoom': ['video', 'audio', 'profile', 'contacts'],
+      'Notion': ['documents', 'data', 'profile'],
+      'Figma': ['designs', 'files', 'profile'],
+      'Trello': ['tasks', 'boards', 'profile'],
+      'Asana': ['tasks', 'projects', 'profile'],
+      'Dropbox': ['files', 'profile'],
+      'Box': ['files', 'profile'],
+      'GitHub': ['code', 'repositories', 'profile'],
+      'Salesforce': ['crm_data', 'contacts', 'profile'],
+      'HubSpot': ['marketing_data', 'contacts', 'profile'],
+      'Stripe': ['payment_data', 'financial', 'profile'],
+      'PayPal': ['payment_data', 'financial', 'profile'],
+      'Shopify': ['ecommerce_data', 'customers', 'profile'],
+      'Mailchimp': ['email_lists', 'marketing_data', 'profile'],
+      'Intercom': ['customer_data', 'messages', 'profile'],
+      'Zapier': ['automation_data', 'integrations', 'profile'],
+      'IFTTT': ['automation_data', 'integrations', 'profile']
+    };
+
+    return dataTypes[appName] || ['account_info', 'usage_data'];
+  }
+
+  private getRiskFactors(appName: string, domain: string): string[] {
+    const riskFactors: string[] = [];
+
+    // Check for third-party cookies
+    if (this.trackingDetections.length > 0) {
+      riskFactors.push('THIRD_PARTY_COOKIES');
+    }
+
+    // Check for OAuth connections
+    if (this.oauthDetections.length > 0) {
+      riskFactors.push('OAUTH_CONNECTIONS');
+    }
+
+    // Check for sensitive forms
+    if (this.formDetections.length > 0) {
+      riskFactors.push('SENSITIVE_FORMS');
+    }
+
+    // Check for Chinese ownership
+    const chineseDomains = ['deepseek', 'baidu', 'alibaba', 'tencent', 'bytedance'];
+    if (chineseDomains.some(chinese => domain.includes(chinese))) {
+      riskFactors.push('CHINESE_OWNED');
+    }
+
+    // Check for AI/ML applications
+    const aiApps = ['DeepSeek', 'Claude', 'Perplexity', 'Anthropic', 'OpenAI', 'ChatGPT'];
+    if (aiApps.includes(appName)) {
+      riskFactors.push('AI_ML_PROCESSING');
+    }
+
+    // Check for financial applications
+    const financialApps = ['Stripe', 'PayPal', 'Shopify'];
+    if (financialApps.includes(appName)) {
+      riskFactors.push('FINANCIAL_DATA');
+    }
+
+    return riskFactors;
+  }
+
+  private analyzePage() {
+    return {
+      url: window.location.href,
+      domain: window.location.hostname,
+      title: document.title,
+      detectedApplications: this.detectedApplications,
+      oauthElements: this.oauthDetections,
+      trackingScripts: this.trackingDetections,
+      formFields: this.formDetections,
+      riskFactors: this.getPageRiskFactors()
+    };
+  }
+
+  private getPageRiskFactors(): string[] {
+    const riskFactors: string[] = [];
+
+    if (this.oauthDetections.length > 0) {
+      riskFactors.push('oauth_connections');
+    }
+    if (this.trackingDetections.length > 0) {
+      riskFactors.push('tracking_scripts');
+    }
+    if (this.formDetections.length > 0) {
+      riskFactors.push('sensitive_forms');
+    }
+    if (this.detectedApplications.length > 0) {
+      riskFactors.push('saas_applications');
+    }
+
+    return riskFactors;
+  }
+
+  private clearDetections() {
+    this.detectedApplications = [];
+    this.oauthDetections = [];
+    this.trackingDetections = [];
+    this.formDetections = [];
+  }
 }
 
-// Initialize when DOM is ready
+// Initialize content script when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
+  document.addEventListener('DOMContentLoaded', () => {
+    new GhostScanContent();
+  });
 } else {
-  initialize();
+  new GhostScanContent();
 } 

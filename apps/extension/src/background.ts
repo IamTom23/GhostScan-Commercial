@@ -1,983 +1,556 @@
 // GhostScan Browser Extension - Background Service Worker
 
-console.log('🔍 GhostScan Background Service Worker loaded');
-
-// Performance optimization: Limit concurrent operations
-let isProcessingScan = false;
-let lastScanTime = 0;
-const SCAN_COOLDOWN = 10000; // 10 seconds between scans
-
-// Track active operations to prevent overload
-let activeOperations = 0;
-const MAX_CONCURRENT_OPERATIONS = 3;
-
-interface ScanResult {
-  apps: AppData[];
-  totalRiskScore: number;
-  recommendations: string[];
-  timestamp: Date;
-  scanType: string;
-}
-
-interface AppData {
-  id: string;
-  name: string;
-  domain: string;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  dataTypes: string[];
-  hasBreaches: boolean;
-  thirdPartySharing: boolean;
-  lastAccessed: Date;
-  oauthProvider?: string;
-  accountStatus: 'ACTIVE' | 'INACTIVE' | 'UNKNOWN';
-  passwordStrength: 'WEAK' | 'MEDIUM' | 'STRONG';
-  cookies?: CookieData[];
-  trackingScripts?: string[];
-}
-
-interface CookieData {
-  name: string;
-  domain: string;
-  value: string;
-  secure: boolean;
-  httpOnly: boolean;
-  sameSite: string;
-  expirationDate?: number;
-}
-
 class GhostScanBackground {
-  private isScanning = false;
-  private scanProgress = 0;
   private visitedDomains: Set<string> = new Set();
-  private oauthConnections: Map<string, any> = new Map();
+  private scanProgress: number = 0;
+  private isScanning: boolean = false;
 
   constructor() {
-    console.log('🔍 GhostScanBackground constructor called');
     this.initializeListeners();
-    console.log('🔍 GhostScanBackground initialization complete');
+    this.initializeNavigationTracking();
+    this.initializeCookieTracking();
   }
 
   private initializeListeners() {
-    console.log('🔍 Initializing listeners...');
-    
+    // Handle messages from popup and content scripts
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      console.log('Background received message:', message);
+      
+      switch (message.action) {
+        case 'START_SCAN':
+          this.startScan().then(sendResponse);
+          return true;
+        
+        case 'GET_SCAN_STATUS':
+          sendResponse({ 
+            isScanning: this.isScanning, 
+            progress: this.scanProgress 
+          });
+          return true;
+        
+        case 'GET_VISITED_DOMAINS':
+          sendResponse({ domains: Array.from(this.visitedDomains) });
+          return true;
+        
+        case 'ANALYZE_PAGE':
+          this.analyzeCurrentPage(sender.tab?.id).then(sendResponse);
+          return true;
+        
+        case 'GET_COOKIE_DATA':
+          this.getCookieData().then(sendResponse);
+          return true;
+        
+        case 'CLEAR_TRACKING_COOKIES':
+          this.clearTrackingCookies().then(sendResponse);
+          return true;
+        
+        case 'GET_BROWSING_HISTORY':
+          this.analyzeBrowsingHistory().then(sendResponse);
+          return true;
+        
+        case 'TEST_CONNECTION':
+          sendResponse({ success: true, message: 'Background script is running' });
+          return true;
+        
+        default:
+          sendResponse({ error: 'Unknown action' });
+          return true;
+      }
+    });
+
     // Handle extension installation
     chrome.runtime.onInstalled.addListener((details) => {
-      console.log('GhostScan extension installed:', details.reason);
+      console.log('Extension installed:', details);
       if (details.reason === 'install') {
-        this.onFirstInstall();
+        this.initializeExtension();
       }
     });
+  }
 
-    // SINGLE MESSAGE LISTENER - Remove all duplicates
-    console.log('🔍 Setting up SINGLE message listener...');
-    
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log('🔍 Background received message:', message.action);
-      
-      // Check if we're overloaded
-      if (activeOperations >= MAX_CONCURRENT_OPERATIONS) {
-        console.log('🔍 Too many concurrent operations, rejecting request');
-        sendResponse({ success: false, error: 'System busy, please try again' });
-        return true;
-      }
-      
-      // Handle the message
-      this.handleMessage(message, sender, sendResponse);
-      
-      // Return true to keep message channel open for async response
-      return true;
-    });
-
-    // Handle messages from external web pages (like the dashboard)
-    console.log('🔍 Setting up external message listener...');
-    chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-      console.log('🔍 External message:', message);
-      
-      // Check if we're overloaded
-      if (activeOperations >= MAX_CONCURRENT_OPERATIONS) {
-        console.log('🔍 Too many concurrent operations, rejecting external request');
-        sendResponse({ success: false, error: 'System busy, please try again' });
-        return true;
-      }
-      
-      // Handle external messages
-      this.handleExternalMessage(message, sender, sendResponse);
-      return true;
-    });
-
-    // Track navigation to build domain history (optimized)
+  private initializeNavigationTracking() {
+    // Track navigation to build domain history
     chrome.webNavigation.onCompleted.addListener((details) => {
       if (details.url) {
         const domain = new URL(details.url).hostname;
         this.visitedDomains.add(domain);
-        if (this.visitedDomains.size > 1000) {
-          const domainsArray = Array.from(this.visitedDomains);
-          this.visitedDomains = new Set(domainsArray.slice(-500));
-        }
         console.log('Tracked domain:', domain);
       }
     });
+  }
 
-    // Track cookie changes (limited logging)
+  private initializeCookieTracking() {
+    // Track cookie changes
     chrome.cookies.onChanged.addListener((changeInfo) => {
-      if (changeInfo.cookie.name.includes('_ga') || 
-          changeInfo.cookie.name.includes('_fbp') || 
-          changeInfo.cookie.name.includes('_gid')) {
-        console.log('Tracking cookie changed:', changeInfo.cookie.name);
-      }
+      console.log('Cookie changed:', changeInfo);
     });
   }
 
-  private async onFirstInstall() {
-    console.log('🔍 First install - initializing extension');
-    try {
-      // Initialize storage with default values
-      await chrome.storage.local.set({
-        privacyScore: 85,
-        totalApps: 0,
-        highRiskApps: 0,
-        lastScan: null,
-        scanResult: null,
-        detectedApplications: [],
-        oauthDetections: [],
-        trackingDetections: []
-      });
-      console.log('🔍 Extension initialized successfully');
-    } catch (error) {
-      console.error('🔍 Error initializing extension:', error);
-    }
-  }
-
-  private async handleMessage(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
-    activeOperations++;
+  private async initializeExtension() {
+    console.log('Initializing GhostScan extension...');
     
-    try {
-      console.log('🔍 Handling message:', message.action);
-      
-      switch (message.action) {
-        case 'START_SCAN':
-          if (isProcessingScan) {
-            sendResponse({ success: false, error: 'Scan already in progress' });
-            return;
-          }
-          const now = Date.now();
-          if (now - lastScanTime < SCAN_COOLDOWN) {
-            sendResponse({ success: false, error: 'Please wait before starting another scan' });
-            return;
-          }
-          isProcessingScan = true;
-          lastScanTime = now;
-          
-          try {
-            // Notify all content scripts to start scanning
-            const tabs = await chrome.tabs.query({});
-            for (const tab of tabs) {
-              if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
-                try {
-                  await chrome.tabs.sendMessage(tab.id, { action: 'START_SCAN' });
-                } catch (error) {
-                  // Content script might not be loaded on this tab
-                  console.log('🔍 Could not send START_SCAN to tab:', tab.id);
-                }
-              }
-            }
-            
-            const scanResult = await this.startScan();
-            sendResponse({ success: true, data: scanResult });
-          } finally {
-            isProcessingScan = false;
-            
-            // Notify all content scripts to stop scanning
-            const tabs = await chrome.tabs.query({});
-            for (const tab of tabs) {
-              if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
-                try {
-                  await chrome.tabs.sendMessage(tab.id, { action: 'STOP_SCAN' });
-                } catch (error) {
-                  // Content script might not be loaded on this tab
-                  console.log('🔍 Could not send STOP_SCAN to tab:', tab.id);
-                }
-              }
-            }
-          }
-          break;
-
-        case 'GET_SCAN_STATUS':
-          sendResponse({ 
-            success: true, 
-            isScanning: this.isScanning, 
-            progress: this.scanProgress 
-          });
-          break;
-
-        case 'GET_STORED_DATA':
-          const data = await this.getStorageData();
-          sendResponse({ success: true, data });
-          break;
-
-        case 'CLEAR_DATA':
-          await this.clearScanData();
-          sendResponse({ success: true });
-          break;
-
-        case 'PING':
-          sendResponse({ success: true, message: 'PONG from background' });
-          break;
-
-        case 'OAUTH_DETECTED':
-          await this.storeOAuthDetection(message);
-          sendResponse({ success: true });
-          break;
-
-        case 'TRACKING_DETECTED':
-          await this.storeTrackingDetection(message);
-          sendResponse({ success: true });
-          break;
-
-        case 'FORM_DETECTED':
-          await this.storeFormDetection(message);
-          sendResponse({ success: true });
-          break;
-
-        case 'APP_DETECTED':
-          await this.storeDetectedApplication(message);
-          sendResponse({ success: true });
-          break;
-
-        default:
-          console.log('🔍 Unknown message action:', message.action);
-          sendResponse({ success: false, error: 'Unknown action' });
-      }
-    } catch (error: any) {
-      console.error('🔍 Error handling message:', error);
-      sendResponse({ success: false, error: error.message || String(error) });
-    } finally {
-      activeOperations--;
-    }
-  }
-
-  private async handleExternalMessage(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
-    activeOperations++;
+    // Set initial data
+    await chrome.storage.local.set({
+      privacyScore: 85,
+      totalApps: 0,
+      highRiskApps: 0,
+      lastScan: null,
+      scanResult: null,
+      detectedApplications: [],
+      oauthDetections: [],
+      trackingDetections: []
+    });
     
-    try {
-      console.log('🔍 Handling external message:', message);
-      
-      // Handle dashboard communication
-      if (message.action === 'GET_EXTENSION_STATUS') {
-        sendResponse({ 
-          success: true, 
-          status: 'active',
-          version: '1.0.1'
-        });
-      } else if (message.action === 'START_SCAN') {
-        // Handle scan request from dashboard
-        if (isProcessingScan) {
-          sendResponse({ success: false, error: 'Scan already in progress' });
-          return;
-        }
-        const now = Date.now();
-        if (now - lastScanTime < SCAN_COOLDOWN) {
-          sendResponse({ success: false, error: 'Please wait before starting another scan' });
-          return;
-        }
-        isProcessingScan = true;
-        lastScanTime = now;
-        
-        try {
-          const scanResult = await this.startScan();
-          sendResponse({ success: true, data: scanResult });
-        } finally {
-          isProcessingScan = false;
-        }
-      } else if (message.action === 'PING') {
-        sendResponse({ success: true, message: 'PONG from external' });
-      } else {
-        sendResponse({ success: false, error: 'Unauthorized action' });
-      }
-    } catch (error: any) {
-      console.error('🔍 Error handling external message:', error);
-      sendResponse({ success: false, error: error.message || String(error) });
-    } finally {
-      activeOperations--;
-    }
+    console.log('Extension initialized successfully');
   }
 
-  private async startScan(): Promise<ScanResult> {
+  private async startScan(): Promise<any> {
     if (this.isScanning) {
-      throw new Error('Scan already in progress');
+      return { success: false, error: 'Scan already in progress' };
     }
 
     this.isScanning = true;
     this.scanProgress = 0;
 
     try {
-      console.log('🔍 Starting privacy scan...');
+      console.log('Starting privacy scan...');
       
-      // Step 1: Clear previous detection data
-      await this.updateProgress('Preparing scan...', 5);
-      await this.clearScanData();
+      // Update progress
+      this.updateProgress(10, 'Initializing scan...');
+
+      // Get current tab
+      const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!currentTab?.id) {
+        throw new Error('No active tab found');
+      }
+
+      this.updateProgress(20, 'Analyzing current page...');
+
+      // Analyze current page
+      const pageAnalysis = await this.analyzeCurrentPage(currentTab.id);
       
-      // Step 2: Trigger content script detections and wait for results
-      await this.updateProgress('Scanning current pages...', 20);
-      await this.triggerContentScriptScans();
+      this.updateProgress(40, 'Collecting cookies...');
+
+      // Collect cookies
+      const cookieData = await this.getCookieData();
       
-      // Step 3: Wait for content script detections to complete
-      await this.updateProgress('Collecting detection results...', 40);
-      await this.waitForContentScriptResults();
-      
-      // Step 4: Collect cookies (limited)
-      await this.updateProgress('Collecting cookies...', 60);
-      const cookies = await this.collectCookies();
-      
-      // Step 5: Analyze browsing history for SaaS applications (limited)
-      await this.updateProgress('Analyzing browsing history...', 80);
+      this.updateProgress(60, 'Analyzing browsing history...');
+
+      // Analyze browsing history
       const historyData = await this.analyzeBrowsingHistory();
       
-      // Step 6: Get stored detection data from content scripts
-      const storedData = await this.getStorageData();
-      const oauthData = storedData.oauthDetections || [];
-      const trackingData = storedData.trackingDetections || [];
-      const detectedApps = storedData.detectedApplications || [];
+      this.updateProgress(80, 'Processing results...');
+
+      // Combine all data
+      const scanResult = {
+        timestamp: Date.now(),
+        currentPage: pageAnalysis,
+        cookies: cookieData,
+        history: historyData,
+        visitedDomains: Array.from(this.visitedDomains),
+        apps: [
+          ...pageAnalysis.detectedApplications,
+          ...historyData.saasApplications
+        ],
+        totalRiskScore: this.calculateRiskScore(pageAnalysis, cookieData, historyData),
+        trackingData: cookieData.trackingCookies
+      };
+
+      this.updateProgress(90, 'Saving results...');
+
+      // Save results
+      await chrome.storage.local.set({
+        lastScan: Date.now(),
+        scanResult: scanResult,
+        detectedApplications: scanResult.apps,
+        privacyScore: Math.max(0, 100 - scanResult.totalRiskScore)
+      });
+
+      this.updateProgress(100, 'Scan completed!');
+
+      console.log('Scan completed successfully:', scanResult);
       
-      // Step 7: Generate comprehensive report
-      await this.updateProgress('Generating privacy report...', 90);
-      const scanResult = await this.generateComprehensiveReport(
-        cookies, 
-        oauthData, 
-        historyData, 
-        trackingData,
-        detectedApps
-      );
+      return { success: true, data: scanResult };
 
-      // Store scan result
-      await this.storeScanResult(scanResult);
-      await this.updateProgress('Scan completed!', 100);
-
-      return scanResult;
-
+    } catch (error) {
+      console.error('Scan failed:', error);
+      return { success: false, error: error.message };
     } finally {
       this.isScanning = false;
       this.scanProgress = 0;
     }
   }
 
-  private async triggerContentScriptScans(): Promise<void> {
-    try {
-      // Get all tabs
-      const tabs = await chrome.tabs.query({});
-      let scanCount = 0;
-      
-      for (const tab of tabs) {
-        if (tab.id && tab.url && !tab.url.startsWith('chrome://')) {
-          try {
-            await chrome.tabs.sendMessage(tab.id, { action: 'START_SCAN' });
-            scanCount++;
-            console.log(`🔍 Triggered scan on tab ${tab.id}`);
-          } catch (error) {
-            // Content script might not be loaded on this tab
-            console.log(`🔍 Could not trigger scan on tab ${tab.id}:`, error);
-          }
-        }
-      }
-      
-      console.log(`🔍 Triggered scans on ${scanCount} tabs`);
-    } catch (error) {
-      console.error('🔍 Error triggering content script scans:', error);
-    }
-  }
-
-  private async waitForContentScriptResults(): Promise<void> {
-    // Wait for content scripts to complete their detections
-    // Give them time to process and send data
-    await new Promise(resolve => setTimeout(resolve, 3000)); // 3 seconds
-    console.log('🔍 Content script detection time completed');
-  }
-
-  private async updateProgress(message: string, progress: number): Promise<void> {
-    console.log(message);
+  private updateProgress(progress: number, message: string) {
     this.scanProgress = progress;
-    await new Promise(resolve => setTimeout(resolve, 100)); // Reduced pause for better performance
+    console.log(`Progress ${progress}%: ${message}`);
+    
+    // Send progress update to popup if it's open
+    chrome.runtime.sendMessage({
+      action: 'SCAN_PROGRESS',
+      progress: progress,
+      message: message
+    }).catch(() => {
+      // Popup might not be open, ignore error
+    });
   }
 
-  private async collectCookies(): Promise<CookieData[]> {
+  private async analyzeCurrentPage(tabId: number): Promise<any> {
     try {
-      const cookies = await chrome.cookies.getAll({});
-      console.log(`Collected ${cookies.length} cookies`);
-      
-      // Limit cookie processing to prevent freezing
-      const limitedCookies = cookies.slice(0, 500);
-      
-      return limitedCookies.map(cookie => ({
-        name: cookie.name,
-        domain: cookie.domain,
-        value: cookie.value,
-        secure: cookie.secure,
-        httpOnly: cookie.httpOnly,
-        sameSite: cookie.sameSite,
-        expirationDate: cookie.expirationDate
-      }));
+      // Inject content script to analyze current page
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        function: () => {
+          // This function runs in the context of the web page
+          const analysis = {
+            url: window.location.href,
+            domain: window.location.hostname,
+            title: document.title,
+            detectedApplications: [],
+            oauthElements: [],
+            trackingScripts: [],
+            formFields: [],
+            riskFactors: []
+          };
+
+          // Detect OAuth elements
+          const oauthButtons = document.querySelectorAll('button[data-provider], .oauth-button, [class*="oauth"], [class*="google"], [class*="facebook"], [class*="github"]');
+          oauthButtons.forEach(button => {
+            analysis.oauthElements.push({
+              type: 'oauth_button',
+              text: button.textContent?.trim(),
+              provider: button.getAttribute('data-provider') || this.detectProvider(button)
+            });
+          });
+
+          // Detect tracking scripts
+          const scripts = document.querySelectorAll('script[src]');
+          scripts.forEach(script => {
+            const src = script.getAttribute('src') || '';
+            if (src.includes('google-analytics') || src.includes('facebook') || src.includes('hotjar') || src.includes('mixpanel')) {
+              analysis.trackingScripts.push({
+                type: 'tracking_script',
+                src: src,
+                provider: this.detectTrackingProvider(src)
+              });
+            }
+          });
+
+          // Detect form fields
+          const forms = document.querySelectorAll('form');
+          forms.forEach(form => {
+            const inputs = form.querySelectorAll('input[type="email"], input[type="password"], input[name*="email"], input[name*="password"]');
+            inputs.forEach(input => {
+              analysis.formFields.push({
+                type: input.type,
+                name: input.name,
+                placeholder: input.placeholder
+              });
+            });
+          });
+
+          // Detect SaaS applications
+          const domain = window.location.hostname;
+          const commonSaaS = [
+            { name: 'Google Workspace', domains: ['gmail.com', 'google.com', 'docs.google.com'] },
+            { name: 'Microsoft 365', domains: ['outlook.com', 'office.com', 'microsoft.com'] },
+            { name: 'Slack', domains: ['slack.com'] },
+            { name: 'Zoom', domains: ['zoom.us'] },
+            { name: 'Notion', domains: ['notion.so'] },
+            { name: 'Figma', domains: ['figma.com'] },
+            { name: 'Trello', domains: ['trello.com'] },
+            { name: 'Asana', domains: ['asana.com'] },
+            { name: 'Dropbox', domains: ['dropbox.com'] },
+            { name: 'Box', domains: ['box.com'] }
+          ];
+
+          const detectedSaaS = commonSaaS.find(saas => 
+            saas.domains.some(saasDomain => domain.includes(saasDomain))
+          );
+
+          if (detectedSaaS) {
+            analysis.detectedApplications.push({
+              name: detectedSaaS.name,
+              domain: domain,
+              type: 'saas',
+              riskLevel: 'LOW',
+              dataTypes: ['account_info', 'usage_data'],
+              oauthProvider: analysis.oauthElements.length > 0 ? 'detected' : null
+            });
+          }
+
+          // Calculate risk factors
+          if (analysis.oauthElements.length > 0) {
+            analysis.riskFactors.push('oauth_connections');
+          }
+          if (analysis.trackingScripts.length > 0) {
+            analysis.riskFactors.push('tracking_scripts');
+          }
+          if (analysis.formFields.length > 0) {
+            analysis.riskFactors.push('sensitive_forms');
+          }
+
+          return analysis;
+        }
+      });
+
+      return results[0]?.result || { detectedApplications: [], oauthElements: [], trackingScripts: [], formFields: [], riskFactors: [] };
+
     } catch (error) {
-      console.error('Error collecting cookies:', error);
-      return [];
+      console.error('Error analyzing current page:', error);
+      return { detectedApplications: [], oauthElements: [], trackingScripts: [], formFields: [], riskFactors: [] };
     }
   }
 
-  private async analyzeOAuthConnections(): Promise<any[]> {
+  private async getCookieData(): Promise<any> {
     try {
-      // Get current tab to check for OAuth providers
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      const oauthProviders = ['google.com', 'facebook.com', 'github.com', 'twitter.com', 'linkedin.com'];
-      const connections: any[] = [];
+      const allCookies = await chrome.cookies.getAll({});
+      
+      const trackingCookies = allCookies.filter(cookie => 
+        cookie.name.includes('_ga') || 
+        cookie.name.includes('_fbp') || 
+        cookie.name.includes('_gid') ||
+        cookie.domain.includes('google-analytics') ||
+        cookie.domain.includes('facebook') ||
+        cookie.domain.includes('doubleclick')
+      );
 
-      for (const provider of oauthProviders) {
-        const cookies = await chrome.cookies.getAll({ domain: provider });
-        if (cookies.length > 0) {
-          connections.push({
-            provider,
-            cookies: cookies.length,
-            lastAccessed: new Date(),
-            dataTypes: this.getOAuthDataTypes(provider)
+      return {
+        totalCookies: allCookies.length,
+        trackingCookies: trackingCookies,
+        trackingDomains: [...new Set(trackingCookies.map(c => c.domain))]
+      };
+    } catch (error) {
+      console.error('Error getting cookie data:', error);
+      return { totalCookies: 0, trackingCookies: [], trackingDomains: [] };
+    }
+  }
+
+  private async clearTrackingCookies(): Promise<any> {
+    try {
+      const allCookies = await chrome.cookies.getAll({});
+      const trackingCookies = allCookies.filter(cookie => 
+        cookie.name.includes('_ga') || 
+        cookie.name.includes('_fbp') || 
+        cookie.name.includes('_gid') ||
+        cookie.domain.includes('google-analytics') ||
+        cookie.domain.includes('facebook') ||
+        cookie.domain.includes('doubleclick')
+      );
+
+      let removedCount = 0;
+      for (const cookie of trackingCookies) {
+        try {
+          await chrome.cookies.remove({
+            url: `https://${cookie.domain}${cookie.path}`,
+            name: cookie.name
           });
+          removedCount++;
+        } catch (error) {
+          console.log('Failed to remove cookie:', cookie.name);
         }
       }
 
-      console.log(`Found ${connections.length} OAuth connections`);
-      return connections;
+      return { success: true, removedCount };
     } catch (error) {
-      console.error('Error analyzing OAuth connections:', error);
-      return [];
+      console.error('Error clearing tracking cookies:', error);
+      return { success: false, error: error.message };
     }
   }
 
   private async analyzeBrowsingHistory(): Promise<any> {
     try {
-      // Check if history API is available
-      if (typeof chrome.history === 'undefined') {
-        console.log('History API not available, skipping history analysis');
-        return { totalVisits: 0, uniqueDomains: 0, topDomains: [], saasApplications: [] };
-      }
-
-      // Get recent browsing history (limited to last 7 days and 500 results)
-      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      // Get recent browsing history (last 30 days)
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
       const history = await chrome.history.search({
         text: '',
-        startTime: sevenDaysAgo,
-        maxResults: 500 // Reduced from 1000
+        startTime: thirtyDaysAgo,
+        maxResults: 1000
       });
 
-      // Group by domain
-      const domainStats = new Map<string, number>();
-      const saasApplications: any[] = [];
-      
-      // Common domains to skip
-      const skipDomains = [
-        'google.com', 'google.co.uk', 'google.ca',
-        'facebook.com', 'twitter.com', 'linkedin.com',
-        'github.com', 'stackoverflow.com', 'reddit.com',
-        'youtube.com', 'amazon.com', 'netflix.com',
-        'localhost', '127.0.0.1', 'chrome://', 'chrome-extension://',
-        'vercel.app', 'github.io', 'netlify.app'
-      ];
+      const saasApplications = [];
+      const visitedDomains = new Set();
 
-      // Known SaaS application patterns
-      const saasPatterns = [
-        'notion', 'figma', 'slack', 'discord', 'zoom', 'teams',
-        'asana', 'trello', 'monday', 'clickup', 'airtable',
-        'canva', 'figma', 'sketch', 'invision', 'framer',
-        'stripe', 'paypal', 'square', 'shopify', 'woocommerce',
-        'hubspot', 'salesforce', 'pipedrive', 'zoho',
-        'mailchimp', 'sendgrid', 'convertkit', 'klaviyo',
-        'intercom', 'zendesk', 'freshdesk', 'helpscout',
-        'deepseek', 'claude', 'perplexity', 'anthropic',
-        'openai', 'chatgpt', 'bard', 'bing', 'duckduckgo',
-        'dropbox', 'box', 'onedrive', 'icloud', 'mega',
-        'spotify', 'apple', 'microsoft', 'adobe', 'autodesk'
-      ];
+      // Common SaaS domains
+      const saasDomains = {
+        'gmail.com': { name: 'Gmail', type: 'email', riskLevel: 'LOW' },
+        'outlook.com': { name: 'Outlook', type: 'email', riskLevel: 'LOW' },
+        'slack.com': { name: 'Slack', type: 'communication', riskLevel: 'LOW' },
+        'zoom.us': { name: 'Zoom', type: 'video', riskLevel: 'MEDIUM' },
+        'notion.so': { name: 'Notion', type: 'productivity', riskLevel: 'LOW' },
+        'figma.com': { name: 'Figma', type: 'design', riskLevel: 'LOW' },
+        'trello.com': { name: 'Trello', type: 'project_management', riskLevel: 'LOW' },
+        'asana.com': { name: 'Asana', type: 'project_management', riskLevel: 'LOW' },
+        'dropbox.com': { name: 'Dropbox', type: 'storage', riskLevel: 'MEDIUM' },
+        'box.com': { name: 'Box', type: 'storage', riskLevel: 'MEDIUM' },
+        'github.com': { name: 'GitHub', type: 'development', riskLevel: 'LOW' },
+        'gitlab.com': { name: 'GitLab', type: 'development', riskLevel: 'LOW' },
+        'bitbucket.org': { name: 'Bitbucket', type: 'development', riskLevel: 'LOW' },
+        'jira.com': { name: 'Jira', type: 'project_management', riskLevel: 'LOW' },
+        'confluence.com': { name: 'Confluence', type: 'documentation', riskLevel: 'LOW' },
+        'salesforce.com': { name: 'Salesforce', type: 'crm', riskLevel: 'MEDIUM' },
+        'hubspot.com': { name: 'HubSpot', type: 'marketing', riskLevel: 'MEDIUM' },
+        'mailchimp.com': { name: 'Mailchimp', type: 'email_marketing', riskLevel: 'MEDIUM' },
+        'stripe.com': { name: 'Stripe', type: 'payment', riskLevel: 'HIGH' },
+        'paypal.com': { name: 'PayPal', type: 'payment', riskLevel: 'HIGH' },
+        'shopify.com': { name: 'Shopify', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'wordpress.com': { name: 'WordPress', type: 'cms', riskLevel: 'LOW' },
+        'wix.com': { name: 'Wix', type: 'website_builder', riskLevel: 'LOW' },
+        'squarespace.com': { name: 'Squarespace', type: 'website_builder', riskLevel: 'LOW' },
+        'canva.com': { name: 'Canva', type: 'design', riskLevel: 'LOW' },
+        'airtable.com': { name: 'Airtable', type: 'database', riskLevel: 'MEDIUM' },
+        'zapier.com': { name: 'Zapier', type: 'automation', riskLevel: 'MEDIUM' },
+        'ifttt.com': { name: 'IFTTT', type: 'automation', riskLevel: 'MEDIUM' },
+        'calendly.com': { name: 'Calendly', type: 'scheduling', riskLevel: 'LOW' },
+        'typeform.com': { name: 'Typeform', type: 'forms', riskLevel: 'MEDIUM' },
+        'survey-monkey.com': { name: 'SurveyMonkey', type: 'surveys', riskLevel: 'MEDIUM' },
+        'intercom.com': { name: 'Intercom', type: 'customer_support', riskLevel: 'MEDIUM' },
+        'zendesk.com': { name: 'Zendesk', type: 'customer_support', riskLevel: 'LOW' },
+        'freshdesk.com': { name: 'Freshdesk', type: 'customer_support', riskLevel: 'LOW' },
+        'pipedrive.com': { name: 'Pipedrive', type: 'crm', riskLevel: 'MEDIUM' },
+        'monday.com': { name: 'Monday.com', type: 'project_management', riskLevel: 'LOW' },
+        'clickup.com': { name: 'ClickUp', type: 'project_management', riskLevel: 'LOW' },
+        'linear.app': { name: 'Linear', type: 'project_management', riskLevel: 'LOW' },
+        'notion.so': { name: 'Notion', type: 'productivity', riskLevel: 'LOW' },
+        'roamresearch.com': { name: 'Roam Research', type: 'productivity', riskLevel: 'LOW' },
+        'obsidian.md': { name: 'Obsidian', type: 'productivity', riskLevel: 'LOW' },
+        'logseq.com': { name: 'Logseq', type: 'productivity', riskLevel: 'LOW' },
+        'evernote.com': { name: 'Evernote', type: 'productivity', riskLevel: 'LOW' },
+        'onenote.com': { name: 'OneNote', type: 'productivity', riskLevel: 'LOW' },
+        'bear.app': { name: 'Bear', type: 'productivity', riskLevel: 'LOW' },
+        'ulysses.app': { name: 'Ulysses', type: 'productivity', riskLevel: 'LOW' },
+        'scrivener.com': { name: 'Scrivener', type: 'productivity', riskLevel: 'LOW' },
+        'grammarly.com': { name: 'Grammarly', type: 'writing', riskLevel: 'MEDIUM' },
+        'hemingwayapp.com': { name: 'Hemingway Editor', type: 'writing', riskLevel: 'LOW' },
+        'prowritingaid.com': { name: 'ProWritingAid', type: 'writing', riskLevel: 'MEDIUM' },
+        'white-smoke.com': { name: 'WhiteSmoke', type: 'writing', riskLevel: 'MEDIUM' },
+        'ginger-software.com': { name: 'Ginger', type: 'writing', riskLevel: 'MEDIUM' },
+        'language-tool.org': { name: 'LanguageTool', type: 'writing', riskLevel: 'LOW' },
+        'scribens.com': { name: 'Scribens', type: 'writing', riskLevel: 'LOW' },
+        'reverso.net': { name: 'Reverso', type: 'translation', riskLevel: 'LOW' },
+        'deepl.com': { name: 'DeepL', type: 'translation', riskLevel: 'LOW' },
+        'translate.google.com': { name: 'Google Translate', type: 'translation', riskLevel: 'LOW' },
+        'bing.com/translator': { name: 'Bing Translator', type: 'translation', riskLevel: 'LOW' },
+        'yandex.com/translate': { name: 'Yandex Translate', type: 'translation', riskLevel: 'LOW' },
+        'libretranslate.com': { name: 'LibreTranslate', type: 'translation', riskLevel: 'LOW' },
+        'papago.naver.com': { name: 'Papago', type: 'translation', riskLevel: 'LOW' },
+        'baidu.com/translate': { name: 'Baidu Translate', type: 'translation', riskLevel: 'LOW' },
+        'tencent.com/translate': { name: 'Tencent Translate', type: 'translation', riskLevel: 'LOW' },
+        'alibaba.com': { name: 'Alibaba', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'amazon.com': { name: 'Amazon', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'ebay.com': { name: 'eBay', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'etsy.com': { name: 'Etsy', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'walmart.com': { name: 'Walmart', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'target.com': { name: 'Target', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'bestbuy.com': { name: 'Best Buy', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'homedepot.com': { name: 'Home Depot', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'lowes.com': { name: 'Lowe\'s', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'costco.com': { name: 'Costco', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'samsclub.com': { name: 'Sam\'s Club', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'kroger.com': { name: 'Kroger', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'safeway.com': { name: 'Safeway', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'wegmans.com': { name: 'Wegmans', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'publix.com': { name: 'Publix', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'meijer.com': { name: 'Meijer', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'hy-vee.com': { name: 'Hy-Vee', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'foodlion.com': { name: 'Food Lion', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'gianteagle.com': { name: 'Giant Eagle', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'shoprite.com': { name: 'ShopRite', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'stopandshop.com': { name: 'Stop & Shop', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'giantfood.com': { name: 'Giant Food', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'acme.com': { name: 'Acme', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'shaws.com': { name: 'Shaw\'s', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'star-market.com': { name: 'Star Market', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'hannaford.com': { name: 'Hannaford', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'pricechopper.com': { name: 'Price Chopper', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'topsmarkets.com': { name: 'Tops Markets', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'wegmans.com': { name: 'Wegmans', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'publix.com': { name: 'Publix', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'meijer.com': { name: 'Meijer', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'hy-vee.com': { name: 'Hy-Vee', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'foodlion.com': { name: 'Food Lion', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'gianteagle.com': { name: 'Giant Eagle', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'shoprite.com': { name: 'ShopRite', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'stopandshop.com': { name: 'Stop & Shop', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'giantfood.com': { name: 'Giant Food', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'acme.com': { name: 'Acme', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'shaws.com': { name: 'Shaw\'s', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'star-market.com': { name: 'Star Market', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'hannaford.com': { name: 'Hannaford', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'pricechopper.com': { name: 'Price Chopper', type: 'ecommerce', riskLevel: 'MEDIUM' },
+        'topsmarkets.com': { name: 'Tops Markets', type: 'ecommerce', riskLevel: 'MEDIUM' }
+      };
 
-      // Process history items with limits
-      const processedItems = history.slice(0, 300); // Limit processing
-      
-      processedItems.forEach(item => {
+      history.forEach(item => {
         if (item.url) {
           const domain = new URL(item.url).hostname;
-          domainStats.set(domain, (domainStats.get(domain) || 0) + 1);
-          
-          // Check if this domain looks like a SaaS application
-          const isSaaS = saasPatterns.some(pattern => 
-            domain.includes(pattern) || item.title?.toLowerCase().includes(pattern)
-          );
-          
-          const shouldSkip = skipDomains.some(skip => domain.includes(skip));
-          
-          if (isSaaS && !shouldSkip && saasApplications.length < 50) { // Limit SaaS apps
-            // Check if we already have this application
-            const existingIndex = saasApplications.findIndex(app => app.domain === domain);
-            
-            if (existingIndex === -1) {
-              // Determine risk level based on domain characteristics
-              let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM';
-              const dataTypes: string[] = ['saas_application'];
-              
-              // Check for Chinese-owned domains
-              const chineseDomains = ['deepseek', 'baidu', 'alibaba', 'tencent', 'bytedance'];
-              if (chineseDomains.some(chinese => domain.includes(chinese))) {
-                riskLevel = 'CRITICAL';
-                dataTypes.push('international_data_sharing');
+          visitedDomains.add(domain);
+
+          // Check if it's a SaaS application
+          for (const [saasDomain, saasInfo] of Object.entries(saasDomains)) {
+            if (domain.includes(saasDomain)) {
+              const existingApp = saasApplications.find(app => app.name === saasInfo.name);
+              if (!existingApp) {
+                saasApplications.push({
+                  name: saasInfo.name,
+                  domain: domain,
+                  type: saasInfo.type,
+                  riskLevel: saasInfo.riskLevel,
+                  dataTypes: ['account_info', 'usage_data'],
+                  visitCount: 1,
+                  lastVisit: item.lastVisitTime,
+                  oauthProvider: null
+                });
+              } else {
+                existingApp.visitCount++;
+                if (item.lastVisitTime > existingApp.lastVisit) {
+                  existingApp.lastVisit = item.lastVisitTime;
+                }
               }
-              
-              // Check for AI/ML applications (higher risk)
-              const aiDomains = ['openai', 'anthropic', 'claude', 'deepseek', 'perplexity'];
-              if (aiDomains.some(ai => domain.includes(ai))) {
-                riskLevel = riskLevel === 'CRITICAL' ? 'CRITICAL' : 'HIGH';
-                dataTypes.push('ai_processing');
-              }
-              
-              // Check for financial applications
-              const financialDomains = ['stripe', 'paypal', 'square', 'shopify'];
-              if (financialDomains.some(financial => domain.includes(financial))) {
-                riskLevel = riskLevel === 'CRITICAL' ? 'CRITICAL' : 'HIGH';
-                dataTypes.push('financial_data');
-              }
-              
-              saasApplications.push({
-                id: `saas_${domain}`,
-                name: item.title || this.getAppNameFromDomain(domain),
-                domain: domain,
-                riskLevel: riskLevel,
-                dataTypes: dataTypes,
-                hasBreaches: false,
-                thirdPartySharing: true,
-                lastAccessed: new Date(item.lastVisitTime || Date.now()),
-                accountStatus: 'UNKNOWN' as const,
-                passwordStrength: 'MEDIUM' as const,
-                visitCount: domainStats.get(domain) || 1,
-                url: item.url
-              });
-            } else {
-              // Update visit count for existing application
-              saasApplications[existingIndex].visitCount = domainStats.get(domain) || 1;
+              break;
             }
           }
         }
       });
 
-      console.log(`Analyzed ${processedItems.length} history items from ${domainStats.size} domains`);
-      console.log(`Found ${saasApplications.length} potential SaaS applications`);
-      
       return {
-        totalVisits: processedItems.length,
-        uniqueDomains: domainStats.size,
-        topDomains: Array.from(domainStats.entries())
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10),
-        saasApplications: saasApplications
+        totalVisits: history.length,
+        uniqueDomains: visitedDomains.size,
+        saasApplications: saasApplications,
+        mostVisitedDomains: Array.from(visitedDomains).slice(0, 10)
       };
+
     } catch (error) {
       console.error('Error analyzing browsing history:', error);
-      return { totalVisits: 0, uniqueDomains: 0, topDomains: [], saasApplications: [] };
-    }
-  }
-
-  private async detectTrackingScripts(): Promise<string[]> {
-    try {
-      // This would require content script injection to detect tracking scripts
-      // For now, we'll check for common tracking domains in cookies
-      const trackingDomains = [
-        'google-analytics.com',
-        'facebook.com',
-        'doubleclick.net',
-        'googlesyndication.com',
-        'amazon-adsystem.com',
-        'bing.com'
-      ];
-
-      const trackingScripts: string[] = [];
-      for (const domain of trackingDomains) {
-        const cookies = await chrome.cookies.getAll({ domain });
-        if (cookies.length > 0) {
-          trackingScripts.push(domain);
-        }
-      }
-
-      console.log(`Detected ${trackingScripts.length} tracking domains`);
-      return trackingScripts;
-    } catch (error) {
-      console.error('Error detecting tracking scripts:', error);
-      return [];
-    }
-  }
-
-  private async generateComprehensiveReport(
-    cookies: CookieData[],
-    oauthData: any[],
-    historyData: any,
-    trackingData: string[],
-    detectedApps: any[] = []
-  ): Promise<ScanResult> {
-    // Get detected applications from storage
-    const result = await chrome.storage.local.get(['detectedApplications']);
-    const detectedApplications = result.detectedApplications || [];
-    const apps: AppData[] = [];
-    let totalRiskScore = 0;
-
-    // Process OAuth connections
-    oauthData.forEach(oauth => {
-      const app: AppData = {
-        id: `oauth_${oauth.provider}`,
-        name: this.getAppNameFromDomain(oauth.provider),
-        domain: oauth.provider,
-        riskLevel: this.calculateRiskLevel(oauth.cookies, oauth.dataTypes),
-        dataTypes: oauth.dataTypes,
-        hasBreaches: this.checkForBreaches(oauth.provider),
-        thirdPartySharing: true,
-        lastAccessed: oauth.lastAccessed,
-        oauthProvider: oauth.provider,
-        accountStatus: 'ACTIVE',
-        passwordStrength: 'STRONG'
+      return {
+        totalVisits: 0,
+        uniqueDomains: 0,
+        saasApplications: [],
+        mostVisitedDomains: []
       };
-      apps.push(app);
-      totalRiskScore += this.calculateAppRiskScore(app);
-    });
-
-    // Process tracking domains
-    trackingData.forEach(domain => {
-      const app: AppData = {
-        id: `tracking_${domain}`,
-        name: this.getAppNameFromDomain(domain),
-        domain: domain,
-        riskLevel: 'HIGH',
-        dataTypes: ['tracking', 'analytics'],
-        hasBreaches: false,
-        thirdPartySharing: true,
-        lastAccessed: new Date(),
-        accountStatus: 'UNKNOWN',
-        passwordStrength: 'MEDIUM',
-        trackingScripts: [domain]
-      };
-      apps.push(app);
-      totalRiskScore += this.calculateAppRiskScore(app);
-    });
-
-    // Process detected SaaS applications from real-time detection
-    const allDetectedApps = [...detectedApplications, ...detectedApps];
-    allDetectedApps.forEach((detectedApp: any) => {
-      const app: AppData = {
-        id: detectedApp.id,
-        name: detectedApp.name,
-        domain: detectedApp.domain,
-        riskLevel: detectedApp.riskLevel,
-        dataTypes: detectedApp.dataTypes,
-        hasBreaches: detectedApp.hasBreaches,
-        thirdPartySharing: detectedApp.thirdPartySharing,
-        lastAccessed: new Date(detectedApp.lastAccessed),
-        accountStatus: detectedApp.accountStatus,
-        passwordStrength: detectedApp.passwordStrength
-      };
-      apps.push(app);
-      totalRiskScore += this.calculateAppRiskScore(app);
-    });
-
-    // Process SaaS applications from browsing history
-    if (historyData.saasApplications) {
-      historyData.saasApplications.forEach((saasApp: any) => {
-        // Check if this app is already included from real-time detection
-        const existingApp = apps.find(app => app.domain === saasApp.domain);
-        if (!existingApp) {
-          const app: AppData = {
-            id: saasApp.id,
-            name: saasApp.name,
-            domain: saasApp.domain,
-            riskLevel: saasApp.riskLevel,
-            dataTypes: saasApp.dataTypes,
-            hasBreaches: saasApp.hasBreaches,
-            thirdPartySharing: saasApp.thirdPartySharing,
-            lastAccessed: saasApp.lastAccessed,
-            accountStatus: saasApp.accountStatus,
-            passwordStrength: saasApp.passwordStrength
-          };
-          apps.push(app);
-          totalRiskScore += this.calculateAppRiskScore(app);
-        }
-      });
-    }
-
-    // Generate recommendations
-    const recommendations = this.generateRecommendations(apps, cookies, historyData);
-
-    return {
-      apps,
-      totalRiskScore: Math.min(totalRiskScore, 100),
-      recommendations,
-      timestamp: new Date(),
-      scanType: 'COMPREHENSIVE'
-    };
-  }
-
-  private getOAuthDataTypes(provider: string): string[] {
-    const dataTypes: { [key: string]: string[] } = {
-      'google.com': ['oauth_connection', 'email', 'profile', 'calendar', 'drive'],
-      'facebook.com': ['oauth_connection', 'profile', 'friends', 'posts'],
-      'github.com': ['oauth_connection', 'profile', 'repositories'],
-      'twitter.com': ['oauth_connection', 'profile', 'tweets'],
-      'linkedin.com': ['oauth_connection', 'profile', 'connections']
-    };
-    return dataTypes[provider] || ['oauth_connection', 'profile'];
-  }
-
-  private getAppNameFromDomain(domain: string): string {
-    const names: { [key: string]: string } = {
-      'google.com': 'Google',
-      'facebook.com': 'Facebook',
-      'github.com': 'GitHub',
-      'twitter.com': 'Twitter',
-      'linkedin.com': 'LinkedIn',
-      'google-analytics.com': 'Google Analytics',
-      'doubleclick.net': 'Google Ads',
-      'googlesyndication.com': 'Google AdSense',
-      'amazon-adsystem.com': 'Amazon Ads',
-      'bing.com': 'Bing Ads'
-    };
-    return names[domain] || domain;
-  }
-
-  private calculateRiskLevel(cookieCount: number, dataTypes: string[]): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
-    let score = 0;
-    score += cookieCount * 2;
-    score += dataTypes.length * 10;
-    
-    if (score > 50) return 'CRITICAL';
-    if (score > 30) return 'HIGH';
-    if (score > 15) return 'MEDIUM';
-    return 'LOW';
-  }
-
-  private calculateAppRiskScore(app: AppData): number {
-    let score = 0;
-    
-    // Risk level scoring
-    switch (app.riskLevel) {
-      case 'CRITICAL': score += 30; break;
-      case 'HIGH': score += 20; break;
-      case 'MEDIUM': score += 10; break;
-      case 'LOW': score += 5; break;
-    }
-    
-    // Data types scoring
-    score += app.dataTypes.length * 5;
-    
-    // Breach scoring
-    if (app.hasBreaches) score += 15;
-    
-    // Third-party sharing scoring
-    if (app.thirdPartySharing) score += 10;
-    
-    return score;
-  }
-
-  private checkForBreaches(domain: string): boolean {
-    // This would integrate with a breach database API
-    // For now, return mock data
-    const breachedDomains = ['facebook.com', 'linkedin.com'];
-    return breachedDomains.includes(domain);
-  }
-
-  private generateRecommendations(apps: AppData[], cookies: CookieData[], historyData: any): string[] {
-    const recommendations: string[] = [];
-    
-    const highRiskApps = apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL');
-    if (highRiskApps.length > 0) {
-      recommendations.push(`Review privacy settings for ${highRiskApps.length} high-risk apps`);
-    }
-    
-    if (cookies.length > 100) {
-      recommendations.push('Consider clearing tracking cookies to improve privacy');
-    }
-    
-    if (historyData.uniqueDomains > 50) {
-      recommendations.push('You visit many different websites - consider using privacy-focused browsers');
-    }
-    
-    const oauthApps = apps.filter(app => app.oauthProvider);
-    if (oauthApps.length > 5) {
-      recommendations.push('You have many OAuth connections - review and remove unused ones');
-    }
-    
-    if (recommendations.length === 0) {
-      recommendations.push('Great job! Your privacy settings look good');
-    }
-    
-    return recommendations;
-  }
-
-  private async testChromeAPI(): Promise<any> {
-    const tests = {
-      runtime: typeof chrome.runtime !== 'undefined',
-      storage: typeof chrome.storage !== 'undefined',
-      cookies: typeof chrome.cookies !== 'undefined',
-      tabs: typeof chrome.tabs !== 'undefined',
-      webNavigation: typeof chrome.webNavigation !== 'undefined',
-      history: typeof chrome.history !== 'undefined',
-      identity: typeof chrome.identity !== 'undefined'
-    };
-
-    console.log('Chrome API tests:', tests);
-    return tests;
-  }
-
-  private async getStorageData(): Promise<any> {
-    try {
-      const data = await chrome.storage.local.get(null);
-      console.log('Storage data:', data);
-      return data;
-    } catch (error) {
-      console.error('Error getting storage data:', error);
-      return { error: (error as Error).message };
     }
   }
 
-  private async storeScanResult(scanResult: ScanResult): Promise<void> {
-    try {
-      await chrome.storage.local.set({
-        lastScan: scanResult.timestamp,
-        scanResult: scanResult,
-        privacyScore: 100 - scanResult.totalRiskScore,
-        totalApps: scanResult.apps.length,
-        highRiskApps: scanResult.apps.filter((app) => 
-          app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL'
-        ).length
-      });
-      console.log('Scan result stored');
-    } catch (error) {
-      console.error('Error storing scan result:', error);
-    }
-  }
+  private calculateRiskScore(pageAnalysis: any, cookieData: any, historyData: any): number {
+    let riskScore = 0;
 
-  private async clearScanData(): Promise<void> {
-    try {
-      await chrome.storage.local.clear();
-      await this.onFirstInstall(); // Reset to initial state
-      console.log('Scan data cleared');
-    } catch (error) {
-      console.error('Error clearing scan data:', error);
-    }
-  }
+    // Page analysis risks
+    if (pageAnalysis.oauthElements.length > 0) riskScore += 10;
+    if (pageAnalysis.trackingScripts.length > 0) riskScore += 15;
+    if (pageAnalysis.formFields.length > 0) riskScore += 5;
 
-  // Store detected SaaS applications
-  private async storeDetectedApplication(message: any): Promise<void> {
-    try {
-      const { domain, title, url, riskLevel, riskFactors, dataTypes, timestamp } = message;
-      
-      // Get existing detected applications
-      const result = await chrome.storage.local.get(['detectedApplications']);
-      const detectedApplications = result.detectedApplications || [];
-      
-      // Check if this application is already stored
-      const existingIndex = detectedApplications.findIndex((app: any) => app.domain === domain);
-      
-      const newApp = {
-        id: `saas_${domain}`,
-        name: title || this.getAppNameFromDomain(domain),
-        domain: domain,
-        riskLevel: riskLevel,
-        dataTypes: dataTypes,
-        hasBreaches: false, // Would need to check against breach database
-        thirdPartySharing: riskFactors.includes('THIRD_PARTY_COOKIES'),
-        lastAccessed: new Date(timestamp),
-        accountStatus: 'UNKNOWN' as const,
-        passwordStrength: 'MEDIUM' as const,
-        riskFactors: riskFactors,
-        url: url,
-        detectedAt: timestamp
-      };
-      
-      if (existingIndex >= 0) {
-        // Update existing application
-        detectedApplications[existingIndex] = {
-          ...detectedApplications[existingIndex],
-          lastAccessed: new Date(timestamp),
-          riskLevel: riskLevel,
-          riskFactors: riskFactors
-        };
-      } else {
-        // Add new application
-        detectedApplications.push(newApp);
-      }
-      
-      // Store updated list
-      await chrome.storage.local.set({ detectedApplications });
-      console.log(`Stored detected application: ${domain}`);
-    } catch (error) {
-      console.error('Error storing detected application:', error);
-    }
-  }
+    // Cookie risks
+    if (cookieData.trackingCookies.length > 10) riskScore += 20;
+    if (cookieData.trackingDomains.length > 5) riskScore += 15;
 
-  // Store OAuth detections
-  private async storeOAuthDetection(message: any): Promise<void> {
-    try {
-      const { provider, url } = message;
-      
-      // Get existing OAuth detections
-      const result = await chrome.storage.local.get(['oauthDetections']);
-      const oauthDetections = result.oauthDetections || [];
-      
-      const newDetection = {
-        provider: provider,
-        url: url,
-        detectedAt: new Date().toISOString()
-      };
-      
-      oauthDetections.push(newDetection);
-      
-      // Store updated list
-      await chrome.storage.local.set({ oauthDetections });
-      console.log(`Stored OAuth detection: ${provider} at ${url}`);
-    } catch (error) {
-      console.error('Error storing OAuth detection:', error);
-    }
-  }
+    // History risks
+    const highRiskApps = historyData.saasApplications.filter((app: any) => 
+      app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL'
+    );
+    riskScore += highRiskApps.length * 5;
 
-  // Store tracking detections
-  private async storeTrackingDetection(message: any): Promise<void> {
-    try {
-      const { tracker, url } = message;
-      const result = await chrome.storage.local.get(['trackingDetections']);
-      const trackingDetections = result.trackingDetections || [];
-      
-      const newDetection = {
-        tracker: tracker,
-        url: url,
-        detectedAt: new Date().toISOString()
-      };
-      
-      trackingDetections.push(newDetection);
-      await chrome.storage.local.set({ trackingDetections });
-      console.log(`Stored tracking detection: ${tracker} at ${url}`);
-    } catch (error) {
-      console.error('Error storing tracking detection:', error);
-    }
-  }
-
-  // Store form detections
-  private async storeFormDetection(message: any): Promise<void> {
-    try {
-      const { fields, url } = message;
-      const result = await chrome.storage.local.get(['formDetections']);
-      const formDetections = result.formDetections || [];
-      
-      const newDetection = {
-        fields: fields,
-        url: url,
-        detectedAt: new Date().toISOString()
-      };
-      
-      formDetections.push(newDetection);
-      await chrome.storage.local.set({ formDetections });
-      console.log(`Stored form detection: ${fields.join(', ')} at ${url}`);
-    } catch (error) {
-      console.error('Error storing form detection:', error);
-    }
+    return Math.min(100, riskScore);
   }
 }
 
-// Initialize the background service
+// Initialize the background service worker
 new GhostScanBackground();
