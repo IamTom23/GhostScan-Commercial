@@ -50,6 +50,7 @@ interface GhostProfile {
   dataExposed: string[];
 }
 import { extensionService } from './services/extensionService';
+import { apiService } from './services/apiService';
 
 // Local utility functions to avoid build issues
 const getRiskColor = (riskLevel: string): string => {
@@ -255,15 +256,39 @@ function App() {
   ]);
   const [aiInput, setAiInput] = useState('');
 
-  // Load real data from extension on component mount
+  // Load real data from extension and backend API on component mount
   useEffect(() => {
-    const loadExtensionData = async () => {
+    const loadData = async () => {
       try {
-        // Check extension status using the new testConnection method
-        const connectionResult = await extensionService.testConnection();
-        console.log('Connection test result:', connectionResult);
+        // First try to load data from backend API
+        console.log('Attempting to load data from backend API...');
+        const apiConnectionResult = await apiService.testConnection();
+        console.log('API connection test result:', apiConnectionResult);
         
-        if (connectionResult.success) {
+        if (apiConnectionResult.success) {
+          // Load demo startup data from backend
+          const orgData = await apiService.getDemoStartup();
+          if (orgData.success && orgData.data) {
+            const dashboardData = apiService.convertOrganizationToDashboardFormat(orgData.data);
+            if (dashboardData) {
+              setUserProfile(dashboardData.userProfile);
+              setApps(dashboardData.apps);
+              setBreachAlerts(dashboardData.breachAlerts);
+              setActionItems(dashboardData.actions);
+              setPrivacyTips(dashboardData.privacyTips);
+              setHasData(true);
+              console.log('Loaded data from backend API:', dashboardData);
+              return; // Success, no need to try extension
+            }
+          }
+        }
+
+        // Fallback to extension data if API fails
+        console.log('Backend API not available, trying extension...');
+        const extensionConnectionResult = await extensionService.testConnection();
+        console.log('Extension connection test result:', extensionConnectionResult);
+        
+        if (extensionConnectionResult.success) {
           // Update extension status to show it's working
           setExtensionStatus({
             available: true,
@@ -282,31 +307,31 @@ function App() {
           const extensionData = await extensionService.getExtensionData();
           if (extensionData) {
             const dashboardData = extensionService.convertToDashboardFormat(extensionData);
-                              if (dashboardData) {
-            setUserProfile(dashboardData.userProfile);
-            setApps(dashboardData.apps);
-            setBreachAlerts(dashboardData.breachAlerts);
-            // Use real actions and privacy tips if available
-            if (dashboardData.actions) {
-              setActionItems(dashboardData.actions);
+            if (dashboardData) {
+              setUserProfile(dashboardData.userProfile);
+              setApps(dashboardData.apps);
+              setBreachAlerts(dashboardData.breachAlerts);
+              // Use real actions and privacy tips if available
+              if (dashboardData.actions) {
+                setActionItems(dashboardData.actions);
+              }
+              if (dashboardData.privacyTips) {
+                setPrivacyTips(dashboardData.privacyTips);
+              }
+              setHasData(true);
+              console.log('Loaded real data from extension:', dashboardData);
             }
-            if (dashboardData.privacyTips) {
-              setPrivacyTips(dashboardData.privacyTips);
-            }
-            setHasData(true);
-            console.log('Loaded real data from extension:', dashboardData);
-          }
           }
         } else {
-          console.log('Extension not available or not responding, using mock data');
-          console.log('Connection error:', connectionResult.message);
+          console.log('Neither backend API nor extension available');
+          console.log('Extension error:', extensionConnectionResult.message);
         }
       } catch (error) {
-        console.error('Error loading extension data:', error);
+        console.error('Error loading data:', error);
       }
     };
 
-    loadExtensionData();
+    loadData();
   }, []);
 
   const startScan = async () => {
@@ -796,10 +821,22 @@ Thank you,
             Test Extension IDs
           </button>
           <button onClick={testConnection} className="test-button">
-            Test Connection
+            Test Extension
           </button>
           <button onClick={testContentScript} className="test-button">
             Test Content Script
+          </button>
+          <button onClick={async () => {
+            const result = await apiService.testConnection();
+            alert(`API Test: ${result.success ? 'SUCCESS' : 'FAILED'}\n\n${result.message}`);
+          }} className="test-button">
+            Test Backend API
+          </button>
+          <button onClick={async () => {
+            const result = await apiService.getDemoStartup();
+            alert(`Demo Data: ${result.success ? 'SUCCESS' : 'FAILED'}\n\n${result.success ? JSON.stringify(result.data, null, 2) : result.error}`);
+          }} className="test-button">
+            Test Demo Data
           </button>
         </div>
       </div>

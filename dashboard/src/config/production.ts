@@ -64,8 +64,8 @@ export const getConfig = () => {
   // Development configuration
   return {
     ...PRODUCTION_CONFIG,
-    dashboardUrl: 'http://localhost:5178',
-    apiUrl: 'http://localhost:3001',
+    dashboardUrl: 'http://localhost:5173',
+    apiUrl: '', // Use relative URLs for Vite proxy
     databaseUrl: 'mongodb://localhost:27017/ghostscan-dev'
   };
 };
