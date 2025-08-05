@@ -256,17 +256,14 @@ function App() {
   ]);
   const [aiInput, setAiInput] = useState('');
 
-  // Load real data from extension and backend API on component mount
+  // Load demo data from backend API on component mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        // First try to load data from backend API
-        console.log('Attempting to load data from backend API...');
-        const apiConnectionResult = await apiService.testConnection();
-        console.log('API connection test result:', apiConnectionResult);
+        // Always try to load demo data from backend API first
+        console.log('Loading demo data from backend API...');
         
-        if (apiConnectionResult.success) {
-          // Load demo startup data from backend
+        try {
           const orgData = await apiService.getDemoStartup();
           if (orgData.success && orgData.data) {
             const dashboardData = apiService.convertOrganizationToDashboardFormat(orgData.data);
@@ -277,19 +274,20 @@ function App() {
               setActionItems(dashboardData.actions);
               setPrivacyTips(dashboardData.privacyTips);
               setHasData(true);
-              console.log('Loaded data from backend API:', dashboardData);
-              return; // Success, no need to try extension
+              console.log('Successfully loaded demo data from API:', dashboardData);
+              return;
             }
           }
+        } catch (apiError) {
+          console.log('API not available, will try extension fallback:', apiError);
         }
 
         // Fallback to extension data if API fails
-        console.log('Backend API not available, trying extension...');
+        console.log('Trying extension as fallback...');
         const extensionConnectionResult = await extensionService.testConnection();
         console.log('Extension connection test result:', extensionConnectionResult);
         
         if (extensionConnectionResult.success) {
-          // Update extension status to show it's working
           setExtensionStatus({
             available: true,
             installed: true,
@@ -303,7 +301,6 @@ function App() {
             }
           });
 
-          // Get extension data
           const extensionData = await extensionService.getExtensionData();
           if (extensionData) {
             const dashboardData = extensionService.convertToDashboardFormat(extensionData);
@@ -311,7 +308,6 @@ function App() {
               setUserProfile(dashboardData.userProfile);
               setApps(dashboardData.apps);
               setBreachAlerts(dashboardData.breachAlerts);
-              // Use real actions and privacy tips if available
               if (dashboardData.actions) {
                 setActionItems(dashboardData.actions);
               }
@@ -319,15 +315,20 @@ function App() {
                 setPrivacyTips(dashboardData.privacyTips);
               }
               setHasData(true);
-              console.log('Loaded real data from extension:', dashboardData);
+              console.log('Loaded data from extension:', dashboardData);
+              return;
             }
           }
-        } else {
-          console.log('Neither backend API nor extension available');
-          console.log('Extension error:', extensionConnectionResult.message);
         }
+
+        // If both API and extension fail, still show the dashboard with minimal data
+        console.log('No data sources available, showing demo data message');
+        setHasData(true); // Show dashboard anyway
+        
       } catch (error) {
         console.error('Error loading data:', error);
+        // Even on error, show the dashboard
+        setHasData(true);
       }
     };
 
@@ -339,12 +340,35 @@ function App() {
     console.log('Starting scan...');
     
     try {
+      // First try to refresh data from backend API
+      console.log('Refreshing data from backend API...');
+      
+      try {
+        const orgData = await apiService.getDemoStartup();
+        if (orgData.success && orgData.data) {
+          const dashboardData = apiService.convertOrganizationToDashboardFormat(orgData.data);
+          if (dashboardData) {
+            setUserProfile(dashboardData.userProfile);
+            setApps(dashboardData.apps);
+            setBreachAlerts(dashboardData.breachAlerts);
+            setActionItems(dashboardData.actions);
+            setPrivacyTips(dashboardData.privacyTips);
+            setHasData(true);
+            console.log('Scan completed with API data:', dashboardData);
+            setIsScanning(false);
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.log('API scan failed, trying extension...', apiError);
+      }
+
+      // Fallback to extension scan
       if (extensionStatus.available && extensionStatus.debugInfo?.testMessageSent) {
-        console.log('Triggering real scan via extension...');
+        console.log('Triggering scan via extension...');
         
-        // Trigger real scan via extension
         const scanResult = await extensionService.triggerExtensionScan();
-        console.log('Scan result received:', scanResult);
+        console.log('Extension scan result:', scanResult);
         
         if (scanResult) {
           const dashboardData = extensionService.convertToDashboardFormat({
@@ -355,7 +379,6 @@ function App() {
             setUserProfile(dashboardData.userProfile);
             setApps(dashboardData.apps);
             setBreachAlerts(dashboardData.breachAlerts);
-            // Use real actions and privacy tips from scan
             if (dashboardData.actions) {
               setActionItems(dashboardData.actions);
             }
@@ -363,31 +386,18 @@ function App() {
               setPrivacyTips(dashboardData.privacyTips);
             }
             setHasData(true);
-            console.log('Scan completed with real data:', dashboardData);
-          }
-        } else {
-          console.log('No scan result received, trying to get stored data...');
-          // Try to get the latest stored data from extension
-          const extensionData = await extensionService.getExtensionData();
-          if (extensionData && extensionData.scanResult) {
-            const dashboardData = extensionService.convertToDashboardFormat(extensionData);
-            if (dashboardData) {
-              setUserProfile(dashboardData.userProfile);
-              setApps(dashboardData.apps);
-              setBreachAlerts(dashboardData.breachAlerts);
-              console.log('Loaded stored scan data:', dashboardData);
-            }
+            console.log('Scan completed with extension data:', dashboardData);
           }
         }
       } else {
-        console.log('Extension not available, using simulated scan...');
-        // Fallback to simulated scan if extension not available
-        setTimeout(() => {
-          setIsScanning(false);
-        }, 3000);
+        console.log('Extension not available, scan completed with existing data');
+        // Just refresh the page state to show updated data
+        setHasData(true);
       }
     } catch (error) {
       console.error('Error during scan:', error);
+      // Even on error, make sure we show the dashboard
+      setHasData(true);
     } finally {
       setIsScanning(false);
     }
