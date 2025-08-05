@@ -861,26 +861,9 @@ Thank you,
           <div className="logo">
             <span className="logo-icon">👻</span>
             <h1>GhostScan</h1>
-            <span className="company-tag">by Virtrus</span>
           </div>
           <div className="user-info">
             <span>{userProfile?.email || 'User'}</span>
-            <div className="extension-status">
-              {extensionStatus.available && extensionStatus.installed ? (
-                <span className="status-connected">🔗 Extension Connected</span>
-              ) : extensionStatus.available ? (
-                <span className="status-available">📦 Extension Available</span>
-              ) : (
-                <span className="status-unavailable">❌ Extension Unavailable</span>
-              )}
-              <button 
-                className="debug-toggle"
-                onClick={() => setShowDebug(!showDebug)}
-                title="Toggle debug info"
-              >
-                🔧
-              </button>
-            </div>
             <div className="privacy-score">
               <div className="score-circle" style={{ borderColor: privacyGrade.color }}>
                 <span className="score-grade">{privacyGrade.grade}</span>
