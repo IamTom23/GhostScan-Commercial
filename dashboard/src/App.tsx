@@ -774,13 +774,16 @@ Thank you,
             <h1>GhostScan</h1>
           </div>
           <div className="user-info">
-            <span>{userProfile?.email || 'User'}</span>
-            <div className="privacy-score">
+            <div className="admin-badge">
+              <span className="role-indicator">🛡️ Security Admin</span>
+              <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
+            </div>
+            <div className="threat-score">
               <div className="score-circle" style={{ borderColor: privacyGrade.color }}>
                 <span className="score-grade">{privacyGrade.grade}</span>
                 <span className="score-number">{privacyScore}</span>
               </div>
-              <span className="score-label">Privacy Score</span>
+              <span className="score-label">Threat Level</span>
             </div>
           </div>
         </div>
@@ -893,43 +896,43 @@ Thank you,
           className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
-          📊 Dashboard
+          🛡️ Security Overview
         </button>
         <button 
-          className={`nav-item ${activeTab === 'actions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('actions')}
+          className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
+          onClick={() => setActiveTab('threats')}
         >
-          ✅ Actions ({actionItems.filter(item => !item.completed).length})
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'tips' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tips')}
-        >
-          💡 Privacy Tips
+          🚨 Active Threats ({actionItems.filter(item => !item.completed).length})
         </button>
         <button 
           className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
           onClick={() => setActiveTab('apps')}
         >
-          🔍 Apps ({apps.length})
+          ☁️ Cloud Apps ({apps.length})
         </button>
         <button 
           className={`nav-item ${activeTab === 'breaches' ? 'active' : ''}`}
           onClick={() => setActiveTab('breaches')}
         >
-          🚨 Breaches ({breachAlerts.filter(b => b.isNew).length})
+          🚨 Security Incidents ({breachAlerts.filter(b => b.isNew).length})
         </button>
         <button 
           className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
           onClick={() => setActiveTab('exposure')}
         >
-          🔍 Public Exposure ({ghostProfiles.length})
+          🔍 Data Exposure ({ghostProfiles.length})
         </button>
         <button 
-          className={`nav-item ${activeTab === 'knowledge' ? 'active' : ''}`}
-          onClick={() => setActiveTab('knowledge')}
+          className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
+          onClick={() => setActiveTab('intel')}
         >
-          📚 Knowledge Base
+          📊 Threat Intelligence
+        </button>
+        <button 
+          className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
+          onClick={() => setActiveTab('policies')}
+        >
+          ⚙️ Security Policies
         </button>
       </nav>
 
@@ -937,24 +940,41 @@ Thank you,
       <main className="main">
         {activeTab === 'dashboard' && (
           <div className="dashboard">
-            {/* Privacy Score Hero */}
-            <div className="privacy-hero">
+            {/* Security Status Hero */}
+            <div className="security-hero">
               <div className="hero-content">
-                <h2>Your Privacy Score: {privacyGrade.grade}</h2>
-                <p>You're doing better than 65% of users, but there's room for improvement!</p>
-                <button 
-                  className="scan-button"
-                  onClick={startScan}
-                  disabled={isScanning}
-                >
-                  {isScanning ? '🔍 Scanning...' : '🔍 Run New Scan'}
-                </button>
+                <h2>Organization Threat Level: {privacyGrade.grade}</h2>
+                <p>Cloud security assessment for TechFlow Startup - 12 employees monitored</p>
+                <div className="scan-controls">
+                  <button 
+                    className="scan-button primary"
+                    onClick={startScan}
+                    disabled={isScanning}
+                  >
+                    {isScanning ? '🔍 Scanning Cloud Apps...' : '🔍 Run Security Scan'}
+                  </button>
+                  <span className="last-scan">Last scan: {userProfile?.lastScanDate ? formatDate(userProfile.lastScanDate) : '2 days ago'}</span>
+                </div>
               </div>
               <div className="hero-visual">
-                <div className="score-display" style={{ color: privacyGrade.color }}>
+                <div className="threat-display" style={{ color: privacyGrade.color }}>
                   <div className="score-circle-large" style={{ borderColor: privacyGrade.color }}>
                     <span className="score-grade-large">{privacyGrade.grade}</span>
                     <span className="score-number-large">{privacyScore}</span>
+                  </div>
+                  <div className="threat-indicators">
+                    <div className="indicator critical">
+                      <span className="count">{apps.filter(app => app.riskLevel === 'CRITICAL').length}</span>
+                      <span className="label">Critical</span>
+                    </div>
+                    <div className="indicator high">
+                      <span className="count">{apps.filter(app => app.riskLevel === 'HIGH').length}</span>
+                      <span className="label">High Risk</span>
+                    </div>
+                    <div className="indicator monitored">
+                      <span className="count">{apps.length}</span>
+                      <span className="label">Apps Monitored</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -991,35 +1011,65 @@ Thank you,
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="quick-actions">
-              <button className="action-button" onClick={handlePrivacyRequests}>✉️ Generate GDPR Requests</button>
-              <button className="action-button" onClick={handlePasswordCheck}>🔒 Security Audit</button>
-              <button className="action-button" onClick={handleComplianceReport}>📊 Compliance Report</button>
-              <button className="action-button" onClick={handleRevokeAccess}>🔐 Revoke Unused Access</button>
+            {/* Security Actions */}
+            <div className="security-actions">
+              <h3>🛡️ Security Operations</h3>
+              <div className="action-grid">
+                <button className="action-button critical" onClick={handleRevokeAccess}>
+                  <span className="action-icon">🔐</span>
+                  <span className="action-text">Revoke Risky Access</span>
+                </button>
+                <button className="action-button high" onClick={handlePasswordCheck}>
+                  <span className="action-icon">🔒</span>
+                  <span className="action-text">Security Audit</span>
+                </button>
+                <button className="action-button medium" onClick={handleComplianceReport}>
+                  <span className="action-icon">📊</span>
+                  <span className="action-text">Generate Report</span>
+                </button>
+                <button className="action-button low" onClick={handlePrivacyRequests}>
+                  <span className="action-icon">⚙️</span>
+                  <span className="action-text">Policy Actions</span>
+                </button>
+              </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>Total Apps</h3>
-                <div className="stat-value">{userProfile?.totalApps || 0}</div>
-                <div className="stat-change">+2 this week</div>
-              </div>
-              <div className="stat-card">
-                <h3>High Risk Apps</h3>
-                <div className="stat-value danger">{userProfile?.highRiskApps || 0}</div>
-                <div className="stat-change">-1 this week</div>
-              </div>
-              <div className="stat-card">
-                <h3>Pending Actions</h3>
-                <div className="stat-value">{actionItems.filter(item => !item.completed).length}</div>
-                <div className="stat-change">-2 this week</div>
-              </div>
-              <div className="stat-card">
-                <h3>Compliance Score</h3>
-                <div className="stat-value">{Math.max(85, 100 - (userProfile?.highRiskApps || 0) * 5)}%</div>
-                <div className="stat-change">+3% this week</div>
+            {/* Security Metrics */}
+            <div className="security-metrics">
+              <h3>📊 Security Metrics</h3>
+              <div className="metrics-grid">
+                <div className="metric-card threat-level">
+                  <div className="metric-header">
+                    <span className="metric-icon">☁️</span>
+                    <span className="metric-title">Cloud Apps Monitored</span>
+                  </div>
+                  <div className="metric-value">{userProfile?.totalApps || 0}</div>
+                  <div className="metric-change positive">+2 discovered this week</div>
+                </div>
+                <div className="metric-card critical">
+                  <div className="metric-header">
+                    <span className="metric-icon">🚨</span>
+                    <span className="metric-title">Critical Threats</span>
+                  </div>
+                  <div className="metric-value danger">{apps.filter(app => app.riskLevel === 'CRITICAL').length}</div>
+                  <div className="metric-change">Requires immediate action</div>
+                </div>
+                <div className="metric-card high-risk">
+                  <div className="metric-header">
+                    <span className="metric-icon">⚠️</span>
+                    <span className="metric-title">High Risk Apps</span>
+                  </div>
+                  <div className="metric-value warning">{userProfile?.highRiskApps || 0}</div>
+                  <div className="metric-change">-1 mitigated this week</div>
+                </div>
+                <div className="metric-card security-score">
+                  <div className="metric-header">
+                    <span className="metric-icon">🛡️</span>
+                    <span className="metric-title">Security Posture</span>
+                  </div>
+                  <div className="metric-value">{Math.max(85, 100 - (userProfile?.highRiskApps || 0) * 5)}%</div>
+                  <div className="metric-change positive">+3% improvement</div>
+                </div>
               </div>
             </div>
 
@@ -1138,18 +1188,26 @@ Thank you,
           </div>
         )}
 
-        {activeTab === 'actions' && (
-          <div className="actions-view">
-            <div className="actions-header">
-              <h2>Action Items</h2>
-              <div className="actions-summary">
-                <span className="summary-item">
-                  <span className="summary-number">{actionItems.filter(item => !item.completed).length}</span>
-                  <span className="summary-label">Pending</span>
+        {activeTab === 'threats' && (
+          <div className="threats-view">
+            <div className="threats-header">
+              <h2>🚨 Active Security Threats</h2>
+              <div className="threat-summary">
+                <span className="summary-item critical">
+                  <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'CRITICAL').length}</span>
+                  <span className="summary-label">Critical</span>
                 </span>
-                <span className="summary-item">
+                <span className="summary-item high">
+                  <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'HIGH').length}</span>
+                  <span className="summary-label">High</span>
+                </span>
+                <span className="summary-item medium">
+                  <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'MEDIUM').length}</span>
+                  <span className="summary-label">Medium</span>
+                </span>
+                <span className="summary-item resolved">
                   <span className="summary-number">{actionItems.filter(item => item.completed).length}</span>
-                  <span className="summary-label">Completed</span>
+                  <span className="summary-label">Resolved</span>
                 </span>
               </div>
             </div>
@@ -1335,6 +1393,146 @@ Thank you,
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'intel' && (
+          <div className="intel-view">
+            <h2>📊 Threat Intelligence Dashboard</h2>
+            <div className="intel-grid">
+              <div className="intel-section">
+                <h3>🔍 Latest Threat Reports</h3>
+                <div className="intel-cards">
+                  <div className="intel-card critical">
+                    <div className="intel-header">
+                      <span className="intel-date">Today</span>
+                      <span className="intel-severity critical">CRITICAL</span>
+                    </div>
+                    <h4>Grammarly Data Harvesting Confirmed</h4>
+                    <p>Security researchers confirm Grammarly copies all typed content, including confidential documents, for AI training purposes.</p>
+                    <div className="intel-actions">
+                      <button className="intel-btn">Block Immediately</button>
+                      <button className="intel-btn secondary">View Details</button>
+                    </div>
+                  </div>
+                  <div className="intel-card high">
+                    <div className="intel-header">
+                      <span className="intel-date">2 days ago</span>
+                      <span className="intel-severity high">HIGH</span>
+                    </div>
+                    <h4>Slack OAuth Permissions Expansion</h4>
+                    <p>Slack quietly expanded OAuth permissions to include file access across connected applications without user notification.</p>
+                    <div className="intel-actions">
+                      <button className="intel-btn">Audit Permissions</button>
+                      <button className="intel-btn secondary">Review Impact</button>
+                    </div>
+                  </div>
+                  <div className="intel-card medium">
+                    <div className="intel-header">
+                      <span className="intel-date">1 week ago</span>
+                      <span className="intel-severity medium">MEDIUM</span>
+                    </div>
+                    <h4>Zoom Recording Policy Changes</h4>
+                    <p>Zoom updated their recording policy to allow indefinite storage of meeting recordings and transcripts.</p>
+                    <div className="intel-actions">
+                      <button className="intel-btn">Update Policies</button>
+                      <button className="intel-btn secondary">Learn More</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="intel-section">
+                <h3>📈 Risk Trend Analysis</h3>
+                <div className="trend-cards">
+                  <div className="trend-card">
+                    <h4>Shadow IT Growth</h4>
+                    <div className="trend-stat">+23%</div>
+                    <p>Unauthorized cloud app usage increased 23% this quarter across similar organizations.</p>
+                  </div>
+                  <div className="trend-card">
+                    <h4>Data Breach Impact</h4>
+                    <div className="trend-stat">$4.2M</div>
+                    <p>Average cost of cloud-related data breaches in your industry sector.</p>
+                  </div>
+                  <div className="trend-card">
+                    <h4>OAuth Risks</h4>
+                    <div className="trend-stat">47%</div>
+                    <p>Percentage of OAuth-connected apps with excessive permissions.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'policies' && (
+          <div className="policies-view">
+            <h2>⚙️ Security Policies & Controls</h2>
+            <div className="policies-grid">
+              <div className="policy-section">
+                <h3>🛡️ Active Security Policies</h3>
+                <div className="policy-cards">
+                  <div className="policy-card active">
+                    <div className="policy-header">
+                      <h4>Multi-Factor Authentication Required</h4>
+                      <span className="policy-status active">ENFORCED</span>
+                    </div>
+                    <p>All critical cloud applications must have MFA enabled within 48 hours of detection.</p>
+                    <div className="policy-stats">
+                      <span>✅ 12 apps compliant</span>
+                      <span>⚠️ 3 apps pending</span>
+                    </div>
+                  </div>
+                  <div className="policy-card warning">
+                    <div className="policy-header">
+                      <h4>Shadow IT Detection & Blocking</h4>
+                      <span className="policy-status warning">MONITORING</span>
+                    </div>
+                    <p>Automatically detect and flag unauthorized cloud applications for admin review.</p>
+                    <div className="policy-stats">
+                      <span>🔍 2 new apps detected this week</span>
+                      <span>⏳ Pending admin approval</span>
+                    </div>
+                  </div>
+                  <div className="policy-card inactive">
+                    <div className="policy-header">
+                      <h4>Data Loss Prevention</h4>
+                      <span className="policy-status inactive">DRAFT</span>
+                    </div>
+                    <p>Prevent confidential data from being uploaded to unauthorized cloud services.</p>
+                    <div className="policy-actions">
+                      <button className="policy-btn">Enable Policy</button>
+                      <button className="policy-btn secondary">Configure Rules</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="policy-section">
+                <h3>📋 Compliance Requirements</h3>
+                <div className="compliance-cards">
+                  <div className="compliance-card gdpr">
+                    <h4>GDPR Compliance</h4>
+                    <div className="compliance-score">87%</div>
+                    <p>3 apps need data processing agreements</p>
+                    <button className="compliance-btn">View Requirements</button>
+                  </div>
+                  <div className="compliance-card sox">
+                    <h4>SOX Controls</h4>
+                    <div className="compliance-score">94%</div>
+                    <p>Financial data access properly controlled</p>
+                    <button className="compliance-btn">Audit Trail</button>
+                  </div>
+                  <div className="compliance-card iso">
+                    <h4>ISO 27001</h4>
+                    <div className="compliance-score">76%</div>
+                    <p>Security controls assessment in progress</p>
+                    <button className="compliance-btn">Generate Report</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
