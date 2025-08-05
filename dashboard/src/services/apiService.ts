@@ -189,41 +189,46 @@ class ApiService {
   private generateActionsFromOrgData(orgData: OrganizationData) {
     const actions = [];
 
-    // Action based on privacy score
-    if (orgData.scanResults && orgData.scanResults.privacyScore < 70) {
-      actions.push({
-        id: 'improve-privacy-score',
-        title: 'Improve Organization Privacy Score',
-        description: `Your organization's privacy score is ${orgData.scanResults.privacyScore}. Implement recommended security measures.`,
-        priority: 'HIGH',
-        type: 'PRIVACY_IMPROVEMENT',
-        estimatedTime: '2 hours',
-        completed: false,
-      });
-    }
+    // Realistic action items based on common security needs
+    actions.push({
+      id: 'enable-mfa',
+      title: 'Enable Multi-Factor Authentication',
+      description: 'Set up MFA on critical applications like Google Workspace, Slack, and GitHub to prevent account takeovers.',
+      priority: 'HIGH',
+      type: 'SECURITY_HARDENING',
+      estimatedTime: '45 minutes',
+      completed: false,
+    });
 
-    // Action based on high-risk apps
-    if (orgData.scanResults && orgData.scanResults.highRiskApps > 0) {
-      actions.push({
-        id: 'review-high-risk-apps',
-        title: `Review ${orgData.scanResults.highRiskApps} High-Risk Applications`,
-        description: 'Audit and secure high-risk applications used by your organization.',
-        priority: 'HIGH',
-        type: 'SECURITY_AUDIT',
-        estimatedTime: '3 hours',
-        completed: false,
-      });
-    }
+    actions.push({
+      id: 'review-oauth-permissions',
+      title: 'Audit OAuth Application Permissions',
+      description: 'Review third-party app connections and revoke access for unused or suspicious applications.',
+      priority: 'MEDIUM',
+      type: 'ACCESS_REVIEW',
+      estimatedTime: '30 minutes',
+      completed: false,
+    });
 
-    // Action based on breaches
+    actions.push({
+      id: 'update-privacy-policy',
+      title: 'Update Privacy Policy for GDPR Compliance',
+      description: 'Ensure your privacy policy covers data collection, processing, and user rights under GDPR.',
+      priority: 'MEDIUM',
+      type: 'COMPLIANCE_UPDATE',
+      estimatedTime: '2 hours',
+      completed: false,
+    });
+
+    // Add breach response if there are breaches
     if (orgData.breaches && orgData.breaches.length > 0) {
       actions.push({
-        id: 'address-breaches',
-        title: `Address ${orgData.breaches.length} Security Breaches`,
-        description: 'Implement security measures to address recent data breaches.',
+        id: 'breach-response',
+        title: `Respond to ${orgData.breaches.length} Data Breach${orgData.breaches.length > 1 ? 'es' : ''}`,
+        description: 'Reset passwords, notify affected users, and document incident response steps.',
         priority: 'CRITICAL',
-        type: 'BREACH_RESPONSE',
-        estimatedTime: '4 hours',
+        type: 'INCIDENT_RESPONSE',
+        estimatedTime: '1 hour',
         completed: false,
       });
     }
@@ -234,41 +239,46 @@ class ApiService {
   private generatePrivacyTipsFromOrgData(orgData: OrganizationData) {
     const tips = [];
 
-    // Tip based on organization type
-    if (orgData.type === 'startup') {
-      tips.push({
-        id: 'startup-privacy-basics',
-        title: 'Privacy Fundamentals for Startups',
-        description: 'Establish core privacy practices early to build customer trust and ensure compliance.',
-        category: 'COMPLIANCE',
-        difficulty: 'MEDIUM',
-        timeEstimate: '1 hour',
-        completed: false,
-      });
-    }
+    // Practical, actionable tips for all organizations
+    tips.push({
+      id: 'password-manager',
+      title: 'Implement Enterprise Password Manager',
+      description: 'Deploy a business password manager like 1Password Business or Bitwarden to ensure all employees use unique, strong passwords.',
+      category: 'SECURITY',
+      difficulty: 'EASY',
+      timeEstimate: '2 hours',
+      completed: false,
+    });
 
-    // Tip based on employee count
-    if (orgData.employees > 50) {
+    tips.push({
+      id: 'access-review-process',
+      title: 'Establish Quarterly Access Reviews',
+      description: 'Set up a recurring process to review who has access to what applications and remove unnecessary permissions.',
+      category: 'ACCESS_MANAGEMENT',
+      difficulty: 'MEDIUM',
+      timeEstimate: '3 hours',
+      completed: false,
+    });
+
+    tips.push({
+      id: 'data-processing-agreements',
+      title: 'Audit Vendor Data Processing Agreements',
+      description: 'Ensure all SaaS vendors have signed data processing agreements that specify how they handle your data.',
+      category: 'COMPLIANCE',
+      difficulty: 'MEDIUM',
+      timeEstimate: '4 hours',
+      completed: false,
+    });
+
+    // Additional tip for larger organizations
+    if (orgData.employees > 25) {
       tips.push({
-        id: 'employee-training',
-        title: 'Privacy Training for Teams',
-        description: 'Implement privacy awareness training for all employees to reduce security risks.',
+        id: 'security-awareness-training',
+        title: 'Deploy Security Awareness Training',
+        description: 'Implement regular security training to help employees recognize phishing, social engineering, and other threats.',
         category: 'TRAINING',
-        difficulty: 'HIGH',
-        timeEstimate: '4 hours',
-        completed: false,
-      });
-    }
-
-    // Tip based on industry
-    if (orgData.industry.toLowerCase().includes('tech') || orgData.industry.toLowerCase().includes('software')) {
-      tips.push({
-        id: 'tech-privacy-standards',
-        title: 'Tech Industry Privacy Standards',
-        description: 'Implement privacy-by-design principles in your software development lifecycle.',
-        category: 'DEVELOPMENT',
-        difficulty: 'HIGH',
-        timeEstimate: '6 hours',
+        difficulty: 'MEDIUM',
+        timeEstimate: '1 hour setup + ongoing',
         completed: false,
       });
     }

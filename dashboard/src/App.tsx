@@ -246,15 +246,6 @@ function App() {
   }>({ available: false, installed: false, lastScan: null, privacyScore: null });
   const [showDebug, setShowDebug] = useState(false);
   const [hasData, setHasData] = useState(false);
-  const [aiMessages, setAiMessages] = useState([
-    {
-      id: '1',
-      type: 'ai',
-      content: "Hi! I'm your AI privacy assistant. Ask me anything about your data security, like 'Is my info safe on Canva?' or 'What does Grammarly do with my writing?'",
-      timestamp: new Date(),
-    }
-  ]);
-  const [aiInput, setAiInput] = useState('');
 
   // Load demo data from backend API on component mount
   useEffect(() => {
@@ -416,52 +407,6 @@ function App() {
     return { grade: 'D', color: '#7C2D12' };
   };
 
-  const handleAiMessage = () => {
-    if (!aiInput.trim()) return;
-
-    const userMessage = {
-      id: Date.now().toString(),
-      type: 'user' as const,
-      content: aiInput,
-      timestamp: new Date(),
-    };
-
-    setAiMessages(prev => [...prev, userMessage]);
-    setAiInput('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai' as const,
-        content: getAiResponse(aiInput),
-        timestamp: new Date(),
-      };
-      setAiMessages(prev => [...prev, aiResponse]);
-    }, 1000);
-  };
-
-  const getAiResponse = (query: string): string => {
-    const lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.includes('canva')) {
-      return "Canva is generally safe for privacy. They collect basic account info and your designs, but don't sell your data to third parties. However, they do use your data for improving their service and may share it with service providers. Consider reviewing your privacy settings in your Canva account.";
-    }
-    
-    if (lowerQuery.includes('grammarly')) {
-      return "⚠️ Grammarly has some privacy concerns. They analyze your writing content to provide suggestions, which means they can see what you're typing. They also share data with third parties for analytics. If you're writing sensitive documents, consider using it offline or switching to a more privacy-focused alternative.";
-    }
-    
-    if (lowerQuery.includes('password')) {
-      return "Here are some password best practices:\n• Use unique passwords for each account\n• Make them at least 12 characters long\n• Include numbers, symbols, and mixed case\n• Consider using a password manager\n• Enable two-factor authentication wherever possible";
-    }
-    
-    if (lowerQuery.includes('breach')) {
-      return "If you've been in a data breach:\n1. Change your password immediately\n2. Enable two-factor authentication\n3. Check for suspicious activity\n4. Consider freezing your credit\n5. Monitor your accounts regularly";
-    }
-    
-    return "I'm here to help with your privacy questions! You can ask me about specific apps, password security, data breaches, or general privacy tips. What would you like to know more about?";
-  };
 
   const privacyScore = getPrivacyScore();
   const privacyGrade = getPrivacyGrade(privacyScore);
@@ -602,72 +547,38 @@ Thank you,
     alert(result);
   };
 
-  const handleEmailScan = async () => {
-    console.log('Initiating email scan...');
+
+  const handleComplianceReport = async () => {
+    console.log('Generating compliance report...');
     
-    // Simulate email scanning for breaches
-    const emailDomains = ['gmail.com', 'outlook.com', 'yahoo.com', 'icloud.com'];
-    const breachResults = [];
+    const report = `📊 GDPR Compliance Report\n\n` +
+      `✅ Compliant Apps: ${apps.filter(app => !app.thirdPartySharing).length}\n` +
+      `⚠️ Needs Review: ${apps.filter(app => app.thirdPartySharing).length}\n` +
+      `🚨 High Risk: ${apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL').length}\n\n` +
+      `Recommendations:\n` +
+      `• Review data processing agreements\n` +
+      `• Update privacy policies\n` +
+      `• Implement data retention policies\n` +
+      `• Train staff on GDPR requirements\n\n` +
+      `Report generated: ${new Date().toLocaleDateString()}`;
     
-    for (const domain of emailDomains) {
-      // Simulate checking against breach databases
-      const hasBreaches = Math.random() > 0.7; // 30% chance of breach
-      if (hasBreaches) {
-        breachResults.push({
-          domain,
-          breaches: Math.floor(Math.random() * 5) + 1,
-          lastBreach: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000)
-        });
-      }
-    }
-    
-    let result = '📧 Email Security Scan Results:\n\n';
-    
-    if (breachResults.length > 0) {
-      result += `🚨 Breaches Found: ${breachResults.length} email domains affected\n\n`;
-      breachResults.forEach(breach => {
-        result += `• ${breach.domain}: ${breach.breaches} breaches\n`;
-        result += `  Last breach: ${breach.lastBreach.toLocaleDateString()}\n\n`;
-      });
-      result += '💡 Recommendations:\n';
-      result += '• Change passwords immediately\n';
-      result += '• Enable two-factor authentication\n';
-      result += '• Monitor accounts for suspicious activity\n';
-    } else {
-      result += '✅ No breaches found for common email domains!\n';
-      result += '💡 Keep monitoring with regular scans.\n';
-    }
-    
-    alert(result);
+    alert(report);
   };
 
-  const handleAutoCleanup = async () => {
-    console.log('Initiating auto-cleanup...');
+  const handleRevokeAccess = async () => {
+    console.log('Scanning for unused access...');
     
-    // Simulate cleanup process
-    console.log('Starting auto-cleanup process...');
+    const unusedApps = apps.filter(app => {
+      const daysSinceAccess = Math.floor((Date.now() - new Date(app.lastAccessed).getTime()) / (1000 * 60 * 60 * 24));
+      return daysSinceAccess > 30;
+    });
     
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += 20;
-      if (progress <= 100) {
-        console.log(`Cleanup progress: ${progress}%`);
-      } else {
-        clearInterval(progressInterval);
-        
-        // Generate cleanup report
-        const cleanedItems = Math.floor(Math.random() * 50) + 10;
-        const freedSpace = Math.floor(Math.random() * 100) + 20;
-        
-        const result = `🔄 Auto-Cleanup Complete!\n\n` +
-          `✅ Cleaned ${cleanedItems} items\n` +
-          `💾 Freed ${freedSpace}MB of space\n` +
-          `🔒 Enhanced privacy settings\n\n` +
-          `Your browser is now cleaner and more private!`;
-        
-        alert(result);
-      }
-    }, 500);
+    const result = `🔐 Access Review Complete\n\n` +
+      `${unusedApps.length} applications haven't been used in 30+ days:\n\n` +
+      unusedApps.map(app => `• ${app.name} (last used ${Math.floor((Date.now() - new Date(app.lastAccessed).getTime()) / (1000 * 60 * 60 * 24))} days ago)`).join('\n') +
+      `\n\nRecommendation: Review these applications and revoke access if no longer needed.`;
+    
+    alert(result);
   };
 
   const handleActionFix = (action: any) => {
@@ -1009,16 +920,16 @@ Thank you,
           🚨 Breaches ({breachAlerts.filter(b => b.isNew).length})
         </button>
         <button 
-          className={`nav-item ${activeTab === 'ghosts' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ghosts')}
+          className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
+          onClick={() => setActiveTab('exposure')}
         >
-          👻 Ghost Profiles ({ghostProfiles.length})
+          🔍 Public Exposure ({ghostProfiles.length})
         </button>
         <button 
-          className={`nav-item ${activeTab === 'assistant' ? 'active' : ''}`}
-          onClick={() => setActiveTab('assistant')}
+          className={`nav-item ${activeTab === 'knowledge' ? 'active' : ''}`}
+          onClick={() => setActiveTab('knowledge')}
         >
-          🧠 AI Assistant
+          📚 Knowledge Base
         </button>
       </nav>
 
@@ -1082,10 +993,10 @@ Thank you,
 
             {/* Quick Actions */}
             <div className="quick-actions">
-              <button className="action-button" onClick={handlePrivacyRequests}>✉️ Privacy Requests</button>
-              <button className="action-button" onClick={handlePasswordCheck}>🔒 Password Check</button>
-              <button className="action-button" onClick={handleEmailScan}>📧 Email Scan</button>
-              <button className="action-button" onClick={handleAutoCleanup}>🔄 Auto-Cleanup</button>
+              <button className="action-button" onClick={handlePrivacyRequests}>✉️ Generate GDPR Requests</button>
+              <button className="action-button" onClick={handlePasswordCheck}>🔒 Security Audit</button>
+              <button className="action-button" onClick={handleComplianceReport}>📊 Compliance Report</button>
+              <button className="action-button" onClick={handleRevokeAccess}>🔐 Revoke Unused Access</button>
             </div>
 
             {/* Stats Grid */}
@@ -1106,9 +1017,9 @@ Thank you,
                 <div className="stat-change">-2 this week</div>
               </div>
               <div className="stat-card">
-                <h3>Ghost Profiles</h3>
-                <div className="stat-value">{ghostProfiles.length}</div>
-                <div className="stat-change">+1 this week</div>
+                <h3>Compliance Score</h3>
+                <div className="stat-value">{Math.max(85, 100 - (userProfile?.highRiskApps || 0) * 5)}%</div>
+                <div className="stat-change">+3% this week</div>
               </div>
             </div>
 
@@ -1214,11 +1125,11 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item info">
-                  <span className="activity-icon">👻</span>
+                  <span className="activity-icon">🔍</span>
                   <div className="activity-content">
-                    <div className="activity-title">Ghost Profile Found</div>
+                    <div className="activity-title">Compliance Scan Completed</div>
                     <div className="activity-description">
-                      New shadow profile detected on LinkedIn
+                      Reviewed 15 applications for GDPR compliance
                     </div>
                   </div>
                 </div>
@@ -1383,60 +1294,115 @@ Thank you,
           </div>
         )}
 
-        {activeTab === 'ghosts' && (
-          <div className="ghosts-view">
-            <h2>Ghost Profiles Found</h2>
-            <div className="ghosts-list">
-              {ghostProfiles.map(profile => (
-                <div key={profile.id} className="ghost-card">
-                  <div className="ghost-header">
-                    <h3>👻 {profile.platform}</h3>
-                    <span className="confidence-badge">
-                      {Math.round(profile.confidence * 100)}% match
-                    </span>
-                  </div>
-                  <div className="ghost-details">
-                    <p>Email: {profile.email}</p>
-                    {profile.username && <p>Username: {profile.username}</p>}
-                    <p>Found via: {profile.foundVia}</p>
-                    <p>Data exposed: {profile.dataExposed.join(', ')}</p>
-                  </div>
-                  <div className="ghost-actions">
-                    <button className="ghost-action">Investigate</button>
-                    <button className="ghost-action">Remove</button>
-                  </div>
-                </div>
-              ))}
+        {activeTab === 'exposure' && (
+          <div className="exposure-view">
+            <h2>Public Data Exposure Scan</h2>
+            <div className="exposure-info">
+              <p>Scan results for publicly visible company data and credentials.</p>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'assistant' && (
-          <div className="assistant-view">
-            <h2>🧠 AI Privacy Assistant</h2>
-            <div className="assistant-chat">
-              <div className="chat-messages">
-                {aiMessages.map(message => (
-                  <div key={message.id} className={`message ${message.type}`}>
-                    <div className="message-content">
-                      {message.content}
+            {ghostProfiles.length === 0 ? (
+              <div className="no-exposure">
+                <div className="empty-state">
+                  <span className="empty-icon">🔒</span>
+                  <h3>No Public Exposure Found</h3>
+                  <p>Your organization's data appears to be properly secured. We'll continue monitoring for any public leaks or credential exposure.</p>
+                  <button className="scan-button" onClick={() => alert('Public exposure scan completed - no issues found!')}>
+                    🔍 Run Deep Scan
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="exposure-list">
+                {ghostProfiles.map(profile => (
+                  <div key={profile.id} className="exposure-card">
+                    <div className="exposure-header">
+                      <h3>🔍 {profile.platform}</h3>
+                      <span className="confidence-badge">
+                        {Math.round(profile.confidence * 100)}% confidence
+                      </span>
                     </div>
-                    <div className="message-time">
-                      {message.timestamp.toLocaleTimeString()}
+                    <div className="exposure-details">
+                      <p>Email: {profile.email}</p>
+                      {profile.username && <p>Username: {profile.username}</p>}
+                      <p>Found via: {profile.foundVia}</p>
+                      <p>Data exposed: {profile.dataExposed.join(', ')}</p>
+                    </div>
+                    <div className="exposure-actions">
+                      <button className="exposure-action">Verify</button>
+                      <button className="exposure-action">Request Removal</button>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="chat-input">
-                <input 
-                  type="text" 
-                  placeholder="Ask about your privacy..."
-                  className="chat-text-input"
-                  value={aiInput}
-                  onChange={(e) => setAiInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAiMessage()}
-                />
-                <button className="chat-send" onClick={handleAiMessage}>Send</button>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'knowledge' && (
+          <div className="knowledge-view">
+            <h2>📚 Privacy & Security Knowledge Base</h2>
+            <div className="knowledge-sections">
+              <div className="knowledge-section">
+                <h3>🔒 Security Best Practices</h3>
+                <div className="knowledge-cards">
+                  <div className="knowledge-card">
+                    <h4>Multi-Factor Authentication (MFA)</h4>
+                    <p>Enable MFA on all critical business applications. This reduces account takeover risk by 99.9%.</p>
+                    <span className="knowledge-tag">High Priority</span>
+                  </div>
+                  <div className="knowledge-card">
+                    <h4>Password Management</h4>
+                    <p>Use unique, complex passwords for each application. Consider enterprise password managers like 1Password Business.</p>
+                    <span className="knowledge-tag">Essential</span>
+                  </div>
+                  <div className="knowledge-card">
+                    <h4>Regular Access Reviews</h4>
+                    <p>Quarterly review of who has access to what applications. Remove access for departed employees immediately.</p>
+                    <span className="knowledge-tag">Compliance</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="knowledge-section">
+                <h3>⚖️ Compliance Guidelines</h3>
+                <div className="knowledge-cards">
+                  <div className="knowledge-card">
+                    <h4>GDPR Requirements</h4>
+                    <p>EU users have the right to know what data you collect, how it's used, and can request deletion.</p>
+                    <span className="knowledge-tag">Legal</span>
+                  </div>
+                  <div className="knowledge-card">
+                    <h4>Data Processing Agreements</h4>
+                    <p>Ensure all SaaS vendors have signed DPAs that specify how they handle your customer data.</p>
+                    <span className="knowledge-tag">Contracts</span>
+                  </div>
+                  <div className="knowledge-card">
+                    <h4>Data Breach Response</h4>
+                    <p>Have a 72-hour breach notification plan. Document all incidents and remediation steps.</p>
+                    <span className="knowledge-tag">Incident Response</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="knowledge-section">
+                <h3>⚠️ Common Risk Areas</h3>
+                <div className="knowledge-cards">
+                  <div className="knowledge-card">
+                    <h4>Shadow IT Applications</h4>
+                    <p>Employees often use unapproved apps. Regular audits help discover and secure these tools.</p>
+                    <span className="knowledge-tag">Risk</span>
+                  </div>
+                  <div className="knowledge-card">
+                    <h4>Third-Party Integrations</h4>
+                    <p>OAuth connections can access sensitive data. Review and revoke unused integrations regularly.</p>
+                    <span className="knowledge-tag">Access Control</span>
+                  </div>
+                  <div className="knowledge-card">
+                    <h4>Data Retention Policies</h4>
+                    <p>Define how long you keep customer data and ensure vendors follow your retention requirements.</p>
+                    <span className="knowledge-tag">Policy</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
