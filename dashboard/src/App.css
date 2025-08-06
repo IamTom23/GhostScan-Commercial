@@ -1,14 +1,15 @@
 /* Cloudyx - Modern Cloud Security Platform */
 
 :root {
-  /* Cloudyx Brand Colors */
-  --primary-color: #0ea5e9;
-  --primary-dark: #0284c7;
-  --secondary-color: #06b6d4;
-  --accent-color: #8b5cf6;
-  --success-color: #10b981;
+  /* Cloudyx Brand Colors - Brighter & More Cohesive */
+  --primary-color: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
+  --secondary-color: #22d3ee;
+  --accent-color: #a855f7;
+  --success-color: #22c55e;
   --warning-color: #f59e0b;
-  --danger-color: #ef4444;
+  --danger-color: #f97316;
   --critical-color: #dc2626;
   
   /* Cloud-Inspired Dark Theme */
@@ -20,13 +21,14 @@
   
   /* Typography */
   --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
+  --text-secondary: #e2e8f0;
   --text-muted: #94a3b8;
-  --text-accent: #3b82f6;
+  --text-accent: var(--primary-color);
   
   /* Borders & Shadows */
-  --border-color: #2d3748;
-  --border-light: #4a5568;
+  --border-color: #374151;
+  --border-light: #4b5563;
+  --border-accent: rgba(59, 130, 246, 0.3);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -480,16 +482,16 @@ body {
 }
 
 .nav-item:hover {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
-  color: var(--primary-color);
-  border-bottom-color: rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(34, 211, 238, 0.08));
+  color: var(--primary-light);
+  border-bottom-color: var(--border-accent);
 }
 
 .nav-item.active {
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
   box-shadow: var(--shadow-lg);
-  border-bottom-color: var(--accent-color);
+  border-bottom-color: var(--secondary-color);
   transform: translateY(-1px);
 }
 
@@ -617,7 +619,10 @@ body {
 .progress-number {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .progress-label {
@@ -641,13 +646,31 @@ body {
   border-radius: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--primary-light), var(--secondary-color));
+  transition: left 0.3s ease;
+  z-index: -1;
 }
 
 .scan-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.scan-button:hover:not(:disabled)::before {
+  left: 0;
 }
 
 .scan-button:disabled {
@@ -689,8 +712,9 @@ body {
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-color);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-light);
+  background: var(--bg-hover);
 }
 
 .stat-card h3 {
@@ -1833,7 +1857,8 @@ body {
 .metric-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--primary-color);
+  border-color: var(--primary-light);
+  background: var(--bg-hover);
 }
 
 .metric-header {
