@@ -958,9 +958,9 @@ Thank you,
               </div>
               <div className="hero-visual">
                 <div className="threat-display" style={{ color: privacyGrade.color }}>
-                  <div className="score-circle-large" style={{ borderColor: privacyGrade.color }}>
-                    <span className="score-grade-large">{privacyGrade.grade}</span>
-                    <span className="score-number-large">{privacyScore}</span>
+                  <div className="threat-indicator-large" style={{ borderColor: privacyGrade.color }}>
+                    <span className="threat-level-large">{privacyGrade.grade}</span>
+                    <span className="threat-score-large">THREAT {privacyScore}</span>
                   </div>
                   <div className="threat-indicators">
                     <div className="indicator critical">
