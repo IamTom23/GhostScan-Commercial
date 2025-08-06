@@ -953,13 +953,16 @@ Thank you,
                   >
                     {isScanning ? '🔍 Scanning Cloud Apps...' : '🔍 Run Security Scan'}
                   </button>
-                  <span className="last-scan">Last scan: {userProfile?.lastScanDate ? formatDate(userProfile.lastScanDate) : '2 days ago'}</span>
+                  <div className="scan-status">
+                    <span className="last-scan-label">Last scan:</span>
+                    <span className="last-scan-time">{userProfile?.lastScanDate ? formatDate(userProfile.lastScanDate) : '2 days ago'}</span>
+                  </div>
                 </div>
               </div>
               <div className="hero-visual">
                 <div className="threat-display" style={{ color: privacyGrade.color }}>
                   <div className="threat-indicator-large" style={{ borderColor: privacyGrade.color }}>
-                    <span className="threat-level-large">{privacyGrade.grade}</span>
+                    {/* Clean threat indicator circle - no text */}
                   </div>
                 </div>
               </div>
