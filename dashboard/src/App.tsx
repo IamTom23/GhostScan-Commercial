@@ -1048,7 +1048,7 @@ Thank you,
                     <span className="metric-title">High Risk Apps</span>
                   </div>
                   <div className="metric-value warning">{userProfile?.highRiskApps || 0}</div>
-                  <div className="metric-change">-1 mitigated this week</div>
+                  <div className="metric-change positive">1 mitigated this week</div>
                 </div>
                 <div className="metric-card security-score">
                   <div className="metric-header">
