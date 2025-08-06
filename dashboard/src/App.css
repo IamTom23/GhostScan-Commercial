@@ -1,21 +1,22 @@
-/* GhostScan Security Console - Professional Enterprise UI */
+/* Cloudyx - Modern Cloud Security Platform */
 
 :root {
-  /* Enterprise Security Theme */
-  --primary-color: #3b82f6;
-  --primary-dark: #2563eb;
-  --secondary-color: #6366f1;
+  /* Cloudyx Brand Colors */
+  --primary-color: #0ea5e9;
+  --primary-dark: #0284c7;
+  --secondary-color: #06b6d4;
+  --accent-color: #8b5cf6;
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --danger-color: #ef4444;
   --critical-color: #dc2626;
   
-  /* Professional Dark Theme */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --bg-card: #1e293b;
-  --bg-hover: #334155;
+  /* Cloud-Inspired Dark Theme */
+  --bg-primary: #0c1220;
+  --bg-secondary: #1a202c;
+  --bg-tertiary: #2d3748;
+  --bg-card: #1a202c;
+  --bg-hover: #2d3748;
   
   /* Typography */
   --text-primary: #f8fafc;
@@ -24,8 +25,8 @@
   --text-accent: #3b82f6;
   
   /* Borders & Shadows */
-  --border-color: #334155;
-  --border-light: #475569;
+  --border-color: #2d3748;
+  --border-light: #4a5568;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -233,9 +234,11 @@ body {
 
 .company-tag {
   font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 400;
+  color: var(--secondary-color);
+  font-weight: 600;
   margin-left: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .user-info {

@@ -711,12 +711,12 @@ Thank you,
       <div className="app">
         <div className="welcome-screen">
           <div className="welcome-content">
-            <h1>🔒 Welcome to GhostScan</h1>
-            <p>Your privacy monitoring dashboard is ready!</p>
+            <h1>☁️ Welcome to Cloudyx</h1>
+            <p>Your cloud security dashboard is ready to protect your organization!</p>
             <div className="welcome-steps">
               <div className="step">
                 <span className="step-number">1</span>
-                <span>Make sure the GhostScan extension is installed</span>
+                <span>Configure your cloud security monitoring</span>
               </div>
               <div className="step">
                 <span className="step-number">2</span>
@@ -770,8 +770,9 @@ Thank you,
       <header className="header">
         <div className="header-content">
           <div className="logo">
-            <span className="logo-icon">👻</span>
-            <h1>GhostScan</h1>
+            <span className="logo-icon">☁️</span>
+            <h1>Cloudyx</h1>
+            <span className="company-tag">Cloud Security</span>
           </div>
           <div className="user-info">
             <div className="admin-badge">
