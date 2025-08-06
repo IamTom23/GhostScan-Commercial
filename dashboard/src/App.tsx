@@ -960,21 +960,6 @@ Thank you,
                 <div className="threat-display" style={{ color: privacyGrade.color }}>
                   <div className="threat-indicator-large" style={{ borderColor: privacyGrade.color }}>
                     <span className="threat-level-large">{privacyGrade.grade}</span>
-                    <span className="threat-score-large">THREAT {privacyScore}</span>
-                  </div>
-                  <div className="threat-indicators">
-                    <div className="indicator critical">
-                      <span className="count">{apps.filter(app => app.riskLevel === 'CRITICAL').length}</span>
-                      <span className="label">Critical</span>
-                    </div>
-                    <div className="indicator high">
-                      <span className="count">{apps.filter(app => app.riskLevel === 'HIGH').length}</span>
-                      <span className="label">High Risk</span>
-                    </div>
-                    <div className="indicator monitored">
-                      <span className="count">{apps.length}</span>
-                      <span className="label">Apps Monitored</span>
-                    </div>
                   </div>
                 </div>
               </div>
