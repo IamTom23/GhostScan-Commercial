@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { Onboarding } from './components/Onboarding';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -223,6 +224,19 @@ const mockProgressData = {
 };
 
 function App() {
+  const [showOnboarding, setShowOnboarding] = useState(true);
+
+  // Debug: Reset onboarding with Ctrl+O
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'o') {
+        setShowOnboarding(true);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [apps, setApps] = useState<SaaSApp[]>([]);
   const [breachAlerts, setBreachAlerts] = useState<BreachAlert[]>([]);
@@ -762,6 +776,11 @@ Thank you,
         </div>
       </div>
     );
+  }
+
+  // Show onboarding for new users
+  if (showOnboarding) {
+    return <Onboarding onComplete={() => setShowOnboarding(false)} />;
   }
 
   return (

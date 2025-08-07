@@ -45,6 +45,7 @@
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
+  --border-radius: 0.5rem;
 }
 
 * {
@@ -250,15 +251,23 @@ body {
 }
 
 .admin-badge {
-  background: linear-gradient(135deg, var(--danger-color), #dc2626);
-  color: white;
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: white !important;
   padding: 0.375rem 0.75rem;
-  border-radius: var(--border-radius);
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+}
+
+.admin-badge .role-indicator {
+  color: white !important;
+}
+
+.admin-badge .user-email {
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .threat-level {
