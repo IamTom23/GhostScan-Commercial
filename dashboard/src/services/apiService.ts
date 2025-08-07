@@ -99,8 +99,8 @@ class ApiService {
   }
 
   // Health check
-  async healthCheck(): Promise<ApiResponse<{ status: string; timestamp: Date }>> {
-    return this.request<{ status: string; timestamp: Date }>('/health');
+  async healthCheck(): Promise<ApiResponse<any>> {
+    return this.request<any>('/api/health');
   }
 
   // Get API info
@@ -122,13 +122,13 @@ class ApiService {
         
         return {
           success: true,
-          message: healthData.checks?.database?.status === 'healthy' 
+          message: healthData?.checks?.database?.status === 'healthy' 
             ? 'Backend API and database connected successfully'
             : 'Backend API connected, but database may have issues',
           details: {
             ...healthResult.data,
-            databaseStatus: healthData.checks?.database?.status || 'unknown',
-            databaseMessage: healthData.checks?.database?.message || 'No database info'
+            databaseStatus: healthData?.checks?.database?.status || 'unknown',
+            databaseMessage: healthData?.checks?.database?.message || 'No database info'
           },
         };
       } else {
