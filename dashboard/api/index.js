@@ -1,31 +1,35 @@
-// Vercel serverless function for API info
+// Root API endpoint for Cloudyx Security Dashboard
 export default function handler(req, res) {
-  res.status(200).json({
-    name: 'GhostScan Business API',
-    description: 'Privacy & Security Management for Startups and SMBs',
-    version: '1.0.0-mvp',
-    platform: 'Vercel Serverless',
+  // Handle CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const apiInfo = {
+    name: 'Cloudyx Security Dashboard API',
+    version: '1.0.0',
+    description: 'SMB-focused cloud security scanning and compliance platform',
     endpoints: {
-      health: 'GET /api/health',
-      dashboard: 'GET /api/dashboard/[orgId]',
+      health: '/api/health',
+      organizations: '/api/dashboard/{orgId}',
       demo: {
-        startup: 'GET /api/dashboard/org_demo_startup',
-        smb: 'GET /api/dashboard/org_demo_smb',
+        startup: '/api/dashboard/org_demo_startup',
+        smb: '/api/dashboard/org_demo_smb'
       }
     },
-    demo_organizations: [
-      {
-        id: 'org_demo_startup',
-        name: 'TechFlow Startup',
-        domain: 'techflow.io',
-        size: 'STARTUP'
-      },
-      {
-        id: 'org_demo_smb',
-        name: 'GrowthCorp SMB',
-        domain: 'growthcorp.com',
-        size: 'SMALL'
-      }
-    ]
-  });
+    status: 'operational',
+    timestamp: new Date().toISOString(),
+    mode: 'demo'
+  };
+
+  res.status(200).json(apiInfo);
 }

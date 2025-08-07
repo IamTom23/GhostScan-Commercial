@@ -1,4 +1,5 @@
 // Vercel serverless function for organization dashboard data
+// Demo version without database dependencies
 
 // Demo data for MVP
 const getDemoOrganizations = () => [
@@ -112,7 +113,9 @@ export default function handler(req, res) {
       appsScannedThisMonth: organization.scanResults?.totalApps || 0,
       complianceStatus: organization.scanResults?.privacyScore > 70 ? 'Good' : 
                        organization.scanResults?.privacyScore > 50 ? 'Fair' : 'Needs Attention'
-    }
+    },
+    isConnectedToDatabase: false,
+    demoMode: true
   };
 
   res.status(200).json(dashboardData);
