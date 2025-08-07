@@ -916,43 +916,54 @@ Thank you,
           className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
-          🛡️ Security Overview
+          <span>🛡️</span>
+          <span>Security Overview</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
           onClick={() => setActiveTab('threats')}
         >
-          🚨 Active Threats ({actionItems.filter(item => !item.completed).length})
+          <span>🚨</span>
+          <span>Active Threats</span>
+          <span className="nav-badge">({actionItems.filter(item => !item.completed).length})</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
           onClick={() => setActiveTab('apps')}
         >
-          ☁️ Cloud Apps ({apps.length})
+          <span>☁️</span>
+          <span>Cloud Apps</span>
+          <span className="nav-badge">({apps.length})</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'breaches' ? 'active' : ''}`}
           onClick={() => setActiveTab('breaches')}
         >
-          🚨 Security Incidents ({breachAlerts.filter(b => b.isNew).length})
+          <span>🔒</span>
+          <span>Security Incidents</span>
+          <span className="nav-badge">({breachAlerts.filter(b => b.isNew).length})</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
           onClick={() => setActiveTab('exposure')}
         >
-          🔍 Data Exposure ({ghostProfiles.length})
+          <span>🔍</span>
+          <span>Data Exposure</span>
+          <span className="nav-badge">({ghostProfiles.length})</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
           onClick={() => setActiveTab('intel')}
         >
-          📊 Threat Intelligence
+          <span>📊</span>
+          <span>Threat Intelligence</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
           onClick={() => setActiveTab('policies')}
         >
-          ⚙️ Security Policies
+          <span>⚙️</span>
+          <span>Security Policies</span>
         </button>
       </nav>
 
