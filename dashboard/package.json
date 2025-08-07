@@ -7,9 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:seed": "tsx scripts/seed-database.ts",
+    "db:schema": "psql $DATABASE_URL -f database/schema.sql",
+    "typecheck": "tsc --noEmit",
+    "setup": "bash scripts/setup-dev.sh",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
   },
   "dependencies": {
+    "@types/pg": "^8.15.5",
+    "pg": "^8.16.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -23,6 +32,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "tsx": "^4.20.3",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^7.0.4"

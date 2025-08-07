@@ -118,10 +118,18 @@ class ApiService {
       const healthResult = await this.healthCheck();
       
       if (healthResult.success) {
+        const healthData = healthResult.data;
+        
         return {
           success: true,
-          message: 'Backend API connected successfully',
-          details: healthResult.data,
+          message: healthData.checks?.database?.status === 'healthy' 
+            ? 'Backend API and database connected successfully'
+            : 'Backend API connected, but database may have issues',
+          details: {
+            ...healthResult.data,
+            databaseStatus: healthData.checks?.database?.status || 'unknown',
+            databaseMessage: healthData.checks?.database?.message || 'No database info'
+          },
         };
       } else {
         return {
