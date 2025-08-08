@@ -1,7 +1,28 @@
 // Vercel serverless function for organization dashboard data
-// Demo version without database dependencies
+// Phase 1: Hybrid mode - Uses database when available, falls back to demo data
 
-// Demo data for MVP
+// Database connection (optional)
+let database, organizationDAO, applicationDAO, breachAlertDAO;
+const isDatabaseEnabled = process.env.ENABLE_DATABASE === 'true';
+
+async function initializeDatabase() {
+  if (!isDatabaseEnabled) {
+    return;
+  }
+
+  try {
+    const dbModule = await import('../../lib/database.ts');
+    database = dbModule.default;
+    organizationDAO = dbModule.organizationDAO;
+    applicationDAO = dbModule.applicationDAO;
+    breachAlertDAO = dbModule.breachAlertDAO;
+    console.log('[API] Database modules loaded successfully');
+  } catch (error) {
+    console.warn('[API] Database modules failed to load, falling back to demo data:', error.message);
+  }
+}
+
+// Demo data for fallback
 const getDemoOrganizations = () => [
   {
     id: 'org_demo_startup',
@@ -72,7 +93,78 @@ const getDemoOrganizations = () => [
   }
 ];
 
-export default function handler(req, res) {
+// Get organization data from database
+async function getOrganizationFromDatabase(orgId) {
+  if (!database || !organizationDAO) {
+    return null;
+  }
+
+  try {
+    // Test database connection first
+    const connectionTest = await database.testConnection();
+    if (!connectionTest.success) {
+      console.warn('[API] Database connection failed:', connectionTest.message);
+      return null;
+    }
+
+    // Get organization with stats
+    const org = await organizationDAO.getWithStats(orgId);
+    if (!org) {
+      return null;
+    }
+
+    // Get applications
+    const applications = await applicationDAO.findByOrganization(orgId);
+    
+    // Get recent breach alerts
+    const breaches = await breachAlertDAO.findByOrganization(orgId, 5);
+
+    // Transform to dashboard format
+    return {
+      id: org.id,
+      name: org.name,
+      type: org.type,
+      employees: org.employees,
+      industry: org.industry,
+      website: org.website,
+      scanResults: {
+        totalApps: parseInt(org.total_apps) || 0,
+        highRiskApps: parseInt(org.high_risk_apps) || 0,
+        dataExposure: org.critical_findings || 0,
+        privacyScore: org.privacy_score || 0,
+        lastScan: org.last_scan_at || new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
+      recommendations: applications
+        .filter(app => app.risk_level === 'high' || app.risk_level === 'critical')
+        .map(app => `Review security settings for ${app.name}`)
+        .slice(0, 4),
+      breaches: breaches.map(breach => ({
+        id: breach.id,
+        service: breach.application_name || 'Unknown Service',
+        date: breach.breach_date,
+        severity: breach.severity,
+        affectedData: breach.affected_data_types || []
+      })),
+      applications: applications,
+      stats: {
+        privacyScoreChange: org.privacy_score > 70 ? '+5' : org.privacy_score > 50 ? '+2' : '-3',
+        newBreachesThisWeek: breaches.filter(b => 
+          new Date(b.breach_date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        ).length,
+        appsScannedThisMonth: parseInt(org.total_apps) || 0,
+        complianceStatus: org.privacy_score > 70 ? 'Good' : 
+                         org.privacy_score > 50 ? 'Fair' : 'Needs Attention'
+      },
+      isConnectedToDatabase: true,
+      demoMode: false
+    };
+  } catch (error) {
+    console.error('[API] Database query failed:', error);
+    return null;
+  }
+}
+
+export default async function handler(req, res) {
   const { orgId } = req.query;
   
   // Handle CORS for development
@@ -89,34 +181,53 @@ export default function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const organizations = getDemoOrganizations();
-  const organization = organizations.find(org => org.id === orgId);
-  
-  if (!organization) {
-    return res.status(404).json({ 
-      error: 'Organization not found',
-      availableOrgs: organizations.map(org => ({
-        id: org.id,
-        name: org.name
-      }))
-    });
+  // Initialize database connection if enabled
+  if (isDatabaseEnabled && !database) {
+    await initializeDatabase();
   }
 
-  // Add some computed stats for the dashboard
-  const dashboardData = {
-    ...organization,
-    stats: {
-      privacyScoreChange: '+5',
-      newBreachesThisWeek: organization.breaches?.filter(b => 
-        new Date(b.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      ).length || 0,
-      appsScannedThisMonth: organization.scanResults?.totalApps || 0,
-      complianceStatus: organization.scanResults?.privacyScore > 70 ? 'Good' : 
-                       organization.scanResults?.privacyScore > 50 ? 'Fair' : 'Needs Attention'
-    },
-    isConnectedToDatabase: false,
-    demoMode: true
-  };
+  // Try database first, fall back to demo data
+  let organization = null;
+  
+  if (isDatabaseEnabled) {
+    console.log(`[API] Attempting to load organization ${orgId} from database...`);
+    organization = await getOrganizationFromDatabase(orgId);
+  }
 
-  res.status(200).json(dashboardData);
+  // Fall back to demo data if database fails or is disabled
+  if (!organization) {
+    console.log(`[API] Loading organization ${orgId} from demo data...`);
+    const organizations = getDemoOrganizations();
+    const demoOrg = organizations.find(org => org.id === orgId);
+    
+    if (!demoOrg) {
+      return res.status(404).json({ 
+        error: 'Organization not found',
+        availableOrgs: organizations.map(org => ({
+          id: org.id,
+          name: org.name
+        })),
+        databaseEnabled: isDatabaseEnabled,
+        demoMode: true
+      });
+    }
+
+    // Add computed stats for demo data
+    organization = {
+      ...demoOrg,
+      stats: {
+        privacyScoreChange: '+5',
+        newBreachesThisWeek: demoOrg.breaches?.filter(b => 
+          new Date(b.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        ).length || 0,
+        appsScannedThisMonth: demoOrg.scanResults?.totalApps || 0,
+        complianceStatus: demoOrg.scanResults?.privacyScore > 70 ? 'Good' : 
+                         demoOrg.scanResults?.privacyScore > 50 ? 'Fair' : 'Needs Attention'
+      },
+      isConnectedToDatabase: false,
+      demoMode: true
+    };
+  }
+
+  res.status(200).json(organization);
 }
