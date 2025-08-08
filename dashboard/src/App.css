@@ -525,6 +525,41 @@ body {
   background: rgba(59, 130, 246, 0.3);
 }
 
+/* Security Metrics Component */
+.security-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--bg-tertiary);
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.metric {
+  text-align: center;
+  padding: 1rem;
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
 /* Main Content */
 .main {
   flex: 1;

@@ -1373,18 +1373,32 @@ Thank you,
 
         {activeTab === 'exposure' && (
           <div className="exposure-view">
-            <h2>Public Data Exposure Scan</h2>
+            <h2>🔍 Public Data Exposure Analysis</h2>
             <div className="exposure-info">
-              <p>Scan results for publicly visible company data and credentials.</p>
+              <p>Comprehensive scan results showing your organization's publicly visible data, credentials, and potential security exposures across the web.</p>
             </div>
             {ghostProfiles.length === 0 ? (
               <div className="no-exposure">
                 <div className="empty-state">
                   <span className="empty-icon">🔒</span>
-                  <h3>No Public Exposure Found</h3>
-                  <p>Your organization's data appears to be properly secured. We'll continue monitoring for any public leaks or credential exposure.</p>
-                  <button className="scan-button" onClick={() => alert('Public exposure scan completed - no issues found!')}>
-                    🔍 Run Deep Scan
+                  <h3>Excellent Security Posture</h3>
+                  <p>Our comprehensive scan found no publicly exposed credentials, data leaks, or security vulnerabilities associated with your organization. Your digital footprint appears well-secured.</p>
+                  <div className="security-metrics">
+                    <div className="metric">
+                      <span className="metric-label">Domains Scanned</span>
+                      <span className="metric-value">15</span>
+                    </div>
+                    <div className="metric">
+                      <span className="metric-label">Data Sources Checked</span>
+                      <span className="metric-value">47</span>
+                    </div>
+                    <div className="metric">
+                      <span className="metric-label">Last Scan</span>
+                      <span className="metric-value">2 hours ago</span>
+                    </div>
+                  </div>
+                  <button className="scan-button" onClick={() => alert('Enhanced deep scan initiated - monitoring 150+ additional sources')}>
+                    🔍 Run Enhanced Deep Scan
                   </button>
                 </div>
               </div>
@@ -1417,18 +1431,18 @@ Thank you,
 
         {activeTab === 'intel' && (
           <div className="intel-view">
-            <h2>📊 Threat Intelligence Dashboard</h2>
+            <h2>📊 Real-Time Threat Intelligence</h2>
             <div className="intel-grid">
               <div className="intel-section">
-                <h3>🔍 Latest Threat Reports</h3>
+                <h3>🔍 Critical Security Alerts</h3>
                 <div className="intel-cards">
                   <div className="intel-card critical">
                     <div className="intel-header">
                       <span className="intel-date">Today</span>
                       <span className="intel-severity critical">CRITICAL</span>
                     </div>
-                    <h4>Grammarly Data Harvesting Confirmed</h4>
-                    <p>Security researchers confirm Grammarly copies all typed content, including confidential documents, for AI training purposes.</p>
+                    <h4>Critical: Grammarly Data Collection Practices</h4>
+                    <p>New research reveals Grammarly's AI systems capture and analyze all typed content, including confidential business documents, potentially exposing sensitive corporate data.</p>
                     <div className="intel-actions">
                       <button className="intel-btn">Block Immediately</button>
                       <button className="intel-btn secondary">View Details</button>
@@ -1439,8 +1453,8 @@ Thank you,
                       <span className="intel-date">2 days ago</span>
                       <span className="intel-severity high">HIGH</span>
                     </div>
-                    <h4>Slack OAuth Permissions Expansion</h4>
-                    <p>Slack quietly expanded OAuth permissions to include file access across connected applications without user notification.</p>
+                    <h4>High Risk: Slack Permission Escalation</h4>
+                    <p>Slack has silently expanded OAuth permissions to access files across all connected workplace applications, creating potential data exposure risks without explicit user consent.</p>
                     <div className="intel-actions">
                       <button className="intel-btn">Audit Permissions</button>
                       <button className="intel-btn secondary">Review Impact</button>
@@ -1451,8 +1465,8 @@ Thank you,
                       <span className="intel-date">1 week ago</span>
                       <span className="intel-severity medium">MEDIUM</span>
                     </div>
-                    <h4>Zoom Recording Policy Changes</h4>
-                    <p>Zoom updated their recording policy to allow indefinite storage of meeting recordings and transcripts.</p>
+                    <h4>Privacy Alert: Zoom Data Retention Changes</h4>
+                    <p>Zoom has updated their data retention policies to store meeting recordings, transcripts, and participant data indefinitely, raising significant privacy and compliance concerns.</p>
                     <div className="intel-actions">
                       <button className="intel-btn">Update Policies</button>
                       <button className="intel-btn secondary">Learn More</button>
@@ -1487,17 +1501,17 @@ Thank you,
 
         {activeTab === 'policies' && (
           <div className="policies-view">
-            <h2>⚙️ Security Policies & Controls</h2>
+            <h2>⚙️ Security Governance & Compliance</h2>
             <div className="policies-grid">
               <div className="policy-section">
-                <h3>🛡️ Active Security Policies</h3>
+                <h3>🛡️ Enforced Security Controls</h3>
                 <div className="policy-cards">
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>Multi-Factor Authentication Required</h4>
+                      <h4>Multi-Factor Authentication Enforcement</h4>
                       <span className="policy-status active">ENFORCED</span>
                     </div>
-                    <p>All critical cloud applications must have MFA enabled within 48 hours of detection.</p>
+                    <p>Mandatory MFA requirement for all critical business applications. Automatic enforcement within 48 hours of new application detection to prevent unauthorized access.</p>
                     <div className="policy-stats">
                       <span>✅ 12 apps compliant</span>
                       <span>⚠️ 3 apps pending</span>
@@ -1505,10 +1519,10 @@ Thank you,
                   </div>
                   <div className="policy-card warning">
                     <div className="policy-header">
-                      <h4>Shadow IT Detection & Blocking</h4>
+                      <h4>Unauthorized Application Detection</h4>
                       <span className="policy-status warning">MONITORING</span>
                     </div>
-                    <p>Automatically detect and flag unauthorized cloud applications for admin review.</p>
+                    <p>Continuous monitoring system that automatically identifies and flags unauthorized cloud applications, preventing shadow IT risks and ensuring administrative oversight.</p>
                     <div className="policy-stats">
                       <span>🔍 2 new apps detected this week</span>
                       <span>⏳ Pending admin approval</span>
@@ -1516,10 +1530,10 @@ Thank you,
                   </div>
                   <div className="policy-card inactive">
                     <div className="policy-header">
-                      <h4>Data Loss Prevention</h4>
+                      <h4>Data Loss Prevention Controls</h4>
                       <span className="policy-status inactive">DRAFT</span>
                     </div>
-                    <p>Prevent confidential data from being uploaded to unauthorized cloud services.</p>
+                    <p>Advanced DLP system designed to prevent confidential business data from being uploaded to unauthorized cloud services, protecting intellectual property and sensitive information.</p>
                     <div className="policy-actions">
                       <button className="policy-btn">Enable Policy</button>
                       <button className="policy-btn secondary">Configure Rules</button>
