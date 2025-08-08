@@ -114,9 +114,24 @@
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
 }
 
-.provider-btn.assessment:hover {
-  border-color: #8b5cf6;
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+.provider-btn.google:hover {
+  border-color: #4285f4;
+  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.2);
+}
+
+.provider-btn.microsoft:hover {
+  border-color: #0078d4;
+  box-shadow: 0 8px 25px rgba(0, 120, 212, 0.2);
+}
+
+.provider-btn.slack:hover {
+  border-color: #4a154b;
+  box-shadow: 0 8px 25px rgba(74, 21, 75, 0.2);
+}
+
+.provider-btn.discover:hover {
+  border-color: #10b981;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
 }
 
 .provider-icon {

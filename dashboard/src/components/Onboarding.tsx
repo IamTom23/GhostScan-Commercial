@@ -50,69 +50,61 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {currentStep === 'welcome' && (
           <div className="onboarding-step welcome-step">
             <div className="onboarding-header">
-              <h1>Get Your Security Assessment</h1>
-              <p>Discover vulnerabilities and compliance gaps in your digital infrastructure in under 60 seconds</p>
+              <h1>Secure Your Business Applications</h1>
+              <p>Discover which apps can access your business data and control permissions in under 60 seconds</p>
             </div>
             
             <div className="provider-selection">
-              <h3>What Would You Like to Secure?</h3>
+              <h3>Connect Your Business Applications</h3>
               <div className="provider-buttons">
                 <button 
-                  className="provider-btn saas"
-                  onClick={() => handleProviderSelect('saas')}
+                  className="provider-btn google"
+                  onClick={() => handleProviderSelect('google')}
                 >
-                  <span className="provider-icon">📱</span>
-                  <span>SaaS Applications</span>
-                  <span className="provider-tag">Most SMBs</span>
+                  <span className="provider-icon">📧</span>
+                  <span>Google Workspace</span>
+                  <span className="provider-tag">Most Popular</span>
                 </button>
                 
                 <button 
-                  className="provider-btn aws"
-                  onClick={() => handleProviderSelect('aws')}
+                  className="provider-btn microsoft"
+                  onClick={() => handleProviderSelect('microsoft')}
                 >
-                  <span className="provider-icon">☁️</span>
-                  <span>Amazon Web Services</span>
+                  <span className="provider-icon">💼</span>
+                  <span>Microsoft 365</span>
                 </button>
                 
                 <button 
-                  className="provider-btn azure"
-                  onClick={() => handleProviderSelect('azure')}
+                  className="provider-btn slack"
+                  onClick={() => handleProviderSelect('slack')}
                 >
-                  <span className="provider-icon">🔷</span>
-                  <span>Microsoft Azure</span>
+                  <span className="provider-icon">💬</span>
+                  <span>Slack Workspace</span>
                 </button>
                 
                 <button 
-                  className="provider-btn gcp"
-                  onClick={() => handleProviderSelect('gcp')}
+                  className="provider-btn discover"
+                  onClick={() => handleProviderSelect('discover')}
                 >
-                  <span className="provider-icon">🌈</span>
-                  <span>Google Cloud Platform</span>
-                </button>
-                
-                <button 
-                  className="provider-btn assessment"
-                  onClick={() => handleProviderSelect('assessment')}
-                >
-                  <span className="provider-icon">📊</span>
-                  <span>Security Assessment</span>
-                  <span className="provider-tag">Getting Started</span>
+                  <span className="provider-icon">🔍</span>
+                  <span>Discover All Apps</span>
+                  <span className="provider-tag">Recommended</span>
                 </button>
               </div>
             </div>
             
             <div className="trust-indicators">
               <div className="trust-item">
-                <span className="trust-icon">✅</span>
-                <span>Secure, read-only access</span>
+                <span className="trust-icon">🔒</span>
+                <span>Read-only permissions</span>
               </div>
               <div className="trust-item">
                 <span className="trust-icon">⚡</span>
-                <span>Works with any tech stack</span>
+                <span>No software to install</span>
               </div>
               <div className="trust-item">
                 <span className="trust-icon">🆓</span>
-                <span>Free security assessment</span>
+                <span>Free security audit</span>
               </div>
             </div>
           </div>
@@ -124,14 +116,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div className="connect-animation">
               <div className="connect-spinner"></div>
               <h2>
-                {selectedProvider === 'saas' && 'Discovering SaaS Applications...'}
-                {selectedProvider === 'assessment' && 'Preparing Security Assessment...'}
-                {!['saas', 'assessment'].includes(selectedProvider) && `Connecting to ${selectedProvider.toUpperCase()}...`}
+                {selectedProvider === 'google' && 'Connecting to Google Workspace...'}
+                {selectedProvider === 'microsoft' && 'Connecting to Microsoft 365...'}
+                {selectedProvider === 'slack' && 'Connecting to Slack...'}
+                {selectedProvider === 'discover' && 'Scanning for Business Applications...'}
               </h2>
               <p>
-                {selectedProvider === 'saas' && 'Scanning for connected business applications'}
-                {selectedProvider === 'assessment' && 'Analyzing your security requirements'}
-                {!['saas', 'assessment'].includes(selectedProvider) && 'Redirecting to secure authentication'}
+                {['google', 'microsoft', 'slack'].includes(selectedProvider) && 'Redirecting to secure OAuth authentication'}
+                {selectedProvider === 'discover' && 'Analyzing your domain for connected applications'}
               </p>
             </div>
           </div>
@@ -141,11 +133,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {currentStep === 'scanning' && (
           <div className="onboarding-step scanning-step">
             <div className="scan-progress">
-              <h2>
-                {selectedProvider === 'saas' && 'Scanning Your SaaS Applications'}
-                {selectedProvider === 'assessment' && 'Performing Security Assessment'}
-                {!['saas', 'assessment'].includes(selectedProvider) && 'Scanning Your Cloud Infrastructure'}
-              </h2>
+              <h2>Analyzing Your Business Applications</h2>
               <div className="progress-bar">
                 <div 
                   className="progress-fill"
@@ -155,66 +143,22 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               <p>{Math.round(scanProgress)}% Complete</p>
               
               <div className="scan-details">
-                {selectedProvider === 'saas' && (
-                  <>
-                    <div className="scan-item">
-                      <span className="scan-icon">📱</span>
-                      <span>Discovering connected SaaS applications...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">🔑</span>
-                      <span>Checking OAuth permissions...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">🔒</span>
-                      <span>Evaluating data access controls...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">📋</span>
-                      <span>Assessing compliance requirements...</span>
-                    </div>
-                  </>
-                )}
-                {selectedProvider === 'assessment' && (
-                  <>
-                    <div className="scan-item">
-                      <span className="scan-icon">🏢</span>
-                      <span>Analyzing business requirements...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">⚖️</span>
-                      <span>Evaluating compliance needs...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">🎯</span>
-                      <span>Identifying security priorities...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">📊</span>
-                      <span>Generating recommendations...</span>
-                    </div>
-                  </>
-                )}
-                {!['saas', 'assessment'].includes(selectedProvider) && (
-                  <>
-                    <div className="scan-item">
-                      <span className="scan-icon">🔍</span>
-                      <span>Analyzing security configurations...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">🏗️</span>
-                      <span>Checking infrastructure settings...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">🔒</span>
-                      <span>Evaluating access controls...</span>
-                    </div>
-                    <div className="scan-item">
-                      <span className="scan-icon">📋</span>
-                      <span>Reviewing compliance status...</span>
-                    </div>
-                  </>
-                )}
+                <div className="scan-item">
+                  <span className="scan-icon">🔍</span>
+                  <span>Discovering connected applications...</span>
+                </div>
+                <div className="scan-item">
+                  <span className="scan-icon">🔑</span>
+                  <span>Analyzing OAuth permissions...</span>
+                </div>
+                <div className="scan-item">
+                  <span className="scan-icon">👥</span>
+                  <span>Checking user access rights...</span>
+                </div>
+                <div className="scan-item">
+                  <span className="scan-icon">📊</span>
+                  <span>Assessing data exposure risks...</span>
+                </div>
               </div>
             </div>
           </div>
@@ -262,29 +206,29 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </div>
 
             <div className="results-preview">
-              <h3>Top Issues Found:</h3>
+              <h3>Top Security Issues Found:</h3>
               <div className="issue-list">
                 <div className="issue-item">
                   <span className="issue-severity critical">CRITICAL</span>
-                  <span className="issue-title">Database exposed to internet</span>
+                  <span className="issue-title">Grammarly has access to all documents</span>
                 </div>
                 <div className="issue-item">
                   <span className="issue-severity critical">CRITICAL</span>
-                  <span className="issue-title">Default admin passwords detected</span>
+                  <span className="issue-title">External app can read private emails</span>
                 </div>
                 <div className="issue-item">
                   <span className="issue-severity warning">MEDIUM</span>
-                  <span className="issue-title">SSL certificates expiring soon</span>
+                  <span className="issue-title">Slack workspace not using SSO</span>
                 </div>
               </div>
             </div>
 
             <div className="results-actions">
               <button className="primary-btn" onClick={handleGetStarted}>
-                View Full Report & Fix Issues
+                Secure Your Apps & Control Access
               </button>
               <p className="results-note">
-                ✨ Get step-by-step fix instructions for every issue
+                🔒 Get step-by-step instructions to control app permissions
               </p>
             </div>
           </div>
