@@ -1476,22 +1476,22 @@ Thank you,
               </div>
               
               <div className="intel-section">
-                <h3>📈 Risk Trend Analysis</h3>
+                <h3>📈 Industry Risk Intelligence</h3>
                 <div className="trend-cards">
                   <div className="trend-card">
-                    <h4>Shadow IT Growth</h4>
+                    <h4>Unauthorized Application Growth</h4>
                     <div className="trend-stat">+23%</div>
-                    <p>Unauthorized cloud app usage increased 23% this quarter across similar organizations.</p>
+                    <p>SMB organizations experienced a 23% increase in unauthorized cloud application adoption this quarter, creating significant security and compliance gaps.</p>
                   </div>
                   <div className="trend-card">
-                    <h4>Data Breach Impact</h4>
+                    <h4>Cloud Breach Financial Impact</h4>
                     <div className="trend-stat">$4.2M</div>
-                    <p>Average cost of cloud-related data breaches in your industry sector.</p>
+                    <p>Average total cost of cloud-related data breaches for technology sector SMBs, including regulatory fines, remediation, and business disruption.</p>
                   </div>
                   <div className="trend-card">
-                    <h4>OAuth Risks</h4>
+                    <h4>OAuth Permission Overreach</h4>
                     <div className="trend-stat">47%</div>
-                    <p>Percentage of OAuth-connected apps with excessive permissions.</p>
+                    <p>Nearly half of all OAuth-connected applications request excessive permissions beyond their core functionality, creating unnecessary data exposure risks.</p>
                   </div>
                 </div>
               </div>
@@ -1543,24 +1543,24 @@ Thank you,
               </div>
               
               <div className="policy-section">
-                <h3>📋 Compliance Requirements</h3>
+                <h3>📋 Regulatory Compliance Status</h3>
                 <div className="compliance-cards">
                   <div className="compliance-card gdpr">
-                    <h4>GDPR Compliance</h4>
+                    <h4>GDPR Data Protection</h4>
                     <div className="compliance-score">87%</div>
-                    <p>3 apps need data processing agreements</p>
+                    <p>3 cloud applications require updated data processing agreements to ensure full GDPR compliance</p>
                     <button className="compliance-btn">View Requirements</button>
                   </div>
                   <div className="compliance-card sox">
-                    <h4>SOX Controls</h4>
+                    <h4>SOX Financial Controls</h4>
                     <div className="compliance-score">94%</div>
-                    <p>Financial data access properly controlled</p>
+                    <p>Financial data access controls and audit trails are properly implemented across all business applications</p>
                     <button className="compliance-btn">Audit Trail</button>
                   </div>
                   <div className="compliance-card iso">
-                    <h4>ISO 27001</h4>
+                    <h4>ISO 27001 Security Management</h4>
                     <div className="compliance-score">76%</div>
-                    <p>Security controls assessment in progress</p>
+                    <p>Information security management system controls assessment currently in progress for certification readiness</p>
                     <button className="compliance-btn">Generate Report</button>
                   </div>
                 </div>
