@@ -50,20 +50,28 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {currentStep === 'welcome' && (
           <div className="onboarding-step welcome-step">
             <div className="onboarding-header">
-              <h1>Get Your Cloud Security Score</h1>
-              <p>Discover vulnerabilities and compliance issues in under 60 seconds</p>
+              <h1>Get Your Security Assessment</h1>
+              <p>Discover vulnerabilities and compliance gaps in your digital infrastructure in under 60 seconds</p>
             </div>
             
             <div className="provider-selection">
-              <h3>Connect Your Cloud Provider</h3>
+              <h3>What Would You Like to Secure?</h3>
               <div className="provider-buttons">
+                <button 
+                  className="provider-btn saas"
+                  onClick={() => handleProviderSelect('saas')}
+                >
+                  <span className="provider-icon">📱</span>
+                  <span>SaaS Applications</span>
+                  <span className="provider-tag">Most SMBs</span>
+                </button>
+                
                 <button 
                   className="provider-btn aws"
                   onClick={() => handleProviderSelect('aws')}
                 >
                   <span className="provider-icon">☁️</span>
                   <span>Amazon Web Services</span>
-                  <span className="provider-tag">Most Popular</span>
                 </button>
                 
                 <button 
@@ -81,21 +89,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   <span className="provider-icon">🌈</span>
                   <span>Google Cloud Platform</span>
                 </button>
+                
+                <button 
+                  className="provider-btn assessment"
+                  onClick={() => handleProviderSelect('assessment')}
+                >
+                  <span className="provider-icon">📊</span>
+                  <span>Security Assessment</span>
+                  <span className="provider-tag">Getting Started</span>
+                </button>
               </div>
             </div>
             
             <div className="trust-indicators">
               <div className="trust-item">
                 <span className="trust-icon">✅</span>
-                <span>Read-only access</span>
+                <span>Secure, read-only access</span>
               </div>
               <div className="trust-item">
                 <span className="trust-icon">⚡</span>
-                <span>No installation required</span>
+                <span>Works with any tech stack</span>
               </div>
               <div className="trust-item">
                 <span className="trust-icon">🆓</span>
-                <span>Free security scan</span>
+                <span>Free security assessment</span>
               </div>
             </div>
           </div>
@@ -106,8 +123,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           <div className="onboarding-step connect-step">
             <div className="connect-animation">
               <div className="connect-spinner"></div>
-              <h2>Connecting to {selectedProvider.toUpperCase()}...</h2>
-              <p>Redirecting to secure authentication</p>
+              <h2>
+                {selectedProvider === 'saas' && 'Discovering SaaS Applications...'}
+                {selectedProvider === 'assessment' && 'Preparing Security Assessment...'}
+                {!['saas', 'assessment'].includes(selectedProvider) && `Connecting to ${selectedProvider.toUpperCase()}...`}
+              </h2>
+              <p>
+                {selectedProvider === 'saas' && 'Scanning for connected business applications'}
+                {selectedProvider === 'assessment' && 'Analyzing your security requirements'}
+                {!['saas', 'assessment'].includes(selectedProvider) && 'Redirecting to secure authentication'}
+              </p>
             </div>
           </div>
         )}
@@ -116,7 +141,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {currentStep === 'scanning' && (
           <div className="onboarding-step scanning-step">
             <div className="scan-progress">
-              <h2>Scanning Your Infrastructure</h2>
+              <h2>
+                {selectedProvider === 'saas' && 'Scanning Your SaaS Applications'}
+                {selectedProvider === 'assessment' && 'Performing Security Assessment'}
+                {!['saas', 'assessment'].includes(selectedProvider) && 'Scanning Your Cloud Infrastructure'}
+              </h2>
               <div className="progress-bar">
                 <div 
                   className="progress-fill"
@@ -126,22 +155,66 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               <p>{Math.round(scanProgress)}% Complete</p>
               
               <div className="scan-details">
-                <div className="scan-item">
-                  <span className="scan-icon">🔍</span>
-                  <span>Analyzing security configurations...</span>
-                </div>
-                <div className="scan-item">
-                  <span className="scan-icon">🏗️</span>
-                  <span>Checking infrastructure settings...</span>
-                </div>
-                <div className="scan-item">
-                  <span className="scan-icon">🔒</span>
-                  <span>Evaluating access controls...</span>
-                </div>
-                <div className="scan-item">
-                  <span className="scan-icon">📋</span>
-                  <span>Reviewing compliance status...</span>
-                </div>
+                {selectedProvider === 'saas' && (
+                  <>
+                    <div className="scan-item">
+                      <span className="scan-icon">📱</span>
+                      <span>Discovering connected SaaS applications...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">🔑</span>
+                      <span>Checking OAuth permissions...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">🔒</span>
+                      <span>Evaluating data access controls...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">📋</span>
+                      <span>Assessing compliance requirements...</span>
+                    </div>
+                  </>
+                )}
+                {selectedProvider === 'assessment' && (
+                  <>
+                    <div className="scan-item">
+                      <span className="scan-icon">🏢</span>
+                      <span>Analyzing business requirements...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">⚖️</span>
+                      <span>Evaluating compliance needs...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">🎯</span>
+                      <span>Identifying security priorities...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">📊</span>
+                      <span>Generating recommendations...</span>
+                    </div>
+                  </>
+                )}
+                {!['saas', 'assessment'].includes(selectedProvider) && (
+                  <>
+                    <div className="scan-item">
+                      <span className="scan-icon">🔍</span>
+                      <span>Analyzing security configurations...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">🏗️</span>
+                      <span>Checking infrastructure settings...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">🔒</span>
+                      <span>Evaluating access controls...</span>
+                    </div>
+                    <div className="scan-item">
+                      <span className="scan-icon">📋</span>
+                      <span>Reviewing compliance status...</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
