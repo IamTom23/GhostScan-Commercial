@@ -560,6 +560,211 @@ body {
   line-height: 1;
 }
 
+/* Security Alerts (Intel) Section */
+.intel-view {
+  padding: 2rem 0;
+}
+
+.intel-view h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+}
+
+.intel-grid {
+  display: grid;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.intel-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.intel-cards {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.intel-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.intel-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.intel-card.critical {
+  border-left-color: var(--danger-color);
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.intel-card.high {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.03);
+}
+
+.intel-card.medium {
+  border-left-color: var(--warning-color);
+  background: rgba(245, 158, 11, 0.02);
+}
+
+.intel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.intel-date {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.intel-severity {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.intel-severity.critical {
+  background: var(--danger-color);
+  color: white;
+}
+
+.intel-severity.high {
+  background: #f59e0b;
+  color: white;
+}
+
+.intel-severity.medium {
+  background: var(--warning-color);
+  color: white;
+}
+
+.intel-card h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.intel-card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.intel-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.intel-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.intel-btn:not(.secondary) {
+  background: var(--primary-color);
+  color: white;
+}
+
+.intel-btn:not(.secondary):hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.intel-btn.secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.intel-btn.secondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Trend Cards */
+.trend-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.trend-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.trend-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.trend-card h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.trend-stat {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.trend-card p {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 0.925rem;
+}
+
+/* Responsive Design for Security Alerts */
+@media (max-width: 768px) {
+  .intel-actions {
+    flex-direction: column;
+  }
+  
+  .intel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .trend-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Main Content */
 .main {
   flex: 1;

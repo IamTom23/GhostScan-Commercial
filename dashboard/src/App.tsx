@@ -791,7 +791,7 @@ Thank you,
           <div className="logo">
             <span className="logo-icon">☁️</span>
             <h1>Cloudyx</h1>
-            <span className="company-tag">Cloud Security</span>
+            <span className="company-tag">SaaS Security Management</span>
           </div>
           <div className="user-info">
             <div className="admin-badge">
@@ -1423,10 +1423,10 @@ Thank you,
 
         {activeTab === 'intel' && (
           <div className="intel-view">
-            <h2>📊 Real-Time Threat Intelligence</h2>
+            <h2>⚠️ SaaS Security Alerts</h2>
             <div className="intel-grid">
               <div className="intel-section">
-                <h3>🔍 Critical Security Alerts</h3>
+                <h3>🚨 Critical App Risks</h3>
                 <div className="intel-cards">
                   <div className="intel-card critical">
                     <div className="intel-header">
@@ -1436,7 +1436,7 @@ Thank you,
                     <h4>Critical: Grammarly Data Collection Practices</h4>
                     <p>New research reveals Grammarly's AI systems capture and analyze all typed content, including confidential business documents, potentially exposing sensitive corporate data.</p>
                     <div className="intel-actions">
-                      <button className="intel-btn">Block Immediately</button>
+                      <button className="intel-btn">Review Access</button>
                       <button className="intel-btn secondary">View Details</button>
                     </div>
                   </div>
@@ -1468,17 +1468,17 @@ Thank you,
               </div>
               
               <div className="intel-section">
-                <h3>📈 Industry Risk Intelligence</h3>
+                <h3>📊 SaaS Security Trends</h3>
                 <div className="trend-cards">
                   <div className="trend-card">
-                    <h4>Unauthorized Application Growth</h4>
+                    <h4>Shadow SaaS Growth</h4>
                     <div className="trend-stat">+23%</div>
-                    <p>SMB organizations experienced a 23% increase in unauthorized cloud application adoption this quarter, creating significant security and compliance gaps.</p>
+                    <p>SMBs experienced a 23% increase in unauthorized SaaS application adoption this quarter, with employees installing business apps without IT approval.</p>
                   </div>
                   <div className="trend-card">
-                    <h4>Cloud Breach Financial Impact</h4>
+                    <h4>SaaS Breach Costs</h4>
                     <div className="trend-stat">$4.2M</div>
-                    <p>Average total cost of cloud-related data breaches for technology sector SMBs, including regulatory fines, remediation, and business disruption.</p>
+                    <p>Average total cost of SaaS-related data breaches for SMBs, including lost customer trust, regulatory fines, and business disruption.</p>
                   </div>
                   <div className="trend-card">
                     <h4>OAuth Permission Overreach</h4>
