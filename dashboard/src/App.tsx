@@ -1493,67 +1493,131 @@ Thank you,
 
         {activeTab === 'policies' && (
           <div className="policies-view">
-            <h2>⚙️ Security Governance & Compliance</h2>
+            <h2>⚙️ SaaS Access Controls</h2>
+            <p className="section-description">Control who can access your business data across all your SaaS applications</p>
+            
             <div className="policies-grid">
               <div className="policy-section">
-                <h3>🛡️ Enforced Security Controls</h3>
+                <h3>🔐 App Permission Management</h3>
                 <div className="policy-cards">
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>Multi-Factor Authentication Enforcement</h4>
-                      <span className="policy-status active">ENFORCED</span>
+                      <h4>🔗 Connected App Monitoring</h4>
+                      <span className="policy-status active">ACTIVE</span>
                     </div>
-                    <p>Mandatory MFA requirement for all critical business applications. Automatic enforcement within 48 hours of new application detection to prevent unauthorized access.</p>
+                    <p>Track all third-party applications connected to your Google Workspace, Microsoft 365, and Slack. Get alerts when new apps request access to sensitive business data.</p>
                     <div className="policy-stats">
-                      <span>✅ 12 apps compliant</span>
-                      <span>⚠️ 3 apps pending</span>
+                      <span>✅ 23 apps being monitored</span>
+                      <span>🚨 2 apps need attention</span>
                     </div>
                   </div>
+                  
                   <div className="policy-card warning">
                     <div className="policy-header">
-                      <h4>Unauthorized Application Detection</h4>
-                      <span className="policy-status warning">MONITORING</span>
+                      <h4>📧 Email & Document Access Control</h4>
+                      <span className="policy-status warning">REVIEWING</span>
                     </div>
-                    <p>Continuous monitoring system that automatically identifies and flags unauthorized cloud applications, preventing shadow IT risks and ensuring administrative oversight.</p>
+                    <p>Review which apps can read your emails, access Google Drive files, or modify documents. Remove unnecessary permissions to protect confidential business information.</p>
                     <div className="policy-stats">
-                      <span>🔍 2 new apps detected this week</span>
-                      <span>⏳ Pending admin approval</span>
+                      <span>⚠️ Grammarly has email access</span>
+                      <span>🔍 5 apps can read all files</span>
                     </div>
                   </div>
-                  <div className="policy-card inactive">
+                  
+                  <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>Data Loss Prevention Controls</h4>
-                      <span className="policy-status inactive">DRAFT</span>
+                      <h4>👥 User Access Governance</h4>
+                      <span className="policy-status active">MANAGED</span>
                     </div>
-                    <p>Advanced DLP system designed to prevent confidential business data from being uploaded to unauthorized cloud services, protecting intellectual property and sensitive information.</p>
-                    <div className="policy-actions">
-                      <button className="policy-btn">Enable Policy</button>
-                      <button className="policy-btn secondary">Configure Rules</button>
+                    <p>Ensure employees only have access to the business applications they need for their role. Automatically detect when former employees still have app access.</p>
+                    <div className="policy-stats">
+                      <span>✅ 15 users properly managed</span>
+                      <span>📋 Access reviews up to date</span>
                     </div>
                   </div>
                 </div>
               </div>
               
               <div className="policy-section">
-                <h3>📋 Regulatory Compliance Status</h3>
-                <div className="compliance-cards">
-                  <div className="compliance-card gdpr">
-                    <h4>GDPR Data Protection</h4>
-                    <div className="compliance-score">87%</div>
-                    <p>3 cloud applications require updated data processing agreements to ensure full GDPR compliance</p>
-                    <button className="compliance-btn">View Requirements</button>
+                <h3>🎯 Quick Actions</h3>
+                <div className="quick-actions-grid">
+                  <div className="quick-action-card">
+                    <div className="action-icon">🔒</div>
+                    <h4>Revoke Suspicious Apps</h4>
+                    <p>2 apps have excessive permissions</p>
+                    <button className="action-btn primary">Review Now</button>
                   </div>
-                  <div className="compliance-card sox">
-                    <h4>SOX Financial Controls</h4>
-                    <div className="compliance-score">94%</div>
-                    <p>Financial data access controls and audit trails are properly implemented across all business applications</p>
-                    <button className="compliance-btn">Audit Trail</button>
+                  
+                  <div className="quick-action-card">
+                    <div className="action-icon">👤</div>
+                    <h4>Audit User Access</h4>
+                    <p>Quarterly access review is due</p>
+                    <button className="action-btn">Start Review</button>
                   </div>
-                  <div className="compliance-card iso">
-                    <h4>ISO 27001 Security Management</h4>
-                    <div className="compliance-score">76%</div>
-                    <p>Information security management system controls assessment currently in progress for certification readiness</p>
-                    <button className="compliance-btn">Generate Report</button>
+                  
+                  <div className="quick-action-card">
+                    <div className="action-icon">📱</div>
+                    <h4>Enable SSO</h4>
+                    <p>4 apps can use single sign-on</p>
+                    <button className="action-btn">Configure</button>
+                  </div>
+                  
+                  <div className="quick-action-card">
+                    <div className="action-icon">📊</div>
+                    <h4>Generate Report</h4>
+                    <p>Create access control summary</p>
+                    <button className="action-btn">Export PDF</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="policy-section">
+                <h3>🏢 Business Application Inventory</h3>
+                <div className="app-inventory">
+                  <div className="inventory-header">
+                    <span>All business applications with data access</span>
+                    <span className="app-count">23 applications</span>
+                  </div>
+                  <div className="inventory-list">
+                    <div className="inventory-item high-risk">
+                      <div className="app-info">
+                        <span className="app-icon">✏️</span>
+                        <div className="app-details">
+                          <h5>Grammarly</h5>
+                          <p>Can read and modify all documents & emails</p>
+                        </div>
+                      </div>
+                      <span className="risk-badge high">High Risk</span>
+                      <button className="manage-btn">Manage</button>
+                    </div>
+                    
+                    <div className="inventory-item medium-risk">
+                      <div className="app-info">
+                        <span className="app-icon">📅</span>
+                        <div className="app-details">
+                          <h5>Calendly</h5>
+                          <p>Access to calendar and contact information</p>
+                        </div>
+                      </div>
+                      <span className="risk-badge medium">Medium Risk</span>
+                      <button className="manage-btn">Manage</button>
+                    </div>
+                    
+                    <div className="inventory-item low-risk">
+                      <div className="app-info">
+                        <span className="app-icon">📊</span>
+                        <div className="app-details">
+                          <h5>Google Analytics</h5>
+                          <p>Read-only access to website data</p>
+                        </div>
+                      </div>
+                      <span className="risk-badge low">Low Risk</span>
+                      <button className="manage-btn">Manage</button>
+                    </div>
+                    
+                    <div className="inventory-more">
+                      <button className="view-all-btn">View All 23 Applications →</button>
+                    </div>
                   </div>
                 </div>
               </div>
