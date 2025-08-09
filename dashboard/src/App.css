@@ -1990,12 +1990,17 @@ body {
 /* For screens with limited height (like small laptops) - Main Dashboard */
 @media (max-height: 800px) {
   .app {
-    overflow-y: auto;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   
   .header {
     padding: 0.75rem 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
   }
   
   .header-content {
@@ -2013,6 +2018,7 @@ body {
   
   .nav {
     padding: 0.5rem 0;
+    flex-shrink: 0;
   }
   
   .nav-item {
@@ -2021,8 +2027,10 @@ body {
   }
   
   .main {
+    flex: 1;
     padding: 1rem;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .security-hero {
