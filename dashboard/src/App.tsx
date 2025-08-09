@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 import { Onboarding } from './components/Onboarding';
+import { useAuth } from './contexts/AuthContext';
+import AuthPage from './components/AuthPage';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -224,6 +226,7 @@ const mockProgressData = {
 };
 
 function App() {
+  const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(true);
 
   // Debug: Reset onboarding with Ctrl+O
@@ -719,6 +722,28 @@ Thank you,
     
     alert(message);
   };
+
+  // Show loading spinner while authentication is being checked
+  if (isLoading) {
+    return (
+      <div className="app">
+        <div className="loading-screen">
+          <div className="loading-content">
+            <h1>☁️ Cloudyx</h1>
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+            </div>
+            <p>Loading your security dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication page if user is not logged in
+  if (!user) {
+    return <AuthPage />;
+  }
 
   // Show welcome screen if no data has been loaded
   if (!hasData) {
