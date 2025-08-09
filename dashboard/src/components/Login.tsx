@@ -32,11 +32,11 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
 
   const fillDemoCredentials = (type: 'startup' | 'smb') => {
     if (type === 'startup') {
-      setEmail('admin@techflow.io');
-      setPassword('password123');
+      setEmail('demo@techflowstartup.com');
+      setPassword('demo123');
     } else {
-      setEmail('security@growthcorp.com');
-      setPassword('password123');
+      setEmail('admin@growthcorp.com');
+      setPassword('admin123');
     }
   };
 
