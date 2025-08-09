@@ -1987,8 +1987,74 @@ body {
 
 /* Responsive Design */
 
-/* For screens with limited height (like small laptops) */
+/* For screens with limited height (like small laptops) - Main Dashboard */
 @media (max-height: 800px) {
+  .app {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .header {
+    padding: 0.75rem 0;
+  }
+  
+  .header-content {
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+  
+  .logo h1 {
+    font-size: 1.25rem;
+  }
+  
+  .company-tag {
+    font-size: 0.7rem;
+  }
+  
+  .nav {
+    padding: 0.5rem 0;
+  }
+  
+  .nav-item {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+  }
+  
+  .main {
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  
+  .security-hero {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .hero-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .metrics-grid,
+  .progress-grid,
+  .action-grid {
+    gap: 1rem;
+  }
+  
+  .metric-card,
+  .progress-card {
+    padding: 1rem;
+  }
+  
+  .metric-value,
+  .progress-number {
+    font-size: 1.5rem;
+  }
+  
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+
   .welcome-screen {
     align-items: flex-start;
     padding: 0.5rem;
