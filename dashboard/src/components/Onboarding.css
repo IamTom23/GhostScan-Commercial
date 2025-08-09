@@ -11,6 +11,8 @@
   justify-content: center;
   z-index: 1000;
   padding: 2rem;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .onboarding-container {
@@ -489,6 +491,79 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+/* Small Laptop Screens - Height-based fix for cut-off buttons */
+@media (max-height: 800px) {
+  .onboarding-overlay {
+    align-items: flex-start;
+    padding: 1rem;
+    padding-top: 2rem;
+  }
+  
+  .onboarding-container {
+    padding: 2rem;
+    margin: 0;
+    min-height: auto;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+  
+  .onboarding-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .onboarding-header p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .provider-selection h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .provider-buttons {
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .provider-btn {
+    padding: 1.25rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .results-summary {
+    margin-bottom: 2rem;
+  }
+  
+  .results-preview {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+  }
+  
+  .primary-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .trust-indicators {
+    gap: 1.5rem;
+  }
+}
+
+/* Small Laptop Width adjustments */
+@media (max-width: 1400px) and (max-height: 900px) {
+  .onboarding-overlay {
+    padding: 1.5rem;
+  }
+  
+  .onboarding-container {
+    max-width: 550px;
+    padding: 2.5rem;
+  }
 }
 
 /* Mobile Responsiveness */
