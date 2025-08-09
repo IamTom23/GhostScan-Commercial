@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 import { Onboarding } from './components/Onboarding';
+import { setupResponsiveListener } from './utils/viewport';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -260,6 +261,11 @@ function App() {
   }>({ available: false, installed: false, lastScan: null, privacyScore: null });
   const [showDebug, setShowDebug] = useState(false);
   const [hasData, setHasData] = useState(false);
+
+  // Setup responsive viewport detection
+  useEffect(() => {
+    setupResponsiveListener();
+  }, []);
 
   // Load demo data from backend API on component mount
   useEffect(() => {
