@@ -6,7 +6,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    // Remove proxy for Vercel deployment - API routes will be handled by Vercel
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   build: {
     outDir: 'dist',
