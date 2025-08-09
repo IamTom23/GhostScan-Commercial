@@ -1,34 +1,60 @@
 // User login API endpoint
-// Authenticates user and returns JWT token
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
-// Database connection (optional)
-let database, userDAO;
-const isDatabaseEnabled = process.env.ENABLE_DATABASE === 'true';
+// JWT Configuration
+const JWT_SECRET = process.env.JWT_SECRET || 'cloudyx_jwt_secret_32_chars_minimum_dev_2024_secure';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-async function initializeDatabase() {
-  if (!isDatabaseEnabled) {
-    return;
+// Authentication utilities
+class AuthService {
+  // Generate JWT token
+  static generateToken(user) {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      organizationId: user.organizationId,
+      organizationName: user.organizationName,
+      organizationSlug: user.organizationSlug
+    };
+
+    return jwt.sign(payload, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+      issuer: 'cloudyx-security',
+      audience: 'cloudyx-dashboard'
+    });
   }
 
-  try {
-    const dbModule = await import('../../lib/database.ts');
-    database = dbModule.default;
-    userDAO = dbModule.userDAO;
-    console.log('[Auth] Database modules loaded successfully');
-  } catch (error) {
-    console.warn('[Auth] Database modules failed to load:', error.message);
+  // Validate email format
+  static validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.toLowerCase());
   }
-}
 
-// Import auth utilities
-let AuthService;
-async function initializeAuth() {
-  try {
-    const authModule = await import('../../lib/auth.ts');
-    AuthService = authModule.AuthService;
-  } catch (error) {
-    console.error('[Auth] Failed to load auth utilities:', error.message);
-    throw new Error('Authentication system not available');
+  // Parse display name
+  static getDisplayName(user) {
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    if (user.firstName) {
+      return user.firstName;
+    }
+    if (user.lastName) {
+      return user.lastName;
+    }
+    return user.email?.split('@')[0] || 'User';
+  }
+
+  // Verify password against hash (simplified for demo)
+  static async verifyPassword(password, hashedPassword) {
+    // For demo mode, accept any password
+    if (hashedPassword === '$2b$12$demo.hash.for.testing.purposes.only') {
+      return true;
+    }
+    return bcrypt.compare(password, hashedPassword);
   }
 }
 
@@ -36,10 +62,10 @@ async function initializeAuth() {
 const getDemoUsers = () => [
   {
     id: 'user_demo_owner',
-    email: 'admin@techflow.io',
-    password_hash: '$2b$12$demo.hash.for.testing.purposes.only', // This would be "password123"
-    first_name: 'John',
-    last_name: 'Doe',
+    email: 'demo@techflowstartup.com',
+    password_hash: '$2b$12$demo.hash.for.testing.purposes.only',
+    first_name: 'Demo',
+    last_name: 'User',
     role: 'owner',
     organization_id: 'org_demo_startup',
     organization_name: 'TechFlow Startup',
@@ -47,10 +73,10 @@ const getDemoUsers = () => [
   },
   {
     id: 'user_demo_admin',
-    email: 'security@growthcorp.com',
+    email: 'admin@growthcorp.com',
     password_hash: '$2b$12$demo.hash.for.testing.purposes.only',
-    first_name: 'Jane',
-    last_name: 'Smith',
+    first_name: 'Admin',
+    last_name: 'User',
     role: 'admin',
     organization_id: 'org_demo_smb',
     organization_name: 'GrowthCorp SMB',
@@ -73,32 +99,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Initialize modules
-  await initializeAuth();
-  if (isDatabaseEnabled) {
-    await initializeDatabase();
-  }
+  try {
+    const { email, password } = req.body;
 
-  const { email, password } = req.body;
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email and password are required',
+        code: 'MISSING_CREDENTIALS'
+      });
+    }
 
-  // Validate required fields
-  if (!email || !password) {
-    return res.status(400).json({
-      error: 'Email and password are required',
-      code: 'MISSING_CREDENTIALS'
-    });
-  }
+    // Validate email format
+    if (!AuthService.validateEmail(email)) {
+      return res.status(400).json({
+        error: 'Invalid email format',
+        code: 'INVALID_EMAIL'
+      });
+    }
 
-  // Validate email format
-  if (!AuthService.validateEmail(email)) {
-    return res.status(400).json({
-      error: 'Invalid email format',
-      code: 'INVALID_EMAIL'
-    });
-  }
-
-  // If database is not enabled, use demo authentication
-  if (!isDatabaseEnabled) {
+    // Use demo authentication (since database is not enabled in demo)
     const demoUsers = getDemoUsers();
     const demoUser = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
     
@@ -106,7 +126,16 @@ export default async function handler(req, res) {
       return res.status(401).json({
         error: 'Invalid credentials',
         code: 'INVALID_CREDENTIALS',
-        hint: 'Demo emails: admin@techflow.io, security@growthcorp.com (password: any)'
+        hint: 'Demo emails: demo@techflowstartup.com, admin@growthcorp.com'
+      });
+    }
+
+    // Verify password
+    const isValidPassword = await AuthService.verifyPassword(password, demoUser.password_hash);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
       });
     }
 
@@ -131,83 +160,12 @@ export default async function handler(req, res) {
         displayName: AuthService.getDisplayName(authUser)
       },
       token,
-      demoMode: true
-    });
-  }
-
-  try {
-    // Check if database is connected
-    const connectionTest = await database.testConnection();
-    if (!connectionTest.success) {
-      return res.status(503).json({
-        error: 'Database connection unavailable',
-        code: 'DATABASE_ERROR'
-      });
-    }
-
-    // Find user by email (includes organization info)
-    const user = await userDAO.findByEmail(email);
-    if (!user) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
-      });
-    }
-
-    // Verify password (we'll need to get password_hash from database)
-    const passwordQuery = 'SELECT password_hash FROM users WHERE id = $1';
-    const passwordResult = await database.query(passwordQuery, [user.id]);
-    
-    if (!passwordResult.rows[0]?.password_hash) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
-      });
-    }
-
-    const isValidPassword = await AuthService.verifyPassword(password, passwordResult.rows[0].password_hash);
-    if (!isValidPassword) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
-      });
-    }
-
-    // Update last login
-    await userDAO.updateLastLogin(user.id);
-
-    // Create auth user object
-    const authUser = {
-      id: user.id,
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      role: user.role,
-      organizationId: user.organization_id,
-      organizationName: user.organization_name,
-      organizationSlug: user.organization_slug
-    };
-
-    // Generate JWT token
-    const token = AuthService.generateToken(authUser);
-
-    // Log the login
-    console.log(`[Auth] User login: ${email} (${user.organization_name})`);
-
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        ...authUser,
-        displayName: AuthService.getDisplayName(authUser)
-      },
-      token,
       organization: {
-        id: user.organization_id,
-        name: user.organization_name,
-        slug: user.organization_slug
+        id: authUser.organizationId,
+        name: authUser.organizationName,
+        slug: authUser.organizationSlug
       },
-      demoMode: false
+      demoMode: true
     });
 
   } catch (error) {
@@ -215,7 +173,8 @@ export default async function handler(req, res) {
     
     res.status(500).json({
       error: 'Login failed',
-      code: 'LOGIN_ERROR'
+      code: 'LOGIN_ERROR',
+      details: error.message
     });
   }
 }

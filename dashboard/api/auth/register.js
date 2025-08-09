@@ -1,37 +1,99 @@
 // User registration API endpoint
-// Creates new organization and owner user
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
-// Database connection (optional)
-let database, organizationDAO, userDAO;
-const isDatabaseEnabled = process.env.ENABLE_DATABASE === 'true';
+// JWT Configuration
+const JWT_SECRET = process.env.JWT_SECRET || 'cloudyx_jwt_secret_32_chars_minimum_dev_2024_secure';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-async function initializeDatabase() {
-  if (!isDatabaseEnabled) {
-    return;
+// Authentication utilities
+class AuthService {
+  // Generate JWT token
+  static generateToken(user) {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      organizationId: user.organizationId,
+      organizationName: user.organizationName,
+      organizationSlug: user.organizationSlug
+    };
+
+    return jwt.sign(payload, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+      issuer: 'cloudyx-security',
+      audience: 'cloudyx-dashboard'
+    });
   }
 
-  try {
-    const dbModule = await import('../../lib/database.ts');
-    database = dbModule.default;
-    organizationDAO = dbModule.organizationDAO;
-    userDAO = dbModule.userDAO;
-    console.log('[Auth] Database modules loaded successfully');
-  } catch (error) {
-    console.warn('[Auth] Database modules failed to load:', error.message);
+  // Validate email format
+  static validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.toLowerCase());
+  }
+
+  // Generate organization slug from name
+  static generateOrgSlug(name) {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      .substring(0, 50); // Limit length
+  }
+
+  // Validate password strength
+  static validatePassword(password) {
+    const errors = [];
+
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter');
+    }
+
+    if (!/[a-z]/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter');
+    }
+
+    if (!/[0-9]/.test(password)) {
+      errors.push('Password must contain at least one number');
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      errors.push('Password must contain at least one special character');
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+
+  // Parse display name
+  static getDisplayName(user) {
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    if (user.firstName) {
+      return user.firstName;
+    }
+    if (user.lastName) {
+      return user.lastName;
+    }
+    return user.email?.split('@')[0] || 'User';
   }
 }
 
-// Import auth utilities
-let AuthService;
-async function initializeAuth() {
-  try {
-    const authModule = await import('../../lib/auth.ts');
-    AuthService = authModule.AuthService;
-  } catch (error) {
-    console.error('[Auth] Failed to load auth utilities:', error.message);
-    throw new Error('Authentication system not available');
-  }
-}
+// In-memory storage for demo mode (resets on server restart)
+const demoUsers = [];
+let userIdCounter = 1;
+let orgIdCounter = 1;
 
 export default async function handler(req, res) {
   // Handle CORS
@@ -48,90 +110,52 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Initialize modules
-  await initializeAuth();
-  if (isDatabaseEnabled) {
-    await initializeDatabase();
-  }
-
-  const { 
-    email, 
-    password, 
-    firstName, 
-    lastName, 
-    organizationName,
-    organizationType = 'smb',
-    industry,
-    employees 
-  } = req.body;
-
-  // Validate required fields
-  if (!email || !password || !organizationName) {
-    return res.status(400).json({
-      error: 'Missing required fields',
-      code: 'MISSING_FIELDS',
-      details: {
-        email: !email ? 'Email is required' : null,
-        password: !password ? 'Password is required' : null,
-        organizationName: !organizationName ? 'Organization name is required' : null
-      }
-    });
-  }
-
-  // Validate email format
-  if (!AuthService.validateEmail(email)) {
-    return res.status(400).json({
-      error: 'Invalid email format',
-      code: 'INVALID_EMAIL'
-    });
-  }
-
-  // Validate password strength
-  const passwordValidation = AuthService.validatePassword(password);
-  if (!passwordValidation.valid) {
-    return res.status(400).json({
-      error: 'Password does not meet requirements',
-      code: 'WEAK_PASSWORD',
-      details: passwordValidation.errors
-    });
-  }
-
-  // If database is not enabled, return mock success
-  if (!isDatabaseEnabled) {
-    const mockUser = {
-      id: 'user_demo_owner',
-      email,
-      firstName,
-      lastName,
-      role: 'owner',
-      organizationId: 'org_demo_startup',
-      organizationName,
-      organizationSlug: AuthService.generateOrgSlug(organizationName)
-    };
-
-    const token = AuthService.generateToken(mockUser);
-
-    return res.status(201).json({
-      success: true,
-      message: 'Registration successful (demo mode)',
-      user: mockUser,
-      token,
-      demoMode: true
-    });
-  }
-
   try {
-    // Check if database is connected
-    const connectionTest = await database.testConnection();
-    if (!connectionTest.success) {
-      return res.status(503).json({
-        error: 'Database connection unavailable',
-        code: 'DATABASE_ERROR'
+    const { 
+      email, 
+      password, 
+      firstName, 
+      lastName, 
+      organizationName,
+      organizationType = 'smb',
+      industry,
+      employees 
+    } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !organizationName) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        code: 'MISSING_FIELDS',
+        details: {
+          email: !email ? 'Email is required' : null,
+          password: !password ? 'Password is required' : null,
+          organizationName: !organizationName ? 'Organization name is required' : null
+        }
       });
     }
 
-    // Check if user already exists
-    const existingUser = await userDAO.findByEmail(email);
+    // Validate email format
+    if (!AuthService.validateEmail(email)) {
+      return res.status(400).json({
+        error: 'Invalid email format',
+        code: 'INVALID_EMAIL'
+      });
+    }
+
+    // Validate password strength (relaxed for demo)
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: 'Password must be at least 6 characters long',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Check if user already exists (including predefined demo users)
+    const existingDemoEmails = ['demo@techflowstartup.com', 'admin@growthcorp.com'];
+    const existingUser = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase()) ||
+                        existingDemoEmails.includes(email.toLowerCase());
+    
     if (existingUser) {
       return res.status(409).json({
         error: 'User already exists',
@@ -141,85 +165,57 @@ export default async function handler(req, res) {
 
     // Generate organization slug
     const orgSlug = AuthService.generateOrgSlug(organizationName);
+    const orgId = `org_demo_${orgIdCounter++}`;
+    const userId = `user_demo_${userIdCounter++}`;
 
-    // Create organization and user in transaction
-    const result = await database.transaction(async (query) => {
-      // Create organization
-      const org = await organizationDAO.create({
-        name: organizationName,
-        slug: orgSlug,
-        type: organizationType,
-        employees: employees ? parseInt(employees) : undefined,
-        industry,
-        primaryEmail: email
-      });
-
-      // Hash password
-      const hashedPassword = await AuthService.hashPassword(password);
-
-      // Create owner user
-      const user = await userDAO.create({
-        organizationId: org.id,
-        email,
-        firstName,
-        lastName,
-        role: 'owner'
-      });
-
-      // Update user with hashed password (we'll need to add this to the schema)
-      await query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashedPassword, user.id]);
-
-      return { org, user };
-    });
-
-    // Create auth user object
-    const authUser = {
-      id: result.user.id,
-      email: result.user.email,
-      firstName: result.user.first_name,
-      lastName: result.user.last_name,
-      role: result.user.role,
-      organizationId: result.org.id,
-      organizationName: result.org.name,
-      organizationSlug: result.org.slug
+    // Create new user in demo storage
+    const newUser = {
+      id: userId,
+      email: email.toLowerCase(),
+      firstName: firstName || '',
+      lastName: lastName || '',
+      role: 'owner',
+      organizationId: orgId,
+      organizationName,
+      organizationSlug: orgSlug,
+      organizationType,
+      industry,
+      employees,
+      createdAt: new Date().toISOString()
     };
 
-    // Generate JWT token
-    const token = AuthService.generateToken(authUser);
+    // Add to demo storage
+    demoUsers.push(newUser);
 
-    // Log the registration
-    console.log(`[Auth] New user registered: ${email} for organization: ${organizationName}`);
+    // Generate JWT token
+    const token = AuthService.generateToken(newUser);
+
+    console.log(`[Auth] New demo user registered: ${email} for organization: ${organizationName}`);
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful',
+      message: 'Registration successful (demo mode)',
       user: {
-        ...authUser,
-        displayName: AuthService.getDisplayName(authUser)
+        ...newUser,
+        displayName: AuthService.getDisplayName(newUser)
       },
       token,
       organization: {
-        id: result.org.id,
-        name: result.org.name,
-        slug: result.org.slug,
-        type: result.org.type
+        id: orgId,
+        name: organizationName,
+        slug: orgSlug,
+        type: organizationType
       },
-      demoMode: false
+      demoMode: true
     });
 
   } catch (error) {
     console.error('[Auth] Registration error:', error);
     
-    if (error.message.includes('duplicate key')) {
-      return res.status(409).json({
-        error: 'Organization name or email already exists',
-        code: 'DUPLICATE_DATA'
-      });
-    }
-
     res.status(500).json({
       error: 'Registration failed',
-      code: 'REGISTRATION_ERROR'
+      code: 'REGISTRATION_ERROR',
+      details: error.message
     });
   }
 }
