@@ -25,15 +25,13 @@ import passport from './config/oauth';
 import { OAuthUser } from './config/oauth';
 import authRoutes from './routes/auth';
 import { ScannerService } from './services/scanner';
-// Import database DAOs
+// Import Supabase client and DAOs
 import {
-  database,
-  organizationDAO,
-  userDAO,
-  applicationDAO,
-  securityScanDAO,
-  breachAlertDAO
-} from './lib/database';
+  db,
+  testSupabaseConnection,
+  supabaseOrganizationDAO,
+  supabaseUserDAO
+} from './lib/supabase';
 
 // Load environment variables
 dotenv.config();
@@ -91,23 +89,23 @@ const calculateComplianceScore = (apps: SaaSApp[]): number => {
   return Math.max(0, Math.round(complianceScore));
 };
 
-// Initialize database connection
-let databaseReady = false;
+// Initialize Supabase connection
+let supabaseReady = false;
 
-// Initialize database and test connection
-database.testConnection().then(result => {
+// Test Supabase connection
+testSupabaseConnection().then(result => {
   if (result.success) {
-    console.log('✅ Database connected successfully');
-    console.log('   PostgreSQL version:', result.details?.version?.split(' ')[0]);
-    databaseReady = true;
+    console.log('✅ Supabase connected successfully');
+    console.log('   Service:', result.details?.service);
+    supabaseReady = true;
   } else {
-    console.error('❌ Database connection failed:', result.message);
+    console.error('❌ Supabase connection failed:', result.message);
     console.log('   Falling back to demo mode');
-    databaseReady = false;
+    supabaseReady = false;
   }
 }).catch(error => {
-  console.error('❌ Database initialization error:', error);
-  databaseReady = false;
+  console.error('❌ Supabase initialization error:', error);
+  supabaseReady = false;
 });
 
 // In-memory fallback for when database is not available
@@ -143,18 +141,19 @@ app.post('/api/organizations', validateRequired(['name', 'domain', 'email']), as
   const { name, domain, email, industry, size, employeeCount, complianceRequirements } = req.body;
 
   try {
-    if (databaseReady) {
+    if (supabaseReady) {
       // Check if organization already exists
-      const existingOrg = await organizationDAO.findBySlug(domain.replace(/[^a-z0-9]/gi, '-').toLowerCase());
+      const slug = domain.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const existingOrg = await supabaseOrganizationDAO.findBySlug(slug);
       if (existingOrg) {
         return res.json(existingOrg);
       }
 
       // Create new organization
-      const newOrg = await organizationDAO.create({
+      const newOrg = await supabaseOrganizationDAO.create({
         name,
-        slug: domain.replace(/[^a-z0-9]/gi, '-').toLowerCase(),
-        type: size?.toLowerCase() || 'startup',
+        slug,
+        type: size?.toLowerCase() === 'enterprise' ? 'enterprise' : size?.toLowerCase() === 'smb' ? 'smb' : 'startup',
         employees: employeeCount || 1,
         industry: industry || 'Technology',
         website: domain,
@@ -201,8 +200,8 @@ app.post('/api/organizations', validateRequired(['name', 'domain', 'email']), as
 
 app.get('/api/organizations/:orgId', async (req, res) => {
   try {
-    if (databaseReady) {
-      const org = await organizationDAO.getWithStats(req.params.orgId);
+    if (supabaseReady) {
+      const org = await supabaseOrganizationDAO.getWithStats(req.params.orgId);
       if (!org) {
         return res.status(404).json({ error: 'Organization not found' });
       }
@@ -223,9 +222,9 @@ app.get('/api/organizations/:orgId', async (req, res) => {
 
 app.put('/api/organizations/:orgId', async (req, res) => {
   try {
-    if (databaseReady) {
+    if (supabaseReady) {
       const { securityGrade, privacyScore, lastScanAt } = req.body;
-      const updatedOrg = await organizationDAO.updateSecurityMetrics(req.params.orgId, {
+      const updatedOrg = await supabaseOrganizationDAO.updateSecurityMetrics(req.params.orgId, {
         securityGrade,
         privacyScore,
         lastScanAt: lastScanAt ? new Date(lastScanAt) : undefined
@@ -254,9 +253,9 @@ app.get('/health', async (req, res) => {
   let dbStatus = 'In-Memory (Demo)';
   let dbDetails = null;
   
-  if (databaseReady) {
-    const dbTest = await database.testConnection();
-    dbStatus = dbTest.success ? 'PostgreSQL (Connected)' : 'PostgreSQL (Error)';
+  if (supabaseReady) {
+    const dbTest = await testSupabaseConnection();
+    dbStatus = dbTest.success ? 'Supabase (Connected)' : 'Supabase (Error)';
     dbDetails = dbTest.details;
   }
   
@@ -273,8 +272,8 @@ app.get('/health', async (req, res) => {
       compliance: ['gdpr', 'ccpa'],
     },
     demo_data: {
-      organizations: databaseReady ? 'Database mode' : fallbackOrganizations.length,
-      users: databaseReady ? 'Database mode' : fallbackUsers.length,
+      organizations: supabaseReady ? 'Supabase mode' : fallbackOrganizations.length,
+      users: supabaseReady ? 'Supabase mode' : fallbackUsers.length,
       scan_results: scanResults.length
     }
   };
@@ -300,7 +299,7 @@ app.get('/api', (req, res) => {
         status: 'GET /auth/status'
       }
     },
-    demo_organizations: databaseReady ? 'Database mode - use API endpoints' : fallbackOrganizations.map(org => ({
+    demo_organizations: supabaseReady ? 'Supabase mode - use API endpoints' : fallbackOrganizations.map(org => ({
       id: org.id,
       name: org.name,
       domain: org.domain,
@@ -318,15 +317,15 @@ app.post('/api/users', async (req, res) => {
   }
 
   try {
-    if (databaseReady) {
+    if (supabaseReady) {
       // Check if user already exists
-      const existingUser = await userDAO.findByEmail(email);
+      const existingUser = await supabaseUserDAO.findByEmail(email);
       if (existingUser) {
         return res.json(existingUser);
       }
 
       // Create new user
-      const newUser = await userDAO.create({
+      const newUser = await supabaseUserDAO.create({
         organizationId: organizationId || `org_${Date.now()}`,
         email,
         firstName: email.split('@')[0],
@@ -361,10 +360,10 @@ app.post('/api/users', async (req, res) => {
 
 app.get('/api/users/:userId', async (req, res) => {
   try {
-    if (databaseReady) {
+    if (supabaseReady) {
       // In a real implementation, you'd have a findById method
       // For now, we'll use email-based lookup
-      const user = await userDAO.findByEmail(req.params.userId);
+      const user = await supabaseUserDAO.findByEmail(req.params.userId);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -415,8 +414,8 @@ app.post('/api/scan', validateRequired(['organizationId']), async (req, res) => 
     scanResults.push(enhancedScanResult);
 
     // Update organization profile
-    if (databaseReady) {
-      await organizationDAO.updateSecurityMetrics(organizationId, {
+    if (supabaseReady) {
+      await supabaseOrganizationDAO.updateSecurityMetrics(organizationId, {
         privacyScore: enhancedScanResult.totalRiskScore,
         lastScanAt: new Date()
       });
@@ -486,8 +485,8 @@ app.get('/api/apps/:userId/:appId', (req, res) => {
 app.get('/api/breaches/:organizationId', async (req, res) => {
   const { organizationId } = req.params;
   let organization;
-  if (databaseReady) {
-    organization = await organizationDAO.findById(organizationId);
+  if (supabaseReady) {
+    organization = await supabaseOrganizationDAO.findById(organizationId);
   } else {
     organization = fallbackOrganizations.find(o => o.id === organizationId);
   }
@@ -525,8 +524,8 @@ app.get('/api/breaches/:organizationId', async (req, res) => {
 app.get('/api/unauthorized-access/:organizationId', async (req, res) => {
   const { organizationId } = req.params;
   let organization;
-  if (databaseReady) {
-    organization = await organizationDAO.findById(organizationId);
+  if (supabaseReady) {
+    organization = await supabaseOrganizationDAO.findById(organizationId);
   } else {
     organization = fallbackOrganizations.find(o => o.id === organizationId);
   }
@@ -705,8 +704,8 @@ app.get('/api/platforms/:userId', (req, res) => {
 app.get('/api/dashboard/:organizationId', async (req, res) => {
   const { organizationId } = req.params;
   let organization;
-  if (databaseReady) {
-    organization = await organizationDAO.findById(organizationId);
+  if (supabaseReady) {
+    organization = await supabaseOrganizationDAO.findById(organizationId);
   } else {
     organization = fallbackOrganizations.find(o => o.id === organizationId);
   }

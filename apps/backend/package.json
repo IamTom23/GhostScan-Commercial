@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@azure/msal-node": "^2.6.6",
+    "@supabase/supabase-js": "^2.54.0",
     "@types/passport-microsoft": "^2.1.0",
     "@types/pg": "^8.15.5",
     "axios": "^1.6.2",
