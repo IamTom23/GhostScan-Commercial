@@ -88,10 +88,14 @@ async function findOrCreateOrganization(email: string): Promise<string | null> {
 
 // Google OAuth Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  const callbackURL = process.env.NODE_ENV === 'production' 
+    ? process.env.GOOGLE_REDIRECT_URI_PRODUCTION 
+    : process.env.GOOGLE_REDIRECT_URI || '/auth/google/callback';
+    
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_REDIRECT_URI || '/auth/google/callback',
+    callbackURL,
     scope: [
       'profile',
       'email',
@@ -180,10 +184,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
 // Microsoft OAuth Strategy
 if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
+  const callbackURL = process.env.NODE_ENV === 'production' 
+    ? process.env.MICROSOFT_REDIRECT_URI_PRODUCTION 
+    : process.env.MICROSOFT_REDIRECT_URI || '/auth/microsoft/callback';
+    
   passport.use(new MicrosoftStrategy({
     clientID: process.env.MICROSOFT_CLIENT_ID,
     clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-    callbackURL: process.env.MICROSOFT_REDIRECT_URI || '/auth/microsoft/callback',
+    callbackURL,
     scope: ['user.read', 'mail.read', 'files.read', 'calendars.read']
   }, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
     try {

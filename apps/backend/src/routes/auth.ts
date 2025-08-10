@@ -53,8 +53,11 @@ router.get('/google/callback',
     const user = req.user as OAuthUser;
     const token = generateJWT(user);
     
-    // Use actual organization ID from database
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // Use production URL in production, development URL in development
+    const frontendUrl = process.env.NODE_ENV === 'production' 
+      ? (process.env.FRONTEND_URL_PRODUCTION || 'https://app.cloudyx.io')
+      : (process.env.FRONTEND_URL || 'http://localhost:5173');
+      
     const redirectUrl = user.organizationId 
       ? `${frontendUrl}/auth/success?token=${token}&provider=google&org_id=${user.organizationId}&role=${user.role}`
       : `${frontendUrl}/auth/success?token=${token}&provider=google`;
@@ -81,8 +84,11 @@ router.get('/microsoft/callback',
     const user = req.user as OAuthUser;
     const token = generateJWT(user);
     
-    // Use actual organization ID from database
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // Use production URL in production, development URL in development
+    const frontendUrl = process.env.NODE_ENV === 'production' 
+      ? (process.env.FRONTEND_URL_PRODUCTION || 'https://app.cloudyx.io')
+      : (process.env.FRONTEND_URL || 'http://localhost:5173');
+      
     const redirectUrl = user.organizationId 
       ? `${frontendUrl}/auth/success?token=${token}&provider=microsoft&org_id=${user.organizationId}&role=${user.role}`
       : `${frontendUrl}/auth/success?token=${token}&provider=microsoft`;

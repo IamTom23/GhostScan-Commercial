@@ -1,7 +1,7 @@
 {
-  "name": "@ghostscan/backend",
+  "name": "@cloudyx/backend",
   "version": "1.0.0",
-  "description": "GhostScan Business Backend API - Privacy & Security Management for Startups and SMBs",
+  "description": "Cloudyx Backend API - AI-powered SaaS Security Management Platform",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node src/index.ts",

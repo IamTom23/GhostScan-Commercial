@@ -49,8 +49,17 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
+
+// CORS configuration for development and production
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173', // Development
+  process.env.FRONTEND_URL_PRODUCTION || 'https://app.cloudyx.io', // Production
+  'https://app.cloudyx.io', // Explicit production URL
+  'http://localhost:5173' // Explicit development URL
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
@@ -270,7 +279,7 @@ app.get('/health', async (req, res) => {
   const healthData = {
     status: 'OK',
     timestamp: new Date().toISOString(),
-    service: 'GhostScan Business API',
+    service: 'Cloudyx API',
     version: '1.0.0-mvp',
     database: dbStatus,
     database_details: dbDetails,
@@ -291,8 +300,8 @@ app.get('/health', async (req, res) => {
 // API info endpoint
 app.get('/api', (req, res) => {
   res.json({
-    name: 'GhostScan Business API',
-    description: 'Privacy & Security Management for Startups and SMBs',
+    name: 'Cloudyx API',
+    description: 'AI-powered SaaS Security Management Platform',
     version: '1.0.0-mvp',
     endpoints: {
       health: 'GET /health',
@@ -765,8 +774,8 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 GhostScan Business API running on port ${PORT}`);
-  console.log(`🏢 Serving startups and SMBs with privacy & security management`);
+  console.log(`🚀 Cloudyx API running on port ${PORT}`);
+  console.log(`🏢 AI-powered SaaS Security Management Platform`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔍 API Documentation: http://localhost:${PORT}/api`);
 });
