@@ -32,6 +32,14 @@ import {
   supabaseOrganizationDAO,
   supabaseUserDAO
 } from './lib/supabase';
+// Import authentication middleware
+import { 
+  authenticateJWT, 
+  optionalAuth, 
+  requireRole, 
+  requireOrganizationAccess, 
+  AuthenticatedRequest 
+} from './middleware/auth';
 
 // Load environment variables
 dotenv.config();
@@ -136,8 +144,8 @@ const validateRequired = (fields: string[]) => {
 // Auth routes
 app.use('/auth', authRoutes);
 
-// Organization Management
-app.post('/api/organizations', validateRequired(['name', 'domain', 'email']), async (req, res) => {
+// Organization Management  
+app.post('/api/organizations', optionalAuth, validateRequired(['name', 'domain', 'email']), async (req, res) => {
   const { name, domain, email, industry, size, employeeCount, complianceRequirements } = req.body;
 
   try {
@@ -198,7 +206,7 @@ app.post('/api/organizations', validateRequired(['name', 'domain', 'email']), as
   }
 });
 
-app.get('/api/organizations/:orgId', async (req, res) => {
+app.get('/api/organizations/:orgId', authenticateJWT, requireOrganizationAccess, async (req, res) => {
   try {
     if (supabaseReady) {
       const org = await supabaseOrganizationDAO.getWithStats(req.params.orgId);
@@ -220,7 +228,7 @@ app.get('/api/organizations/:orgId', async (req, res) => {
   }
 });
 
-app.put('/api/organizations/:orgId', async (req, res) => {
+app.put('/api/organizations/:orgId', authenticateJWT, requireOrganizationAccess, async (req, res) => {
   try {
     if (supabaseReady) {
       const { securityGrade, privacyScore, lastScanAt } = req.body;
@@ -383,8 +391,14 @@ app.get('/api/users/:userId', async (req, res) => {
 });
 
 // Scanning
-app.post('/api/scan', validateRequired(['organizationId']), async (req, res) => {
+app.post('/api/scan', authenticateJWT, validateRequired(['organizationId']), async (req, res) => {
   const { organizationId, scanType = 'COMPREHENSIVE', scope = 'ORGANIZATION' } = req.body;
+  const user = req.user as OAuthUser;
+
+  // Verify user has access to this organization
+  if (user?.organizationId !== organizationId) {
+    return res.status(403).json({ error: 'Access denied', message: 'You can only scan your own organization' });
+  }
 
   try {
     console.log('Starting comprehensive scan for organization:', organizationId);
@@ -701,7 +715,7 @@ app.get('/api/platforms/:userId', (req, res) => {
 });
 
 // Business Dashboard Stats
-app.get('/api/dashboard/:organizationId', async (req, res) => {
+app.get('/api/dashboard/:organizationId', authenticateJWT, requireOrganizationAccess, async (req, res) => {
   const { organizationId } = req.params;
   let organization;
   if (supabaseReady) {

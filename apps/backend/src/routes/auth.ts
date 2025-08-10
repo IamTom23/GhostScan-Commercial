@@ -10,7 +10,9 @@ const generateJWT = (user: OAuthUser): string => {
   const payload = { 
     id: user.id, 
     email: user.email, 
-    provider: user.provider 
+    provider: user.provider,
+    organizationId: user.organizationId,
+    role: user.role
   };
   const secret = process.env.JWT_SECRET || 'fallback-secret';
   const options = { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as jwt.SignOptions;
@@ -51,14 +53,10 @@ router.get('/google/callback',
     const user = req.user as OAuthUser;
     const token = generateJWT(user);
     
-    // Determine organization from email domain
-    const emailDomain = user.email.split('@')[1];
-    const organizationHint = emailDomain !== 'gmail.com' && emailDomain !== 'outlook.com' ? emailDomain : null;
-    
-    // Redirect to frontend with token and organization hint
+    // Use actual organization ID from database
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUrl = organizationHint 
-      ? `${frontendUrl}/auth/success?token=${token}&provider=google&org_hint=${organizationHint}`
+    const redirectUrl = user.organizationId 
+      ? `${frontendUrl}/auth/success?token=${token}&provider=google&org_id=${user.organizationId}&role=${user.role}`
       : `${frontendUrl}/auth/success?token=${token}&provider=google`;
     
     res.redirect(redirectUrl);
@@ -83,14 +81,10 @@ router.get('/microsoft/callback',
     const user = req.user as OAuthUser;
     const token = generateJWT(user);
     
-    // Determine organization from email domain
-    const emailDomain = user.email.split('@')[1];
-    const organizationHint = emailDomain !== 'gmail.com' && emailDomain !== 'outlook.com' ? emailDomain : null;
-    
-    // Redirect to frontend with token and organization hint
+    // Use actual organization ID from database
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUrl = organizationHint 
-      ? `${frontendUrl}/auth/success?token=${token}&provider=microsoft&org_hint=${organizationHint}`
+    const redirectUrl = user.organizationId 
+      ? `${frontendUrl}/auth/success?token=${token}&provider=microsoft&org_id=${user.organizationId}&role=${user.role}`
       : `${frontendUrl}/auth/success?token=${token}&provider=microsoft`;
     
     res.redirect(redirectUrl);

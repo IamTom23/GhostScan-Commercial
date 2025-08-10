@@ -234,6 +234,20 @@ export class SupabaseUserDAO {
       throw new Error(`Failed to update last login: ${error.message}`);
     }
   }
+
+  async updateOAuthProviders(id: string, oauthProviders: any) {
+    const { error } = await db
+      .from('users')
+      .update({
+        oauth_providers: oauthProviders,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to update OAuth providers: ${error.message}`);
+    }
+  }
 }
 
 // Export DAO instances
