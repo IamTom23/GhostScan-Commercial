@@ -13,6 +13,7 @@
   "dependencies": {
     "@azure/msal-node": "^2.6.6",
     "@types/passport-microsoft": "^2.1.0",
+    "@types/pg": "^8.15.5",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -24,7 +25,8 @@
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "passport-microsoft": "^1.1.0"
+    "passport-microsoft": "^1.1.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

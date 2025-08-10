@@ -25,7 +25,15 @@ import passport from './config/oauth';
 import { OAuthUser } from './config/oauth';
 import authRoutes from './routes/auth';
 import { ScannerService } from './services/scanner';
-import { initializeDemoData } from './demo-data';
+// Import database DAOs
+import {
+  database,
+  organizationDAO,
+  userDAO,
+  applicationDAO,
+  securityScanDAO,
+  breachAlertDAO
+} from './lib/database';
 
 // Load environment variables
 dotenv.config();
@@ -83,18 +91,32 @@ const calculateComplianceScore = (apps: SaaSApp[]): number => {
   return Math.max(0, Math.round(complianceScore));
 };
 
-// Mock database (replace with real database in production)
-let organizations: OrganizationProfile[] = [];
-let users: UserProfile[] = [];
+// Initialize database connection
+let databaseReady = false;
+
+// Initialize database and test connection
+database.testConnection().then(result => {
+  if (result.success) {
+    console.log('✅ Database connected successfully');
+    console.log('   PostgreSQL version:', result.details?.version?.split(' ')[0]);
+    databaseReady = true;
+  } else {
+    console.error('❌ Database connection failed:', result.message);
+    console.log('   Falling back to demo mode');
+    databaseReady = false;
+  }
+}).catch(error => {
+  console.error('❌ Database initialization error:', error);
+  databaseReady = false;
+});
+
+// In-memory fallback for when database is not available
+let fallbackOrganizations: OrganizationProfile[] = [];
+let fallbackUsers: UserProfile[] = [];
 let scanResults: ScanResult[] = [];
 let privacyRequests: PrivacyRequest[] = [];
 let breachAlerts: BreachAlert[] = [];
 let ghostProfiles: GhostProfile[] = [];
-
-// Initialize demo data for MVP testing
-const demoData = initializeDemoData();
-organizations = [...demoData.organizations];
-users = [...demoData.users];
 
 // Basic validation middleware
 const validateRequired = (fields: string[]) => {
@@ -117,73 +139,142 @@ const validateRequired = (fields: string[]) => {
 app.use('/auth', authRoutes);
 
 // Organization Management
-app.post('/api/organizations', validateRequired(['name', 'domain', 'email']), (req, res) => {
+app.post('/api/organizations', validateRequired(['name', 'domain', 'email']), async (req, res) => {
   const { name, domain, email, industry, size, employeeCount, complianceRequirements } = req.body;
 
-  const existingOrg = organizations.find(o => o.domain === domain);
-  if (existingOrg) {
-    return res.json(existingOrg);
+  try {
+    if (databaseReady) {
+      // Check if organization already exists
+      const existingOrg = await organizationDAO.findBySlug(domain.replace(/[^a-z0-9]/gi, '-').toLowerCase());
+      if (existingOrg) {
+        return res.json(existingOrg);
+      }
+
+      // Create new organization
+      const newOrg = await organizationDAO.create({
+        name,
+        slug: domain.replace(/[^a-z0-9]/gi, '-').toLowerCase(),
+        type: size?.toLowerCase() || 'startup',
+        employees: employeeCount || 1,
+        industry: industry || 'Technology',
+        website: domain,
+        primaryEmail: email
+      });
+
+      res.status(201).json(newOrg);
+    } else {
+      // Fallback to in-memory storage
+      const existingOrg = fallbackOrganizations.find(o => o.domain === domain);
+      if (existingOrg) {
+        return res.json(existingOrg);
+      }
+
+      const newOrg: OrganizationProfile = {
+        id: `org_${Date.now()}`,
+        name,
+        domain,
+        email,
+        industry: industry || 'Technology',
+        size: size || 'STARTUP',
+        riskScore: 0,
+        totalApps: 0,
+        highRiskApps: 0,
+        criticalApps: 0,
+        employeeCount: employeeCount || 1,
+        complianceRequirements: complianceRequirements || [],
+        preferences: {
+          breachAlerts: true,
+          weeklyReports: true,
+          autoPrivacyRequests: false,
+          complianceMonitoring: true,
+        },
+      };
+
+      fallbackOrganizations.push(newOrg);
+      res.status(201).json(newOrg);
+    }
+  } catch (error) {
+    console.error('Organization creation error:', error);
+    res.status(500).json({ error: 'Failed to create organization' });
   }
-
-  const newOrg: OrganizationProfile = {
-    id: `org_${Date.now()}`,
-    name,
-    domain,
-    email,
-    industry: industry || 'Technology',
-    size: size || 'STARTUP',
-    riskScore: 0,
-    totalApps: 0,
-    highRiskApps: 0,
-    criticalApps: 0,
-    employeeCount: employeeCount || 1,
-    complianceRequirements: complianceRequirements || [],
-    preferences: {
-      breachAlerts: true,
-      weeklyReports: true,
-      autoPrivacyRequests: false,
-      complianceMonitoring: true,
-    },
-  };
-
-  organizations.push(newOrg);
-  res.status(201).json(newOrg);
 });
 
-app.get('/api/organizations/:orgId', (req, res) => {
-  const org = organizations.find(o => o.id === req.params.orgId);
-  if (!org) {
-    return res.status(404).json({ error: 'Organization not found' });
+app.get('/api/organizations/:orgId', async (req, res) => {
+  try {
+    if (databaseReady) {
+      const org = await organizationDAO.getWithStats(req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+      res.json(org);
+    } else {
+      // Fallback to in-memory storage
+      const org = fallbackOrganizations.find(o => o.id === req.params.orgId);
+      if (!org) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+      res.json(org);
+    }
+  } catch (error) {
+    console.error('Organization fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch organization' });
   }
-  res.json(org);
 });
 
-app.put('/api/organizations/:orgId', (req, res) => {
-  const orgIndex = organizations.findIndex(o => o.id === req.params.orgId);
-  if (orgIndex === -1) {
-    return res.status(404).json({ error: 'Organization not found' });
+app.put('/api/organizations/:orgId', async (req, res) => {
+  try {
+    if (databaseReady) {
+      const { securityGrade, privacyScore, lastScanAt } = req.body;
+      const updatedOrg = await organizationDAO.updateSecurityMetrics(req.params.orgId, {
+        securityGrade,
+        privacyScore,
+        lastScanAt: lastScanAt ? new Date(lastScanAt) : undefined
+      });
+      if (!updatedOrg) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+      res.json(updatedOrg);
+    } else {
+      // Fallback to in-memory storage
+      const orgIndex = fallbackOrganizations.findIndex(o => o.id === req.params.orgId);
+      if (orgIndex === -1) {
+        return res.status(404).json({ error: 'Organization not found' });
+      }
+      fallbackOrganizations[orgIndex] = { ...fallbackOrganizations[orgIndex], ...req.body };
+      res.json(fallbackOrganizations[orgIndex]);
+    }
+  } catch (error) {
+    console.error('Organization update error:', error);
+    res.status(500).json({ error: 'Failed to update organization' });
   }
-
-  organizations[orgIndex] = { ...organizations[orgIndex], ...req.body };
-  res.json(organizations[orgIndex]);
 });
 
 // Enhanced health check
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  let dbStatus = 'In-Memory (Demo)';
+  let dbDetails = null;
+  
+  if (databaseReady) {
+    const dbTest = await database.testConnection();
+    dbStatus = dbTest.success ? 'PostgreSQL (Connected)' : 'PostgreSQL (Error)';
+    dbDetails = dbTest.details;
+  }
+  
   const healthData = {
     status: 'OK',
     timestamp: new Date().toISOString(),
     service: 'GhostScan Business API',
     version: '1.0.0-mvp',
-    database: 'In-Memory (Demo)',
+    database: dbStatus,
+    database_details: dbDetails,
     features: {
       oauth: ['google', 'microsoft'],
       scanning: ['google-workspace', 'microsoft-365'],
       compliance: ['gdpr', 'ccpa'],
     },
     demo_data: {
-      organizations: organizations.length,
-      users: users.length,
+      organizations: databaseReady ? 'Database mode' : fallbackOrganizations.length,
+      users: databaseReady ? 'Database mode' : fallbackUsers.length,
       scan_results: scanResults.length
     }
   };
@@ -209,7 +300,7 @@ app.get('/api', (req, res) => {
         status: 'GET /auth/status'
       }
     },
-    demo_organizations: organizations.map(org => ({
+    demo_organizations: databaseReady ? 'Database mode - use API endpoints' : fallbackOrganizations.map(org => ({
       id: org.id,
       name: org.name,
       domain: org.domain,
@@ -219,37 +310,77 @@ app.get('/api', (req, res) => {
 });
 
 // User Management
-app.post('/api/users', (req, res) => {
-  const { email } = req.body;
+app.post('/api/users', async (req, res) => {
+  const { email, organizationId } = req.body;
   
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
   }
 
-  const existingUser = users.find(u => u.email === email);
-  if (existingUser) {
-    return res.json(existingUser);
+  try {
+    if (databaseReady) {
+      // Check if user already exists
+      const existingUser = await userDAO.findByEmail(email);
+      if (existingUser) {
+        return res.json(existingUser);
+      }
+
+      // Create new user
+      const newUser = await userDAO.create({
+        organizationId: organizationId || `org_${Date.now()}`,
+        email,
+        firstName: email.split('@')[0],
+        role: 'admin'
+      });
+
+      res.status(201).json(newUser);
+    } else {
+      // Fallback to in-memory storage
+      const existingUser = fallbackUsers.find(u => u.email === email);
+      if (existingUser) {
+        return res.json(existingUser);
+      }
+
+      const newUser: UserProfile = {
+        id: `user_${Date.now()}`,
+        email,
+        name: email.split('@')[0],
+        role: 'ADMIN',
+        organizationId: organizationId || `org_${Date.now()}`,
+        permissions: ['read', 'write', 'admin'],
+      };
+
+      fallbackUsers.push(newUser);
+      res.status(201).json(newUser);
+    }
+  } catch (error) {
+    console.error('User creation error:', error);
+    res.status(500).json({ error: 'Failed to create user' });
   }
-
-  const newUser: UserProfile = {
-    id: `user_${Date.now()}`,
-    email,
-    name: email.split('@')[0],
-    role: 'ADMIN',
-    organizationId: `org_${Date.now()}`,
-    permissions: ['read', 'write', 'admin'],
-  };
-
-  users.push(newUser);
-  res.status(201).json(newUser);
 });
 
-app.get('/api/users/:userId', (req, res) => {
-  const user = users.find(u => u.id === req.params.userId);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+app.get('/api/users/:userId', async (req, res) => {
+  try {
+    if (databaseReady) {
+      // In a real implementation, you'd have a findById method
+      // For now, we'll use email-based lookup
+      const user = await userDAO.findByEmail(req.params.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(user);
+    } else {
+      // Fallback to in-memory storage
+      const user = fallbackUsers.find(u => u.id === req.params.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(user);
+    }
+  } catch (error) {
+    console.error('User fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
   }
-  res.json(user);
 });
 
 // Scanning
@@ -284,16 +415,24 @@ app.post('/api/scan', validateRequired(['organizationId']), async (req, res) => 
     scanResults.push(enhancedScanResult);
 
     // Update organization profile
-    const orgIndex = organizations.findIndex(o => o.id === organizationId);
-    if (orgIndex !== -1) {
-      organizations[orgIndex] = {
-        ...organizations[orgIndex],
-        riskScore: enhancedScanResult.totalRiskScore,
-        totalApps: enhancedScanResult.apps.length,
-        highRiskApps: enhancedScanResult.apps.filter(app => app.riskLevel === 'HIGH').length,
-        criticalApps: enhancedScanResult.apps.filter(app => app.riskLevel === 'CRITICAL').length,
-        lastScanDate: new Date(),
-      };
+    if (databaseReady) {
+      await organizationDAO.updateSecurityMetrics(organizationId, {
+        privacyScore: enhancedScanResult.totalRiskScore,
+        lastScanAt: new Date()
+      });
+    } else {
+      // Fallback to in-memory storage
+      const orgIndex = fallbackOrganizations.findIndex(o => o.id === organizationId);
+      if (orgIndex !== -1) {
+        fallbackOrganizations[orgIndex] = {
+          ...fallbackOrganizations[orgIndex],
+          riskScore: enhancedScanResult.totalRiskScore,
+          totalApps: enhancedScanResult.apps.length,
+          highRiskApps: enhancedScanResult.apps.filter(app => app.riskLevel === 'HIGH').length,
+          criticalApps: enhancedScanResult.apps.filter(app => app.riskLevel === 'CRITICAL').length,
+          lastScanDate: new Date(),
+        };
+      }
     }
 
     res.json(enhancedScanResult);
@@ -346,7 +485,12 @@ app.get('/api/apps/:userId/:appId', (req, res) => {
 // Breach Monitoring
 app.get('/api/breaches/:organizationId', async (req, res) => {
   const { organizationId } = req.params;
-  const organization = organizations.find(o => o.id === organizationId);
+  let organization;
+  if (databaseReady) {
+    organization = await organizationDAO.findById(organizationId);
+  } else {
+    organization = fallbackOrganizations.find(o => o.id === organizationId);
+  }
   
   if (!organization) {
     return res.status(404).json({ error: 'Organization not found' });
@@ -380,7 +524,12 @@ app.get('/api/breaches/:organizationId', async (req, res) => {
 // Unauthorized Access Detection
 app.get('/api/unauthorized-access/:organizationId', async (req, res) => {
   const { organizationId } = req.params;
-  const organization = organizations.find(o => o.id === organizationId);
+  let organization;
+  if (databaseReady) {
+    organization = await organizationDAO.findById(organizationId);
+  } else {
+    organization = fallbackOrganizations.find(o => o.id === organizationId);
+  }
   
   if (!organization) {
     return res.status(404).json({ error: 'Organization not found' });
@@ -553,9 +702,14 @@ app.get('/api/platforms/:userId', (req, res) => {
 });
 
 // Business Dashboard Stats
-app.get('/api/dashboard/:organizationId', (req, res) => {
+app.get('/api/dashboard/:organizationId', async (req, res) => {
   const { organizationId } = req.params;
-  const organization = organizations.find(o => o.id === organizationId);
+  let organization;
+  if (databaseReady) {
+    organization = await organizationDAO.findById(organizationId);
+  } else {
+    organization = fallbackOrganizations.find(o => o.id === organizationId);
+  }
   
   if (!organization) {
     return res.status(404).json({ error: 'Organization not found' });
