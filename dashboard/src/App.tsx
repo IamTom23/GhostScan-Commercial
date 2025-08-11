@@ -73,6 +73,225 @@ const formatDate = (date: Date): string => {
   }).format(date);
 };
 
+// Enhanced Security Score System (Defender for Cloud style)
+interface SecurityScoreBreakdown {
+  overallScore: number;
+  overallGrade: string;
+  dimensions: {
+    oauthRiskScore: number;
+    dataExposureScore: number;
+    complianceScore: number;
+    accessControlScore: number;
+  };
+  recommendations: string[];
+  riskFactors: string[];
+  improvements: {
+    shortTerm: string[];
+    longTerm: string[];
+  };
+}
+
+const calculateOAuthRiskScore = (apps: SaaSApp[]): number => {
+  if (apps.length === 0) return 85; // Good score for no apps
+  
+  let totalRisk = 0;
+  let weightedTotal = 0;
+  
+  apps.forEach(app => {
+    let appRisk = 0;
+    let weight = 1;
+    
+    // Base risk by level
+    switch (app.riskLevel) {
+      case 'CRITICAL': appRisk = 10; weight = 3; break;
+      case 'HIGH': appRisk = 25; weight = 2.5; break;
+      case 'MEDIUM': appRisk = 50; weight = 2; break;
+      case 'LOW': appRisk = 80; weight = 1; break;
+    }
+    
+    // Risk modifiers
+    if (app.hasBreaches) appRisk -= 20;
+    if (app.thirdPartySharing) appRisk -= 10;
+    if (app.passwordStrength === 'WEAK') appRisk -= 15;
+    if (app.accountStatus === 'INACTIVE') appRisk -= 5;
+    
+    // Data sensitivity modifier
+    const sensitiveDataTypes = ['financial', 'personal', 'medical', 'legal'];
+    const hasSensitiveData = app.dataTypes.some(type => sensitiveDataTypes.includes(type));
+    if (hasSensitiveData) weight *= 1.5;
+    
+    totalRisk += Math.max(0, Math.min(100, appRisk)) * weight;
+    weightedTotal += weight;
+  });
+  
+  return Math.round(totalRisk / weightedTotal);
+};
+
+const calculateDataExposureScore = (apps: SaaSApp[], ghostProfiles: GhostProfile[]): number => {
+  let baseScore = 90;
+  
+  // Penalize for breached apps
+  const breachedApps = apps.filter(app => app.hasBreaches);
+  baseScore -= breachedApps.length * 15;
+  
+  // Penalize for data sharing
+  const sharingApps = apps.filter(app => app.thirdPartySharing);
+  baseScore -= sharingApps.length * 8;
+  
+  // Penalize for ghost profiles
+  baseScore -= ghostProfiles.length * 10;
+  
+  // Bonus for good data practices
+  const secureApps = apps.filter(app => 
+    !app.hasBreaches && 
+    !app.thirdPartySharing && 
+    app.riskLevel === 'LOW'
+  );
+  baseScore += Math.min(20, secureApps.length * 2);
+  
+  return Math.max(0, Math.min(100, Math.round(baseScore)));
+};
+
+const calculateComplianceScore = (apps: SaaSApp[]): number => {
+  let baseScore = 70; // Neutral starting point
+  
+  if (apps.length === 0) return 95; // High score for clean state
+  
+  // Check for compliance-friendly practices
+  const lowRiskApps = apps.filter(app => app.riskLevel === 'LOW');
+  const highRiskApps = apps.filter(app => ['HIGH', 'CRITICAL'].includes(app.riskLevel));
+  
+  // Scoring based on risk distribution
+  const lowRiskRatio = lowRiskApps.length / apps.length;
+  const highRiskRatio = highRiskApps.length / apps.length;
+  
+  baseScore += lowRiskRatio * 25; // Bonus for low risk apps
+  baseScore -= highRiskRatio * 30; // Penalty for high risk apps
+  
+  // Additional compliance factors
+  const noBreachApps = apps.filter(app => !app.hasBreaches);
+  const noSharingApps = apps.filter(app => !app.thirdPartySharing);
+  
+  baseScore += (noBreachApps.length / apps.length) * 15;
+  baseScore += (noSharingApps.length / apps.length) * 10;
+  
+  return Math.max(30, Math.min(100, Math.round(baseScore)));
+};
+
+const calculateAccessControlScore = (apps: SaaSApp[]): number => {
+  let baseScore = 80;
+  
+  if (apps.length === 0) return 95;
+  
+  // Check authentication strength
+  const strongAuthApps = apps.filter(app => app.passwordStrength === 'STRONG');
+  const weakAuthApps = apps.filter(app => app.passwordStrength === 'WEAK');
+  
+  baseScore += (strongAuthApps.length / apps.length) * 15;
+  baseScore -= (weakAuthApps.length / apps.length) * 25;
+  
+  // Active vs inactive accounts
+  const activeApps = apps.filter(app => app.accountStatus === 'ACTIVE');
+  const inactiveApps = apps.filter(app => app.accountStatus === 'INACTIVE');
+  
+  baseScore -= inactiveApps.length * 5; // Penalty for unused accounts
+  
+  // OAuth provider diversity (single sign-on is better)
+  const oauthProviders = new Set(apps.map(app => app.oauthProvider).filter(Boolean));
+  if (oauthProviders.size === 1 && oauthProviders.has('Google')) baseScore += 10;
+  
+  return Math.max(40, Math.min(100, Math.round(baseScore)));
+};
+
+const getSecurityGrade = (score: number): { grade: string; color: string; description: string } => {
+  if (score >= 90) return { grade: 'A+', color: '#10B981', description: 'Excellent' };
+  if (score >= 85) return { grade: 'A', color: '#10B981', description: 'Very Good' };
+  if (score >= 80) return { grade: 'A-', color: '#059669', description: 'Good' };
+  if (score >= 75) return { grade: 'B+', color: '#84CC16', description: 'Above Average' };
+  if (score >= 70) return { grade: 'B', color: '#EAB308', description: 'Average' };
+  if (score >= 65) return { grade: 'B-', color: '#F59E0B', description: 'Below Average' };
+  if (score >= 60) return { grade: 'C+', color: '#F97316', description: 'Needs Improvement' };
+  if (score >= 55) return { grade: 'C', color: '#EF4444', description: 'Poor' };
+  if (score >= 50) return { grade: 'C-', color: '#DC2626', description: 'Very Poor' };
+  if (score >= 40) return { grade: 'D', color: '#B91C1C', description: 'Critical' };
+  return { grade: 'F', color: '#7F1D1D', description: 'Failed' };
+};
+
+const calculateEnhancedSecurityScore = (
+  apps: SaaSApp[], 
+  ghostProfiles: GhostProfile[]
+): SecurityScoreBreakdown => {
+  // Calculate individual dimension scores
+  const oauthRiskScore = calculateOAuthRiskScore(apps);
+  const dataExposureScore = calculateDataExposureScore(apps, ghostProfiles);
+  const complianceScore = calculateComplianceScore(apps);
+  const accessControlScore = calculateAccessControlScore(apps);
+  
+  // Weight the scores (similar to Defender for Cloud)
+  const weights = {
+    oauth: 0.40,      // 40% - Most critical for SaaS security
+    dataExposure: 0.25, // 25% - Data protection is crucial
+    compliance: 0.20,   // 20% - Regulatory requirements
+    accessControl: 0.15 // 15% - Authentication and access
+  };
+  
+  const overallScore = Math.round(
+    oauthRiskScore * weights.oauth +
+    dataExposureScore * weights.dataExposure +
+    complianceScore * weights.compliance +
+    accessControlScore * weights.accessControl
+  );
+  
+  const overallGrade = getSecurityGrade(overallScore).grade;
+  
+  // Generate recommendations based on lowest scores
+  const recommendations = [];
+  const riskFactors = [];
+  const improvements = { shortTerm: [], longTerm: [] };
+  
+  if (oauthRiskScore < 70) {
+    recommendations.push('Review and revoke unnecessary OAuth permissions');
+    riskFactors.push('High-risk OAuth connections detected');
+    improvements.shortTerm.push('Audit OAuth app permissions');
+  }
+  
+  if (dataExposureScore < 70) {
+    recommendations.push('Address data exposure vulnerabilities');
+    riskFactors.push('Potential data exposure through connected apps');
+    improvements.shortTerm.push('Review apps with data sharing enabled');
+  }
+  
+  if (complianceScore < 70) {
+    recommendations.push('Improve compliance posture');
+    riskFactors.push('Non-compliant applications in use');
+    improvements.longTerm.push('Implement compliance monitoring');
+  }
+  
+  if (accessControlScore < 70) {
+    recommendations.push('Strengthen access controls');
+    riskFactors.push('Weak authentication practices detected');
+    improvements.shortTerm.push('Enable multi-factor authentication');
+  }
+  
+  // Add general improvements
+  improvements.longTerm.push('Implement regular security reviews');
+  improvements.longTerm.push('Establish security policies for new apps');
+  
+  return {
+    overallScore,
+    overallGrade,
+    dimensions: {
+      oauthRiskScore,
+      dataExposureScore,
+      complianceScore,
+      accessControlScore
+    },
+    recommendations,
+    riskFactors,
+    improvements
+  };
+};
+
 // Mock data for demonstration (commented out - using empty states)
 // const mockUserProfile: UserProfile = {
 //   id: '1',
@@ -659,6 +878,11 @@ Thank you,
     return <Onboarding onComplete={() => setShowOnboarding(false)} />;
   }
 
+  // Calculate enhanced security score
+  const securityScoreBreakdown = calculateEnhancedSecurityScore(apps, ghostProfiles);
+  const privacyScore = securityScoreBreakdown.overallScore;
+  const privacyGrade = getSecurityGrade(privacyScore);
+
   return (
     <div className="app">
       {/* Header */}
@@ -776,6 +1000,87 @@ Thank you,
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Enhanced Security Score Breakdown */}
+            <div className="security-score-section">
+              <h2>🛡️ Security Score Breakdown</h2>
+              <div className="score-dimensions-grid">
+                <div className="score-dimension-card">
+                  <div className="dimension-header">
+                    <span className="dimension-icon">🔗</span>
+                    <h3>OAuth Risk</h3>
+                    <span className="dimension-weight">40%</span>
+                  </div>
+                  <div className="dimension-score">
+                    <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).color }}>
+                      <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).grade}</span>
+                    </div>
+                    <span className="score-number">{securityScoreBreakdown.dimensions.oauthRiskScore}/100</span>
+                  </div>
+                  <p className="dimension-description">App permissions and OAuth connections</p>
+                </div>
+                
+                <div className="score-dimension-card">
+                  <div className="dimension-header">
+                    <span className="dimension-icon">🔒</span>
+                    <h3>Data Exposure</h3>
+                    <span className="dimension-weight">25%</span>
+                  </div>
+                  <div className="dimension-score">
+                    <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).color }}>
+                      <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).grade}</span>
+                    </div>
+                    <span className="score-number">{securityScoreBreakdown.dimensions.dataExposureScore}/100</span>
+                  </div>
+                  <p className="dimension-description">Data breaches and sharing risks</p>
+                </div>
+                
+                <div className="score-dimension-card">
+                  <div className="dimension-header">
+                    <span className="dimension-icon">📋</span>
+                    <h3>Compliance</h3>
+                    <span className="dimension-weight">20%</span>
+                  </div>
+                  <div className="dimension-score">
+                    <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color }}>
+                      <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).grade}</span>
+                    </div>
+                    <span className="score-number">{securityScoreBreakdown.dimensions.complianceScore}/100</span>
+                  </div>
+                  <p className="dimension-description">Regulatory compliance status</p>
+                </div>
+                
+                <div className="score-dimension-card">
+                  <div className="dimension-header">
+                    <span className="dimension-icon">🔐</span>
+                    <h3>Access Control</h3>
+                    <span className="dimension-weight">15%</span>
+                  </div>
+                  <div className="dimension-score">
+                    <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).color }}>
+                      <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).grade}</span>
+                    </div>
+                    <span className="score-number">{securityScoreBreakdown.dimensions.accessControlScore}/100</span>
+                  </div>
+                  <p className="dimension-description">Authentication and authorization</p>
+                </div>
+              </div>
+              
+              {/* Security Recommendations */}
+              {securityScoreBreakdown.recommendations.length > 0 && (
+                <div className="security-recommendations">
+                  <h3>🎯 Priority Recommendations</h3>
+                  <div className="recommendations-list">
+                    {securityScoreBreakdown.recommendations.map((recommendation, index) => (
+                      <div key={index} className="recommendation-item">
+                        <span className="recommendation-icon">⚠️</span>
+                        <span className="recommendation-text">{recommendation}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Progress Tracking */}
