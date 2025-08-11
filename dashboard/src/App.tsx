@@ -584,7 +584,7 @@ Thank you,
 
     // Show results
     const resultText = requests.map(req => 
-      `📧 ${req.app} (${req.domain})\n${req.template}\n\n---\n`
+      `${req.app} (${req.domain})\n${req.template}\n\n---\n`
     ).join('\n');
 
     alert(`Privacy Request Templates Generated!\n\n${resultText}\n\nCopy these templates and send them to each company.`);
@@ -597,10 +597,10 @@ Thank you,
     const weakPasswords = apps.filter(app => app.passwordStrength === 'WEAK');
     const reusedPasswords = apps.filter(app => app.isReused);
     
-    let result = '🔒 Password Security Analysis:\n\n';
+    let result = 'Password Security Analysis:\n\n';
     
     if (weakPasswords.length > 0) {
-      result += `⚠️ Weak Passwords Found: ${weakPasswords.length}\n`;
+      result += `Weak Passwords Found: ${weakPasswords.length}\n`;
       weakPasswords.forEach(app => {
         result += `• ${app.name} (${app.domain})\n`;
       });
@@ -608,7 +608,7 @@ Thank you,
     }
     
     if (reusedPasswords.length > 0) {
-      result += `🔄 Reused Passwords Found: ${reusedPasswords.length}\n`;
+      result += `Reused Passwords Found: ${reusedPasswords.length}\n`;
       reusedPasswords.forEach(app => {
         result += `• ${app.name} (${app.domain})\n`;
       });
@@ -616,9 +616,9 @@ Thank you,
     }
     
     if (weakPasswords.length === 0 && reusedPasswords.length === 0) {
-      result += '✅ All passwords appear to be strong and unique!\n';
+      result += 'All passwords appear to be strong and unique!\n';
     } else {
-      result += '💡 Recommendations:\n';
+      result += 'Recommendations:\n';
       result += '• Use a password manager\n';
       result += '• Generate unique passwords for each account\n';
       result += '• Enable two-factor authentication\n';
@@ -631,10 +631,10 @@ Thank you,
   const handleComplianceReport = async () => {
     console.log('Generating compliance report...');
     
-    const report = `📊 GDPR Compliance Report\n\n` +
-      `✅ Compliant Apps: ${apps.filter(app => !app.thirdPartySharing).length}\n` +
-      `⚠️ Needs Review: ${apps.filter(app => app.thirdPartySharing).length}\n` +
-      `🚨 High Risk: ${apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL').length}\n\n` +
+    const report = `GDPR Compliance Report\n\n` +
+      `Compliant Apps: ${apps.filter(app => !app.thirdPartySharing).length}\n` +
+      `Needs Review: ${apps.filter(app => app.thirdPartySharing).length}\n` +
+      `High Risk: ${apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL').length}\n\n` +
       `Recommendations:\n` +
       `• Review data processing agreements\n` +
       `• Update privacy policies\n` +
@@ -653,7 +653,7 @@ Thank you,
       return daysSinceAccess > 30;
     });
     
-    const result = `🔐 Access Review Complete\n\n` +
+    const result = `Access Review Complete\n\n` +
       `${unusedApps.length} applications haven't been used in 30+ days:\n\n` +
       unusedApps.map(app => `• ${app.name} (last used ${Math.floor((Date.now() - new Date(app.lastAccessed).getTime()) / (1000 * 60 * 60 * 24))} days ago)`).join('\n') +
       `\n\nRecommendation: Review these applications and revoke access if no longer needed.`;
@@ -664,11 +664,11 @@ Thank you,
   const handleActionFix = (action: any) => {
     console.log('Handling action fix:', action);
     
-    let message = `🔧 Fixing: ${action.title}\n\n`;
+    let message = `Fixing: ${action.title}\n\n`;
     
     switch (action.type) {
       case 'PRIVACY_REVIEW':
-        message += '📋 Steps to review privacy settings:\n';
+        message += 'Steps to review privacy settings:\n';
         message += '1. Visit the app\'s privacy settings page\n';
         message += '2. Review data sharing permissions\n';
         message += '3. Disable unnecessary data collection\n';
@@ -676,7 +676,7 @@ Thank you,
         break;
         
       case 'OAUTH_CLEANUP':
-        message += '🔗 Steps to remove OAuth connections:\n';
+        message += 'Steps to remove OAuth connections:\n';
         message += '1. Go to your account settings\n';
         message += '2. Find "Connected Apps" or "OAuth"\n';
         message += '3. Remove unused connections\n';
@@ -684,7 +684,7 @@ Thank you,
         break;
         
       case 'TRACKING_PROTECTION':
-        message += '🚫 Steps to block tracking:\n';
+        message += 'Steps to block tracking:\n';
         message += '1. Configure browser privacy settings\n';
         message += '2. Enable tracker blocking in browser\n';
         message += '3. Clear existing tracking cookies\n';
@@ -692,7 +692,7 @@ Thank you,
         break;
         
       case 'SECURITY':
-        message += '🔐 Steps to improve security:\n';
+        message += 'Steps to improve security:\n';
         message += '1. Change passwords immediately\n';
         message += '2. Enable two-factor authentication\n';
         message += '3. Review account activity\n';
@@ -700,7 +700,7 @@ Thank you,
         break;
         
       case 'PRIVACY_IMPROVEMENT':
-        message += '📈 Steps to improve privacy score:\n';
+        message += 'Steps to improve privacy score:\n';
         message += '1. Follow the generated recommendations\n';
         message += '2. Remove high-risk apps\n';
         message += '3. Update privacy settings\n';
@@ -708,14 +708,14 @@ Thank you,
         break;
         
       default:
-        message += '📝 General privacy improvement steps:\n';
+        message += 'General privacy improvement steps:\n';
         message += '1. Review the app\'s privacy policy\n';
         message += '2. Update account settings\n';
         message += '3. Remove unnecessary permissions\n';
         message += '4. Monitor data sharing\n';
     }
     
-    message += '\n✅ Action marked as completed!';
+    message += '\nAction marked as completed!';
     
     // Mark the action as completed
     setActionItems(prev => prev.map(item => 
@@ -728,12 +728,12 @@ Thank you,
   const handleTipLearnMore = (tip: any) => {
     console.log('Learning more about tip:', tip);
     
-    let message = `📚 ${tip.title}\n\n`;
+    let message = `${tip.title}\n\n`;
     message += `${tip.description}\n\n`;
     
     switch (tip.category) {
       case 'OAUTH':
-        message += '🔗 OAuth Best Practices:\n';
+        message += 'OAuth Best Practices:\n';
         message += '• Only connect apps you trust\n';
         message += '• Regularly review connected apps\n';
         message += '• Remove unused connections\n';
@@ -741,7 +741,7 @@ Thank you,
         break;
         
       case 'TRACKING':
-        message += '🚫 Tracking Protection Tips:\n';
+        message += 'Tracking Protection Tips:\n';
         message += '• Enable browser tracking protection\n';
         message += '• Clear cookies regularly\n';
         message += '• Use incognito mode for sensitive browsing\n';
@@ -749,7 +749,7 @@ Thank you,
         break;
         
       case 'SECURITY':
-        message += '🔐 Security Best Practices:\n';
+        message += 'Security Best Practices:\n';
         message += '• Use strong, unique passwords\n';
         message += '• Enable two-factor authentication\n';
         message += '• Keep software updated\n';
@@ -757,7 +757,7 @@ Thank you,
         break;
         
       case 'DATA_SHARING':
-        message += '📊 Data Sharing Awareness:\n';
+        message += 'Data Sharing Awareness:\n';
         message += '• Read privacy policies carefully\n';
         message += '• Opt out of data sharing when possible\n';
         message += '• Use privacy-focused alternatives\n';
@@ -765,7 +765,7 @@ Thank you,
         break;
         
       case 'GENERAL':
-        message += '💡 General Privacy Tips:\n';
+        message += 'General Privacy Tips:\n';
         message += '• Be mindful of what you share online\n';
         message += '• Use privacy-focused browsers\n';
         message += '• Consider using a VPN\n';
@@ -773,14 +773,14 @@ Thank you,
         break;
         
       default:
-        message += '💡 Additional Tips:\n';
+        message += 'Additional Tips:\n';
         message += '• Stay informed about privacy news\n';
         message += '• Use privacy tools and settings\n';
         message += '• Regularly audit your accounts\n';
         message += '• Consider your digital footprint\n';
     }
     
-    message += '\n⏱️ Estimated time: ' + tip.timeEstimate;
+    message += '\nEstimated time: ' + tip.timeEstimate;
     
     alert(message);
   };
@@ -791,7 +791,7 @@ Thank you,
       <div className="app">
         <div className="loading-screen">
           <div className="loading-content">
-            <h1>☁️ Cloudyx</h1>
+            <h1>Cloudyx</h1>
             <div className="loading-spinner">
               <div className="spinner"></div>
             </div>
@@ -813,7 +813,7 @@ Thank you,
       <div className="app">
         <div className="welcome-screen">
           <div className="welcome-content">
-            <h1>☁️ Welcome to Cloudyx</h1>
+            <h1>Welcome to Cloudyx</h1>
             <p>Your cloud security dashboard is ready to protect your organization!</p>
             <div className="welcome-steps">
               <div className="step">
@@ -830,7 +830,7 @@ Thank you,
               </div>
             </div>
             <button onClick={startScan} className="start-scan-button">
-              🚀 Start Your First Scan
+              Start Your First Scan
             </button>
           </div>
         </div>
@@ -870,13 +870,13 @@ Thank you,
       <header className="header">
         <div className="header-content">
           <div className="logo">
-            <span className="logo-icon">☁️</span>
+            <span className="logo-icon">C</span>
             <h1>Cloudyx</h1>
             <span className="company-tag">SaaS Security Management</span>
           </div>
           <div className="user-info">
             <div className="admin-badge">
-              <span className="role-indicator">🛡️ Security Admin</span>
+              <span className="role-indicator">Security Admin</span>
               <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
             </div>
             <div className="threat-score">
@@ -901,14 +901,14 @@ Thank you,
           className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
-          <span>📊</span>
+          <span></span>
           <span>App Security Overview</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
           onClick={() => setActiveTab('apps')}
         >
-          <span>📱</span>
+          <span></span>
           <span>Connected Apps</span>
           <span className="nav-badge">({apps.length})</span>
         </button>
@@ -916,7 +916,7 @@ Thank you,
           className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
           onClick={() => setActiveTab('threats')}
         >
-          <span>🚨</span>
+          <span></span>
           <span>Risky Permissions</span>
           <span className="nav-badge">({actionItems.filter(item => !item.completed).length})</span>
         </button>
@@ -924,7 +924,7 @@ Thank you,
           className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
           onClick={() => setActiveTab('exposure')}
         >
-          <span>🔍</span>
+          <span></span>
           <span>Data Access</span>
           <span className="nav-badge">({ghostProfiles.length})</span>
         </button>
@@ -932,21 +932,21 @@ Thank you,
           className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
           onClick={() => setActiveTab('intel')}
         >
-          <span>⚠️</span>
+          <span></span>
           <span>Security Alerts</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
           onClick={() => setActiveTab('policies')}
         >
-          <span>⚙️</span>
+          <span></span>
           <span>Access Controls</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
           onClick={() => setActiveTab('threat-info')}
         >
-          <span>🛡️</span>
+          <span></span>
           <span>Threat Levels Guide</span>
         </button>
       </nav>
@@ -966,7 +966,7 @@ Thank you,
                     onClick={startScan}
                     disabled={isScanning}
                   >
-                    {isScanning ? '🔍 Scanning Cloud Apps...' : '🔍 Run Security Scan'}
+                    {isScanning ? 'Scanning Cloud Apps...' : 'Run Security Scan'}
                   </button>
                   <div className="scan-status">
                     <span className="last-scan-label">Last scan:</span>
@@ -985,11 +985,11 @@ Thank you,
 
             {/* Enhanced Security Score Breakdown */}
             <div className="security-score-section">
-              <h2>🛡️ Security Score Breakdown</h2>
+              <h2>Security Score Breakdown</h2>
               <div className="score-dimensions-grid">
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔗</span>
+                    <span className="dimension-icon"></span>
                     <h3>OAuth Risk</h3>
                     <span className="dimension-weight">40%</span>
                   </div>
@@ -1004,7 +1004,7 @@ Thank you,
                 
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔒</span>
+                    <span className="dimension-icon"></span>
                     <h3>Data Exposure</h3>
                     <span className="dimension-weight">25%</span>
                   </div>
@@ -1019,7 +1019,7 @@ Thank you,
                 
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">📋</span>
+                    <span className="dimension-icon"></span>
                     <h3>Compliance</h3>
                     <span className="dimension-weight">20%</span>
                   </div>
@@ -1034,7 +1034,7 @@ Thank you,
                 
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔐</span>
+                    <span className="dimension-icon"></span>
                     <h3>Access Control</h3>
                     <span className="dimension-weight">15%</span>
                   </div>
@@ -1051,11 +1051,11 @@ Thank you,
               {/* Security Recommendations */}
               {securityScoreBreakdown.recommendations.length > 0 && (
                 <div className="security-recommendations">
-                  <h3>🎯 Priority Recommendations</h3>
+                  <h3>Priority Recommendations</h3>
                   <div className="recommendations-list">
                     {securityScoreBreakdown.recommendations.map((recommendation, index) => (
                       <div key={index} className="recommendation-item">
-                        <span className="recommendation-icon">⚠️</span>
+                        <span className="recommendation-icon"></span>
                         <span className="recommendation-text">{recommendation}</span>
                       </div>
                     ))}
@@ -1097,22 +1097,22 @@ Thank you,
 
             {/* Security Actions */}
             <div className="security-actions">
-              <h3>🛡️ Security Operations</h3>
+              <h3>Security Operations</h3>
               <div className="action-grid">
                 <button className="action-button critical" onClick={handleRevokeAccess}>
-                  <span className="action-icon">🔐</span>
+                  <span className="action-icon"></span>
                   <span className="action-text">Revoke Risky Access</span>
                 </button>
                 <button className="action-button high" onClick={handlePasswordCheck}>
-                  <span className="action-icon">🔒</span>
+                  <span className="action-icon"></span>
                   <span className="action-text">Security Audit</span>
                 </button>
                 <button className="action-button medium" onClick={handleComplianceReport}>
-                  <span className="action-icon">📊</span>
+                  <span className="action-icon"></span>
                   <span className="action-text">Generate Report</span>
                 </button>
                 <button className="action-button low" onClick={handlePrivacyRequests}>
-                  <span className="action-icon">⚙️</span>
+                  <span className="action-icon"></span>
                   <span className="action-text">Policy Actions</span>
                 </button>
               </div>
@@ -1120,11 +1120,11 @@ Thank you,
 
             {/* Security Metrics */}
             <div className="security-metrics">
-              <h3>📊 Security Metrics</h3>
+              <h3>Security Metrics</h3>
               <div className="metrics-grid">
                 <div className="metric-card threat-level">
                   <div className="metric-header">
-                    <span className="metric-icon">☁️</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">Cloud Apps Monitored</span>
                   </div>
                   <div className="metric-value">{userProfile?.totalApps || 0}</div>
@@ -1132,7 +1132,7 @@ Thank you,
                 </div>
                 <div className="metric-card critical">
                   <div className="metric-header">
-                    <span className="metric-icon">🚨</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">Critical Threats</span>
                   </div>
                   <div className="metric-value danger">{apps.filter(app => app.riskLevel === 'CRITICAL').length}</div>
@@ -1140,7 +1140,7 @@ Thank you,
                 </div>
                 <div className="metric-card high-risk">
                   <div className="metric-header">
-                    <span className="metric-icon">⚠️</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">High Risk Apps</span>
                   </div>
                   <div className="metric-value warning">{userProfile?.highRiskApps || 0}</div>
@@ -1148,7 +1148,7 @@ Thank you,
                 </div>
                 <div className="metric-card security-score">
                   <div className="metric-header">
-                    <span className="metric-icon">🛡️</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">Security Posture</span>
                   </div>
                   <div className="metric-value">{Math.max(85, 100 - (userProfile?.highRiskApps || 0) * 5)}%</div>
@@ -1174,7 +1174,7 @@ Thank you,
                     <div className="action-content">
                       <h4>{item.title}</h4>
                       <p>{item.description}</p>
-                      <span className="action-time">⏱️ {item.estimatedTime}</span>
+                      <span className="action-time">{item.estimatedTime}</span>
                     </div>
                     <button className="action-btn" onClick={() => handleActionFix(item)}>Fix Now</button>
                   </div>
@@ -1197,7 +1197,7 @@ Thank you,
                     <div className="tip-content">
                       <h4>{tip.title}</h4>
                       <p>{tip.description}</p>
-                      <span className="tip-time">⏱️ {tip.timeEstimate}</span>
+                      <span className="tip-time">{tip.timeEstimate}</span>
                     </div>
                     <button className="tip-btn" onClick={() => handleTipLearnMore(tip)}>Learn More</button>
                   </div>
@@ -1211,7 +1211,7 @@ Thank you,
               <div className="activity-list">
                 {breachAlerts.filter(b => b.isNew).map(alert => (
                   <div key={alert.id} className="activity-item danger">
-                    <span className="activity-icon">🚨</span>
+                    <span className="activity-icon"></span>
                     <div className="activity-content">
                       <div className="activity-title">New Breach Alert</div>
                       <div className="activity-description">
@@ -1222,7 +1222,7 @@ Thank you,
                 ))}
                 {apps.filter(app => app.isReused).map(app => (
                   <div key={app.id} className="activity-item warning">
-                    <span className="activity-icon">🔒</span>
+                    <span className="activity-icon"></span>
                     <div className="activity-content">
                       <div className="activity-title">Password Reuse Detected</div>
                       <div className="activity-description">
@@ -1232,7 +1232,7 @@ Thank you,
                   </div>
                 ))}
                 <div className="activity-item success">
-                  <span className="activity-icon">✅</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Privacy Score Improved</div>
                     <div className="activity-description">
@@ -1241,7 +1241,7 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item info">
-                  <span className="activity-icon">📧</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Email Scan Completed</div>
                     <div className="activity-description">
@@ -1250,7 +1250,7 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item success">
-                  <span className="activity-icon">🔐</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Two-Factor Enabled</div>
                     <div className="activity-description">
@@ -1259,7 +1259,7 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item info">
-                  <span className="activity-icon">🔍</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Compliance Scan Completed</div>
                     <div className="activity-description">
@@ -1275,7 +1275,7 @@ Thank you,
         {activeTab === 'threats' && (
           <div className="threats-view">
             <div className="threats-header">
-              <h2>🚨 Active Security Threats</h2>
+              <h2>Active Security Threats</h2>
               <div className="threat-summary">
                 <span className="summary-item critical">
                   <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'CRITICAL').length}</span>
@@ -1311,7 +1311,7 @@ Thank you,
                     <p>{item.description}</p>
                     <div className="action-meta">
                       <span className="action-time">⏱️ {item.estimatedTime}</span>
-                      {item.completed && <span className="completed-badge">✅ Completed</span>}
+                      {item.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
                   <div className="action-actions">
@@ -1350,7 +1350,7 @@ Thank you,
                     <p>{tip.description}</p>
                     <div className="tip-meta">
                       <span className="tip-time">⏱️ {tip.timeEstimate}</span>
-                      {tip.completed && <span className="completed-badge">✅ Completed</span>}
+                      {tip.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
                   <div className="tip-actions">
@@ -1395,10 +1395,10 @@ Thank you,
                     <p>Domain: {app.domain}</p>
                     <p>Last accessed: {formatDate(app.lastAccessed!)}</p>
                     {app.hasBreaches && (
-                      <p className="breach-warning">⚠️ Has been breached</p>
+                      <p className="breach-warning">Has been breached</p>
                     )}
                     {app.isReused && (
-                      <p className="password-warning">🔒 Password reused</p>
+                      <p className="password-warning">Password reused</p>
                     )}
                   </div>
                   <div className="app-actions">
@@ -1418,7 +1418,7 @@ Thank you,
               {breachAlerts.map(alert => (
                 <div key={alert.id} className="breach-card">
                   <div className="breach-header">
-                    <h3>🚨 {alert.description}</h3>
+                    <h3>{alert.description}</h3>
                     {alert.isNew && <span className="new-badge">NEW</span>}
                   </div>
                   <div className="breach-details">
@@ -1438,14 +1438,14 @@ Thank you,
 
         {activeTab === 'exposure' && (
           <div className="exposure-view">
-            <h2>🔍 Public Data Exposure Analysis</h2>
+            <h2>Public Data Exposure Analysis</h2>
             <div className="exposure-info">
               <p>Comprehensive scan results showing your organization's publicly visible data, credentials, and potential security exposures across the web.</p>
             </div>
             {ghostProfiles.length === 0 ? (
               <div className="no-exposure">
                 <div className="empty-state">
-                  <span className="empty-icon">🔒</span>
+                  <span className="empty-icon"></span>
                   <h3>Excellent Security Posture</h3>
                   <p>Our comprehensive scan found no publicly exposed credentials, data leaks, or security vulnerabilities associated with your organization. Your digital footprint appears well-secured.</p>
                   <div className="security-metrics">
@@ -1463,7 +1463,7 @@ Thank you,
                     </div>
                   </div>
                   <button className="scan-button" onClick={() => alert('Enhanced deep scan initiated - monitoring 150+ additional sources')}>
-                    🔍 Run Enhanced Deep Scan
+                    Run Enhanced Deep Scan
                   </button>
                 </div>
               </div>
@@ -1472,7 +1472,7 @@ Thank you,
                 {ghostProfiles.map(profile => (
                   <div key={profile.id} className="exposure-card">
                     <div className="exposure-header">
-                      <h3>🔍 {profile.platform}</h3>
+                      <h3>{profile.platform}</h3>
                       <span className="confidence-badge">
                         {Math.round(profile.confidence * 100)}% confidence
                       </span>
@@ -1496,10 +1496,10 @@ Thank you,
 
         {activeTab === 'intel' && (
           <div className="intel-view">
-            <h2>⚠️ SaaS Security Alerts</h2>
+            <h2>SaaS Security Alerts</h2>
             <div className="intel-grid">
               <div className="intel-section">
-                <h3>🚨 Critical App Risks</h3>
+                <h3>Critical App Risks</h3>
                 <div className="intel-cards">
                   <div className="intel-card critical">
                     <div className="intel-header">
@@ -1541,7 +1541,7 @@ Thank you,
               </div>
               
               <div className="intel-section">
-                <h3>📊 SaaS Security Trends</h3>
+                <h3>SaaS Security Trends</h3>
                 <div className="trend-cards">
                   <div className="trend-card">
                     <h4>Shadow SaaS Growth</h4>
@@ -1566,77 +1566,77 @@ Thank you,
 
         {activeTab === 'policies' && (
           <div className="policies-view">
-            <h2>⚙️ SaaS Access Controls</h2>
+            <h2>SaaS Access Controls</h2>
             <p className="section-description">Control who can access your business data across all your SaaS applications</p>
             
             <div className="policies-grid">
               <div className="policy-section">
-                <h3>🔐 App Permission Management</h3>
+                <h3>App Permission Management</h3>
                 <div className="policy-cards">
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>🔗 Connected App Monitoring</h4>
+                      <h4>Connected App Monitoring</h4>
                       <span className="policy-status active">ACTIVE</span>
                     </div>
                     <p>Track all third-party applications connected to your Google Workspace, Microsoft 365, and Slack. Get alerts when new apps request access to sensitive business data.</p>
                     <div className="policy-stats">
-                      <span>✅ 23 apps being monitored</span>
-                      <span>🚨 2 apps need attention</span>
+                      <span>23 apps being monitored</span>
+                      <span>2 apps need attention</span>
                     </div>
                   </div>
                   
                   <div className="policy-card warning">
                     <div className="policy-header">
-                      <h4>📧 Email & Document Access Control</h4>
+                      <h4>Email & Document Access Control</h4>
                       <span className="policy-status warning">REVIEWING</span>
                     </div>
                     <p>Review which apps can read your emails, access Google Drive files, or modify documents. Remove unnecessary permissions to protect confidential business information.</p>
                     <div className="policy-stats">
-                      <span>⚠️ Grammarly has email access</span>
-                      <span>🔍 5 apps can read all files</span>
+                      <span>Grammarly has email access</span>
+                      <span>5 apps can read all files</span>
                     </div>
                   </div>
                   
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>👥 User Access Governance</h4>
+                      <h4>User Access Governance</h4>
                       <span className="policy-status active">MANAGED</span>
                     </div>
                     <p>Ensure employees only have access to the business applications they need for their role. Automatically detect when former employees still have app access.</p>
                     <div className="policy-stats">
-                      <span>✅ 15 users properly managed</span>
-                      <span>📋 Access reviews up to date</span>
+                      <span>15 users properly managed</span>
+                      <span>Access reviews up to date</span>
                     </div>
                   </div>
                 </div>
               </div>
               
               <div className="policy-section">
-                <h3>🎯 Quick Actions</h3>
+                <h3>Quick Actions</h3>
                 <div className="quick-actions-grid">
                   <div className="quick-action-card">
-                    <div className="action-icon">🔒</div>
+                    <div className="action-icon"></div>
                     <h4>Revoke Suspicious Apps</h4>
                     <p>2 apps have excessive permissions</p>
                     <button className="action-btn primary">Review Now</button>
                   </div>
                   
                   <div className="quick-action-card">
-                    <div className="action-icon">👤</div>
+                    <div className="action-icon"></div>
                     <h4>Audit User Access</h4>
                     <p>Quarterly access review is due</p>
                     <button className="action-btn">Start Review</button>
                   </div>
                   
                   <div className="quick-action-card">
-                    <div className="action-icon">📱</div>
+                    <div className="action-icon"></div>
                     <h4>Enable SSO</h4>
                     <p>4 apps can use single sign-on</p>
                     <button className="action-btn">Configure</button>
                   </div>
                   
                   <div className="quick-action-card">
-                    <div className="action-icon">📊</div>
+                    <div className="action-icon"></div>
                     <h4>Generate Report</h4>
                     <p>Create access control summary</p>
                     <button className="action-btn">Export PDF</button>
@@ -1645,7 +1645,7 @@ Thank you,
               </div>
               
               <div className="policy-section">
-                <h3>🏢 Business Application Inventory</h3>
+                <h3>Business Application Inventory</h3>
                 <div className="app-inventory">
                   <div className="inventory-header">
                     <span>All business applications with data access</span>
@@ -1654,7 +1654,7 @@ Thank you,
                   <div className="inventory-list">
                     <div className="inventory-item high-risk">
                       <div className="app-info">
-                        <span className="app-icon">✏️</span>
+                        <span className="app-icon"></span>
                         <div className="app-details">
                           <h5>Grammarly</h5>
                           <p>Can read and modify all documents & emails</p>
@@ -1666,7 +1666,7 @@ Thank you,
                     
                     <div className="inventory-item medium-risk">
                       <div className="app-info">
-                        <span className="app-icon">📅</span>
+                        <span className="app-icon"></span>
                         <div className="app-details">
                           <h5>Calendly</h5>
                           <p>Access to calendar and contact information</p>
@@ -1678,7 +1678,7 @@ Thank you,
                     
                     <div className="inventory-item low-risk">
                       <div className="app-info">
-                        <span className="app-icon">📊</span>
+                        <span className="app-icon"></span>
                         <div className="app-details">
                           <h5>Google Analytics</h5>
                           <p>Read-only access to website data</p>
@@ -1700,10 +1700,10 @@ Thank you,
 
         {activeTab === 'knowledge' && (
           <div className="knowledge-view">
-            <h2>📚 Privacy & Security Knowledge Base</h2>
+            <h2>Privacy & Security Knowledge Base</h2>
             <div className="knowledge-sections">
               <div className="knowledge-section">
-                <h3>🔒 Security Best Practices</h3>
+                <h3>Security Best Practices</h3>
                 <div className="knowledge-cards">
                   <div className="knowledge-card">
                     <h4>Multi-Factor Authentication (MFA)</h4>
@@ -1724,7 +1724,7 @@ Thank you,
               </div>
               
               <div className="knowledge-section">
-                <h3>⚖️ Compliance Guidelines</h3>
+                <h3>Compliance Guidelines</h3>
                 <div className="knowledge-cards">
                   <div className="knowledge-card">
                     <h4>GDPR Requirements</h4>
@@ -1745,7 +1745,7 @@ Thank you,
               </div>
 
               <div className="knowledge-section">
-                <h3>⚠️ Common Risk Areas</h3>
+                <h3>Common Risk Areas</h3>
                 <div className="knowledge-cards">
                   <div className="knowledge-card">
                     <h4>Shadow IT Applications</h4>
@@ -1772,7 +1772,7 @@ Thank you,
         {activeTab === 'threat-info' && (
           <div className="threat-info-content">
             <div className="threat-info-header">
-              <h2>🛡️ Understanding Threat Levels</h2>
+              <h2>Understanding Threat Levels</h2>
               <p>Learn how we calculate your organization's threat level and how to improve it</p>
             </div>
 
@@ -1851,7 +1851,7 @@ Thank you,
             </div>
 
             <div className="improvement-section">
-              <h3>🎯 How to Improve Your Threat Level</h3>
+              <h3>How to Improve Your Threat Level</h3>
               <div className="improvement-steps">
                 <div className="improvement-step">
                   <span className="step-number">1</span>
@@ -1885,7 +1885,7 @@ Thank you,
             </div>
 
             <div className="threat-calculation">
-              <h3>📊 How We Calculate Your Score</h3>
+              <h3>How We Calculate Your Score</h3>
               <div className="calculation-factors">
                 <div className="factor">
                   <span className="factor-weight">40%</span>
