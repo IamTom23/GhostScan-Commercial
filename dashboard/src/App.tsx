@@ -191,7 +191,6 @@ const calculateAccessControlScore = (apps: SaaSApp[]): number => {
   baseScore -= (weakAuthApps.length / apps.length) * 25;
   
   // Active vs inactive accounts
-  const activeApps = apps.filter(app => app.accountStatus === 'ACTIVE');
   const inactiveApps = apps.filter(app => app.accountStatus === 'INACTIVE');
   
   baseScore -= inactiveApps.length * 5; // Penalty for unused accounts
@@ -245,9 +244,9 @@ const calculateEnhancedSecurityScore = (
   const overallGrade = getSecurityGrade(overallScore).grade;
   
   // Generate recommendations based on lowest scores
-  const recommendations = [];
-  const riskFactors = [];
-  const improvements = { shortTerm: [], longTerm: [] };
+  const recommendations: string[] = [];
+  const riskFactors: string[] = [];
+  const improvements: { shortTerm: string[]; longTerm: string[] } = { shortTerm: [], longTerm: [] };
   
   if (oauthRiskScore < 70) {
     recommendations.push('Review and revoke unnecessary OAuth permissions');
@@ -547,24 +546,6 @@ function App() {
       setIsScanning(false);
     }
   };
-
-  const getPrivacyScore = () => {
-    const maxScore = 100;
-    const deductions = (userProfile?.riskScore || 0) + (breachAlerts.length * 10) + (ghostProfiles.length * 5);
-    return Math.max(0, maxScore - deductions);
-  };
-
-  const getPrivacyGrade = (score: number) => {
-    if (score >= 80) return { grade: 'A', color: '#10B981' };
-    if (score >= 60) return { grade: 'B', color: '#F59E0B' };
-    if (score >= 40) return { grade: 'C', color: '#EF4444' };
-    return { grade: 'D', color: '#7C2D12' };
-  };
-
-
-  const privacyScore = getPrivacyScore();
-  const privacyGrade = getPrivacyGrade(privacyScore);
-
 
   // Quick Action Functions
   const handlePrivacyRequests = async () => {
