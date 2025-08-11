@@ -675,11 +675,15 @@ Thank you,
               <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
             </div>
             <div className="threat-score">
-              <div className="score-circle" style={{ borderColor: privacyGrade.color }}>
+              <div 
+                className="score-circle clickable" 
+                style={{ borderColor: privacyGrade.color }}
+                onClick={() => setActiveTab('threat-info')}
+                title="Click to learn about threat levels"
+              >
                 <span className="score-grade">{privacyGrade.grade}</span>
                 <span className="score-number">{privacyScore}</span>
               </div>
-              <span className="score-label">Threat Level</span>
             </div>
           </div>
         </div>
@@ -733,6 +737,13 @@ Thank you,
           <span>⚙️</span>
           <span>Access Controls</span>
         </button>
+        <button 
+          className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
+          onClick={() => setActiveTab('threat-info')}
+        >
+          <span>🛡️</span>
+          <span>Threat Levels Guide</span>
+        </button>
       </nav>
 
       {/* Main Content */}
@@ -742,7 +753,7 @@ Thank you,
             {/* Security Status Hero */}
             <div className="security-hero">
               <div className="hero-content">
-                <h2>Organization Threat Level: {privacyGrade.grade}</h2>
+                <h2>Organization Security Grade: {privacyGrade.grade}</h2>
                 <p>Cloud security assessment for TechFlow Startup - 12 employees monitored</p>
                 <div className="scan-controls">
                   <button 
@@ -1464,6 +1475,158 @@ Thank you,
                     <h4>Data Retention Policies</h4>
                     <p>Define how long you keep customer data and ensure vendors follow your retention requirements.</p>
                     <span className="knowledge-tag">Policy</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Threat Levels Guide Tab */}
+        {activeTab === 'threat-info' && (
+          <div className="threat-info-content">
+            <div className="threat-info-header">
+              <h2>🛡️ Understanding Threat Levels</h2>
+              <p>Learn how we calculate your organization's threat level and how to improve it</p>
+            </div>
+
+            <div className="threat-levels-grid">
+              <div className="threat-level-card critical">
+                <div className="threat-level-icon">
+                  <div className="score-circle" style={{ borderColor: '#dc2626' }}>
+                    <span className="score-grade">F</span>
+                  </div>
+                </div>
+                <div className="threat-level-info">
+                  <h3>Critical Risk</h3>
+                  <p>Multiple high-severity vulnerabilities detected. Immediate action required.</p>
+                  <ul>
+                    <li>Active security breaches or exposures</li>
+                    <li>Critical vulnerabilities in key systems</li>
+                    <li>Non-compliant data handling practices</li>
+                    <li>Weak or compromised authentication</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="threat-level-card high">
+                <div className="threat-level-icon">
+                  <div className="score-circle" style={{ borderColor: '#f97316' }}>
+                    <span className="score-grade">D</span>
+                  </div>
+                </div>
+                <div className="threat-level-info">
+                  <h3>High Risk</h3>
+                  <p>Significant security concerns that need prompt attention.</p>
+                  <ul>
+                    <li>High-risk application permissions</li>
+                    <li>Outdated security configurations</li>
+                    <li>Missing multi-factor authentication</li>
+                    <li>Suspicious access patterns detected</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="threat-level-card medium">
+                <div className="threat-level-icon">
+                  <div className="score-circle" style={{ borderColor: '#f59e0b' }}>
+                    <span className="score-grade">C</span>
+                  </div>
+                </div>
+                <div className="threat-level-info">
+                  <h3>Medium Risk</h3>
+                  <p>Some security issues that should be addressed to improve your posture.</p>
+                  <ul>
+                    <li>Moderate application permissions</li>
+                    <li>Some security best practices not followed</li>
+                    <li>Third-party integrations with broad access</li>
+                    <li>Inconsistent access controls</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="threat-level-card low">
+                <div className="threat-level-icon">
+                  <div className="score-circle" style={{ borderColor: '#22c55e' }}>
+                    <span className="score-grade">A</span>
+                  </div>
+                </div>
+                <div className="threat-level-info">
+                  <h3>Low Risk</h3>
+                  <p>Good security posture with minimal vulnerabilities.</p>
+                  <ul>
+                    <li>Strong authentication practices</li>
+                    <li>Regular security monitoring</li>
+                    <li>Minimal application permissions</li>
+                    <li>Compliance with security frameworks</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="improvement-section">
+              <h3>🎯 How to Improve Your Threat Level</h3>
+              <div className="improvement-steps">
+                <div className="improvement-step">
+                  <span className="step-number">1</span>
+                  <div className="step-content">
+                    <h4>Review App Permissions</h4>
+                    <p>Regularly audit and revoke unnecessary permissions for connected applications.</p>
+                  </div>
+                </div>
+                <div className="improvement-step">
+                  <span className="step-number">2</span>
+                  <div className="step-content">
+                    <h4>Enable Multi-Factor Authentication</h4>
+                    <p>Require MFA for all users, especially those with administrative access.</p>
+                  </div>
+                </div>
+                <div className="improvement-step">
+                  <span className="step-number">3</span>
+                  <div className="step-content">
+                    <h4>Monitor Security Alerts</h4>
+                    <p>Set up automated monitoring and respond quickly to security incidents.</p>
+                  </div>
+                </div>
+                <div className="improvement-step">
+                  <span className="step-number">4</span>
+                  <div className="step-content">
+                    <h4>Implement Access Controls</h4>
+                    <p>Use role-based access control and principle of least privilege.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="threat-calculation">
+              <h3>📊 How We Calculate Your Score</h3>
+              <div className="calculation-factors">
+                <div className="factor">
+                  <span className="factor-weight">40%</span>
+                  <div className="factor-details">
+                    <h4>Application Permissions</h4>
+                    <p>Risk level of connected apps and their data access</p>
+                  </div>
+                </div>
+                <div className="factor">
+                  <span className="factor-weight">25%</span>
+                  <div className="factor-details">
+                    <h4>Authentication Security</h4>
+                    <p>MFA adoption, password policies, and account security</p>
+                  </div>
+                </div>
+                <div className="factor">
+                  <span className="factor-weight">20%</span>
+                  <div className="factor-details">
+                    <h4>Data Exposure</h4>
+                    <p>Public data leaks and previous security incidents</p>
+                  </div>
+                </div>
+                <div className="factor">
+                  <span className="factor-weight">15%</span>
+                  <div className="factor-details">
+                    <h4>Compliance Status</h4>
+                    <p>Adherence to security frameworks and regulations</p>
                   </div>
                 </div>
               </div>
