@@ -17,9 +17,9 @@ GhostScan is designed for privacy-conscious individuals who want to take control
 ## 🚀 **Core Features**
 
 ### **🔍 SaaS Exposure Scan**
-- **Browser Extension**: Deep scanning of your browser history and cookies
 - **OAuth History**: Track all "Sign in with Google/Facebook" connections
 - **Email Analysis**: Scan inbox for signups and subscriptions
+- **Cloud API Integration**: Deep scanning of your cloud applications and services
 - **Device Analysis**: Cross-device account discovery
 
 ### **🧠 AI-Powered Threat Rating**
@@ -110,7 +110,7 @@ GhostScan is designed for privacy-conscious individuals who want to take control
 
 ### **Phase 1: Launch (Months 1-3)**
 - **Product Launch**: Full consumer dashboard
-- **Browser Extension**: Chrome/Firefox extensions
+- **Cloud Integrations**: Google Workspace and Microsoft 365 connectors
 - **Content Marketing**: Privacy blog and social media
 - **Influencer Partnerships**: Privacy advocates and tech influencers
 

@@ -52,7 +52,6 @@ interface GhostProfile {
   confidence: number;
   dataExposed: string[];
 }
-import { extensionService } from './services/extensionService';
 import { apiService } from './services/apiService';
 
 // Local utility functions to avoid build issues
@@ -249,19 +248,6 @@ function App() {
   const [progressData] = useState(mockProgressData);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isScanning, setIsScanning] = useState(false);
-  const [extensionStatus, setExtensionStatus] = useState<{
-    available: boolean;
-    installed: boolean;
-    lastScan: Date | null;
-    privacyScore: number | null;
-    debugInfo?: {
-      chromeAvailable: boolean;
-      runtimeAvailable: boolean;
-      storageAvailable: boolean;
-      testMessageSent: boolean;
-    };
-  }>({ available: false, installed: false, lastScan: null, privacyScore: null });
-  const [showDebug, setShowDebug] = useState(false);
   const [hasData, setHasData] = useState(false);
 
 
@@ -288,50 +274,11 @@ function App() {
             }
           }
         } catch (apiError) {
-          console.log('API not available, will try extension fallback:', apiError);
+          console.log('API not available:', apiError);
         }
 
-        // Fallback to extension data if API fails
-        console.log('Trying extension as fallback...');
-        const extensionConnectionResult = await extensionService.testConnection();
-        console.log('Extension connection test result:', extensionConnectionResult);
-        
-        if (extensionConnectionResult.success) {
-          setExtensionStatus({
-            available: true,
-            installed: true,
-            lastScan: null,
-            privacyScore: null,
-            debugInfo: {
-              chromeAvailable: true,
-              runtimeAvailable: true,
-              storageAvailable: true,
-              testMessageSent: true
-            }
-          });
-
-          const extensionData = await extensionService.getExtensionData();
-          if (extensionData) {
-            const dashboardData = extensionService.convertToDashboardFormat(extensionData);
-            if (dashboardData) {
-              setUserProfile(dashboardData.userProfile);
-              setApps(dashboardData.apps);
-              setBreachAlerts(dashboardData.breachAlerts);
-              if (dashboardData.actions) {
-                setActionItems(dashboardData.actions);
-              }
-              if (dashboardData.privacyTips) {
-                setPrivacyTips(dashboardData.privacyTips);
-              }
-              setHasData(true);
-              console.log('Loaded data from extension:', dashboardData);
-              return;
-            }
-          }
-        }
-
-        // If both API and extension fail, still show the dashboard with minimal data
-        console.log('No data sources available, showing demo data message');
+        // If API fails, still show the dashboard with minimal data
+        console.log('API not available, showing demo data message');
         setHasData(true); // Show dashboard anyway
         
       } catch (error) {
@@ -369,37 +316,7 @@ function App() {
           }
         }
       } catch (apiError) {
-        console.log('API scan failed, trying extension...', apiError);
-      }
-
-      // Fallback to extension scan
-      if (extensionStatus.available && extensionStatus.debugInfo?.testMessageSent) {
-        console.log('Triggering scan via extension...');
-        
-        const scanResult = await extensionService.triggerExtensionScan();
-        console.log('Extension scan result:', scanResult);
-        
-        if (scanResult) {
-          const dashboardData = extensionService.convertToDashboardFormat({
-            scanResult,
-            privacyScore: 100 - scanResult.totalRiskScore
-          });
-          if (dashboardData) {
-            setUserProfile(dashboardData.userProfile);
-            setApps(dashboardData.apps);
-            setBreachAlerts(dashboardData.breachAlerts);
-            if (dashboardData.actions) {
-              setActionItems(dashboardData.actions);
-            }
-            if (dashboardData.privacyTips) {
-              setPrivacyTips(dashboardData.privacyTips);
-            }
-            setHasData(true);
-            console.log('Scan completed with extension data:', dashboardData);
-          }
-        }
-      } else {
-        console.log('Extension not available, scan completed with existing data');
+        console.log('API scan failed:', apiError);
         // Just refresh the page state to show updated data
         setHasData(true);
       }
@@ -429,61 +346,6 @@ function App() {
   const privacyScore = getPrivacyScore();
   const privacyGrade = getPrivacyGrade(privacyScore);
 
-  const testConnection = async () => {
-    console.log('Testing extension connection...');
-    try {
-      const result = await extensionService.testConnection();
-      alert(`Connection Test: ${result.success ? 'SUCCESS' : 'FAILED'}\n\n${result.message}`);
-    } catch (error) {
-      alert(`Connection Test FAILED:\n\nError: ${error}`);
-    }
-  };
-
-  const testExtensionIDs = () => {
-    console.log('Testing extension IDs...');
-    if (typeof window !== 'undefined' && window.chrome?.runtime) {
-      const possibleIds = [
-        'lldnikolaejjojgiabojpfhmpaafeige',
-        'test-extension-id',
-        'another-possible-id'
-      ];
-      
-      possibleIds.forEach(id => {
-        window.chrome!.runtime!.sendMessage(id, { action: 'PING' }, (response) => {
-          console.log(`Extension ID ${id}:`, response);
-          if (window.chrome?.runtime?.lastError) {
-            console.log(`Extension ID ${id} error:`, window.chrome.runtime.lastError);
-          }
-        });
-      });
-    }
-  };
-
-  const testContentScript = () => {
-    console.log('Testing content script...');
-    
-    // Check if content script marker exists
-    const marker = document.querySelector('[data-ghostscan]');
-    console.log('Content script marker:', marker);
-    
-    // Check if global property exists
-    const globalProp = (window as any).ghostScanExtension;
-    console.log('Global property:', globalProp);
-    
-    // Try to dispatch a test event
-    const event = new CustomEvent('ghostscan-test-connection', {
-      detail: { action: 'PING' }
-    });
-    document.dispatchEvent(event);
-    console.log('Test event dispatched');
-    
-    // Listen for response
-    const handler = (event: any) => {
-      console.log('Response received:', event.detail);
-      document.removeEventListener('ghostscan-response', handler);
-    };
-    document.addEventListener('ghostscan-response', handler);
-  };
 
   // Quick Action Functions
   const handlePrivacyRequests = async () => {
@@ -623,8 +485,8 @@ Thank you,
         
       case 'TRACKING_PROTECTION':
         message += '🚫 Steps to block tracking:\n';
-        message += '1. Install a tracker blocker extension\n';
-        message += '2. Configure blocking rules\n';
+        message += '1. Configure browser privacy settings\n';
+        message += '2. Enable tracker blocking in browser\n';
         message += '3. Clear existing tracking cookies\n';
         message += '4. Monitor for new tracking attempts\n';
         break;
@@ -680,7 +542,7 @@ Thank you,
         
       case 'TRACKING':
         message += '🚫 Tracking Protection Tips:\n';
-        message += '• Use tracker blocker extensions\n';
+        message += '• Enable browser tracking protection\n';
         message += '• Clear cookies regularly\n';
         message += '• Use incognito mode for sensitive browsing\n';
         message += '• Review browser privacy settings\n';
@@ -713,7 +575,7 @@ Thank you,
       default:
         message += '💡 Additional Tips:\n';
         message += '• Stay informed about privacy news\n';
-        message += '• Use privacy tools and extensions\n';
+        message += '• Use privacy tools and settings\n';
         message += '• Regularly audit your accounts\n';
         message += '• Consider your digital footprint\n';
     }
@@ -775,18 +637,6 @@ Thank you,
         
         {/* Debug buttons for development */}
         <div className="debug-buttons" style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
-          <button onClick={() => setShowDebug(!showDebug)} className="debug-button">
-            {showDebug ? 'Hide Debug' : 'Show Debug'}
-          </button>
-          <button onClick={testExtensionIDs} className="test-button">
-            Test Extension IDs
-          </button>
-          <button onClick={testConnection} className="test-button">
-            Test Extension
-          </button>
-          <button onClick={testContentScript} className="test-button">
-            Test Content Script
-          </button>
           <button onClick={async () => {
             const result = await apiService.testConnection();
             alert(`API Test: ${result.success ? 'SUCCESS' : 'FAILED'}\n\n${result.message}`);
@@ -835,106 +685,6 @@ Thank you,
         </div>
       </header>
 
-      {/* Debug Panel */}
-      {showDebug && (
-        <div className="debug-panel">
-          <h3>🔧 Extension Debug Info</h3>
-          <div className="debug-content">
-            <div className="debug-item">
-              <strong>Chrome Available:</strong> {extensionStatus.debugInfo?.chromeAvailable ? '✅' : '❌'}
-            </div>
-            <div className="debug-item">
-              <strong>Runtime Available:</strong> {extensionStatus.debugInfo?.runtimeAvailable ? '✅' : '❌'}
-            </div>
-            <div className="debug-item">
-              <strong>Storage Available:</strong> {extensionStatus.debugInfo?.storageAvailable ? '✅' : '❌'}
-            </div>
-            <div className="debug-item">
-              <strong>Test Message Sent:</strong> {extensionStatus.debugInfo?.testMessageSent ? '✅' : '❌'}
-            </div>
-            <div className="debug-item">
-              <strong>Extension Installed:</strong> {extensionStatus.installed ? '✅' : '❌'}
-            </div>
-            <div className="debug-item">
-              <strong>Last Scan:</strong> {extensionStatus.lastScan ? extensionStatus.lastScan.toLocaleString() : 'None'}
-            </div>
-            <div className="debug-item">
-              <strong>Privacy Score:</strong> {extensionStatus.privacyScore || 'N/A'}
-            </div>
-            <button 
-              className="test-connection-btn"
-              onClick={async () => {
-                const result = await extensionService.testConnection();
-                alert(`Connection Test: ${result.success ? 'SUCCESS' : 'FAILED'}\n\n${result.message}`);
-              }}
-            >
-              Test Connection
-            </button>
-            <button 
-              className="manual-test-btn"
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.chrome?.runtime) {
-                  const extensionId = 'lldnikolaejjojgiabojpfhmpaafeige';
-                  window.chrome.runtime.sendMessage(extensionId, { action: 'PING' }, (response) => {
-                    if (window.chrome?.runtime?.lastError) {
-                      alert(`Manual Test FAILED:\n\nError: ${window.chrome.runtime.lastError.message}`);
-                    } else {
-                      alert(`Manual Test SUCCESS:\n\nResponse: ${JSON.stringify(response, null, 2)}`);
-                    }
-                  });
-                } else {
-                  alert('Manual Test FAILED:\n\nChrome runtime not available');
-                }
-              }}
-            >
-              Manual Test
-            </button>
-            <button 
-              className="extension-id-test-btn"
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.chrome?.runtime) {
-                  // Try different extension IDs to see if any work
-                  const possibleIds = [
-                    'lldnikolaejjojgiabojpfhmpaafeige',
-                    'ghostscan-privacy-tool',
-                    'ghostscan-extension'
-                  ];
-                  
-                  let testedCount = 0;
-                  let foundWorkingId = false;
-                  
-                  possibleIds.forEach(id => {
-                    window.chrome?.runtime?.sendMessage(id, { action: 'PING' }, (response) => {
-                      testedCount++;
-                      if (window.chrome?.runtime?.lastError) {
-                        console.log(`ID ${id} failed:`, window.chrome.runtime.lastError.message);
-                      } else {
-                        console.log(`ID ${id} SUCCESS:`, response);
-                        foundWorkingId = true;
-                        alert(`WORKING EXTENSION ID FOUND:\n\nID: ${id}\nResponse: ${JSON.stringify(response, null, 2)}`);
-                      }
-                      
-                      if (testedCount === possibleIds.length && !foundWorkingId) {
-                        alert('NO WORKING EXTENSION ID FOUND:\n\nTried IDs:\n- lldnikolaejjojgiabojpfhmpaafeige\n- ghostscan-privacy-tool\n- ghostscan-extension\n\nAll failed with "Receiving end does not exist"');
-                      }
-                    });
-                  });
-                } else {
-                  alert('Extension ID Test FAILED:\n\nChrome runtime not available');
-                }
-              }}
-            >
-              Test Extension IDs
-            </button>
-            <button onClick={testConnection} className="test-button">
-              Test Connection
-            </button>
-            <button onClick={testContentScript} className="test-button">
-              Test Content Script
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Navigation */}
       <nav className="nav">

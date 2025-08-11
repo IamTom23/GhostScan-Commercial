@@ -5,7 +5,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "GhostScan-Commercial/apps/*",
+    "GhostScan-Commercial/apps/backend",
+    "GhostScan-Commercial/dashboard",
     "GhostScan-Commercial/packages/*"
   ],
   "scripts": {

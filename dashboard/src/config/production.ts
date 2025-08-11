@@ -5,8 +5,6 @@ export const PRODUCTION_CONFIG = {
   dashboardUrl: process.env.DASHBOARD_URL || 'https://ghostscan-dashboard.vercel.app',
   apiUrl: process.env.API_URL || 'https://ghostscan-dashboard.vercel.app',
   
-  // Extension Configuration
-  extensionId: process.env.EXTENSION_ID || 'lldnikolaejjojgiabojpfhmpaafeige', // Will be different in production
   
   // Database Configuration
   databaseUrl: process.env.DATABASE_URL || 'mongodb://localhost:27017/ghostscan',

@@ -1,0 +1,12 @@
+Additional extension-related files to manually delete:
+
+ROOT DIRECTORY:
+- EXTENSION_DASHBOARD_CONNECTION.md
+- EXTENSION_STATUS.md  
+- EXTENSION_TROUBLESHOOTING_CHECKLIST.md
+
+DASHBOARD DIRECTORY:
+- debug-step-by-step.bat (if it contains extension references)
+- DELETE_EXTENSION_FILES.txt (after you've used it)
+
+These files are no longer needed since the browser extension has been removed from the project.
