@@ -19,9 +19,9 @@ export const CloudyxLogo: React.FC<CloudyxLogoProps> = ({
       case 'small':
         return { icon: 'w-6 h-6', text: 'text-lg' };
       case 'large':
-        return { icon: 'w-12 h-12', text: 'text-3xl' };
+        return { icon: 'w-14 h-14', text: 'text-4xl' };
       default:
-        return { icon: 'w-8 h-8', text: 'text-xl' };
+        return { icon: 'w-10 h-10', text: 'text-2xl' };
     }
   };
 
@@ -103,13 +103,22 @@ export const CloudyxLogo: React.FC<CloudyxLogoProps> = ({
             background: 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+            backgroundClip: 'text',
+            letterSpacing: '-0.025em',
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+            margin: 0
           }}>
             Cloudyx
           </h1>
           {variant === 'auth' && (
-            <span className="text-xs text-center text-secondary-color font-semibold uppercase tracking-wider">
-              SaaS Security
+            <span className="text-xs text-center font-medium uppercase" style={{
+              color: 'var(--secondary-color)',
+              letterSpacing: '1.4px',
+              marginTop: '0.375rem',
+              opacity: 0.9,
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+            }}>
+              AI-Powered SaaS Security Management
             </span>
           )}
         </div>
