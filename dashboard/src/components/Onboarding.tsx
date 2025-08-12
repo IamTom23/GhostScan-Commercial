@@ -61,7 +61,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   className="provider-btn google"
                   onClick={() => handleProviderSelect('google')}
                 >
-                  <span className="provider-icon">📧</span>
+                  <div className="provider-icon email">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <span>Google Workspace</span>
                   <span className="provider-tag">Most Popular</span>
                 </button>
@@ -70,7 +75,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   className="provider-btn microsoft"
                   onClick={() => handleProviderSelect('microsoft')}
                 >
-                  <span className="provider-icon">💼</span>
+                  <div className="provider-icon enterprise">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 21H21V8L12 2L3 8V21Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      <path d="M9 21V12H15V21" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      <path d="M9 9H10M14 9H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
                   <span>Microsoft 365</span>
                 </button>
                 
@@ -78,7 +89,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   className="provider-btn slack"
                   onClick={() => handleProviderSelect('slack')}
                 >
-                  <span className="provider-icon">💬</span>
+                  <div className="provider-icon chat">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <span>Slack Workspace</span>
                 </button>
                 
@@ -86,7 +101,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   className="provider-btn discover"
                   onClick={() => handleProviderSelect('discover')}
                 >
-                  <span className="provider-icon">🔍</span>
+                  <div className="provider-icon search">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                      <path d="21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <span>Discover All Apps</span>
                   <span className="provider-tag">Recommended</span>
                 </button>
@@ -148,19 +168,40 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               
               <div className="scan-details">
                 <div className="scan-item">
-                  <span className="scan-icon">🔍</span>
+                  <div className="scan-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                      <path d="21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <span>Discovering connected applications...</span>
                 </div>
                 <div className="scan-item">
-                  <span className="scan-icon">🔑</span>
+                  <div className="scan-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M7 10V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <rect x="5" y="10" width="14" height="10" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </div>
                   <span>Analyzing OAuth permissions...</span>
                 </div>
                 <div className="scan-item">
-                  <span className="scan-icon">👥</span>
+                  <div className="scan-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M23 21V19C23 18.1645 22.7155 17.3541 22.2094 16.6977C21.7033 16.0413 20.9997 15.5735 20.2 15.3667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 3.36667C16.7993 3.57397 17.5029 4.04165 18.009 4.69805C18.5151 5.35445 18.7996 6.16491 18.7996 7.00001C18.7996 7.83511 18.5151 8.64557 18.009 9.30197C17.5029 9.95837 16.7993 10.426 16 10.6333" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <span>Checking user access rights...</span>
                 </div>
                 <div className="scan-item">
-                  <span className="scan-icon">📊</span>
+                  <div className="scan-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 3V21H21V3H3ZM7 17H5V10H7V17ZM13 17H11V7H13V17ZM19 17H17V13H19V17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <span>Assessing data exposure risks...</span>
                 </div>
               </div>
