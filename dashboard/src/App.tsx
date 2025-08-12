@@ -1107,7 +1107,11 @@ Thank you,
               <div className="security-operations-grid">
                 <div className="operation-card critical">
                   <div className="operation-header">
-                    <div className="operation-icon critical">🚨</div>
+                    <div className="operation-icon critical">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56991 17.3333 3.53223 19 5.07183 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
                     <div className="operation-info">
                       <h3>Revoke Risky Access</h3>
                       <p>Remove high-risk application permissions</p>
@@ -1202,7 +1206,7 @@ Thank you,
               </div>
             </div>
 
-            {/* Action Items Preview */}
+            {/* Quick Actions Preview */}
             <div className="action-preview">
               <div className="section-header">
                 <h2>Quick Actions</h2>
@@ -1213,15 +1217,21 @@ Thank you,
               <div className="action-list">
                 {actionItems.slice(0, 3).map(item => (
                   <div key={item.id} className="action-item-preview">
-                    <div className="action-priority" style={{ backgroundColor: item.priority === 'HIGH' ? '#EF4444' : '#F59E0B' }}>
-                      {item.priority}
+                    <div className="action-item-header">
+                      <div className={`action-priority ${item.priority.toLowerCase()}`}>
+                        {item.priority}
+                      </div>
+                      <div className="action-info">
+                        <h4>{item.title}</h4>
+                        <p>{item.description}</p>
+                      </div>
                     </div>
-                    <div className="action-content">
-                      <h4>{item.title}</h4>
-                      <p>{item.description}</p>
+                    <div className="action-meta">
                       <span className="action-time">{item.estimatedTime}</span>
+                      <button className="action-btn" onClick={() => handleActionFix(item)}>
+                        Fix Now
+                      </button>
                     </div>
-                    <button className="action-btn" onClick={() => handleActionFix(item)}>Fix Now</button>
                   </div>
                 ))}
               </div>
@@ -1238,13 +1248,21 @@ Thank you,
               <div className="tips-list">
                 {privacyTips.slice(0, 2).map(tip => (
                   <div key={tip.id} className="tip-item-preview">
-                    <div className="tip-category">{tip.category}</div>
-                    <div className="tip-content">
-                      <h4>{tip.title}</h4>
-                      <p>{tip.description}</p>
-                      <span className="tip-time">{tip.timeEstimate}</span>
+                    <div className="tip-item-header">
+                      <div className={`tip-category ${tip.category.toLowerCase()}`}>
+                        {tip.category}
+                      </div>
+                      <div className="tip-info">
+                        <h4>{tip.title}</h4>
+                        <p>{tip.description}</p>
+                      </div>
                     </div>
-                    <button className="tip-btn" onClick={() => handleTipLearnMore(tip)}>Learn More</button>
+                    <div className="tip-meta">
+                      <span className="tip-time">{tip.timeEstimate}</span>
+                      <button className="tip-btn" onClick={() => handleTipLearnMore(tip)}>
+                        Learn More
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

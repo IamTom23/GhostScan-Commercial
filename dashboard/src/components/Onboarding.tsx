@@ -95,11 +95,15 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             
             <div className="trust-indicators">
               <div className="trust-item">
-                <span className="trust-icon">🔒</span>
+                <svg className="trust-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                </svg>
                 <span>Read-only permissions</span>
               </div>
               <div className="trust-item">
-                <span className="trust-icon">⚡</span>
+                <svg className="trust-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
                 <span>No software to install</span>
               </div>
               <div className="trust-item">
@@ -228,7 +232,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 Secure Your Apps & Control Access
               </button>
               <p className="results-note">
-                🔒 Get step-by-step instructions to control app permissions
+Get step-by-step instructions to control app permissions
               </p>
             </div>
           </div>
