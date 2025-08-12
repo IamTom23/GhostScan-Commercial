@@ -1044,6 +1044,200 @@ body {
   border-color: var(--primary-color);
 }
 
+/* Security Operations */
+.security-operations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.operation-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.operation-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.operation-card.critical::before {
+  background: var(--critical-color);
+}
+
+.operation-card.high::before {
+  background: var(--danger-color);
+}
+
+.operation-card.medium::before {
+  background: var(--warning-color);
+}
+
+.operation-card.low::before {
+  background: var(--success-color);
+}
+
+.operation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-light);
+}
+
+.operation-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.operation-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.operation-icon.critical {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--critical-color);
+}
+
+.operation-icon.high {
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--danger-color);
+}
+
+.operation-icon.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+}
+
+.operation-icon.low {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success-color);
+}
+
+.operation-info {
+  flex: 1;
+}
+
+.operation-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+.operation-info p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.operation-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.operation-status.critical {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--critical-color);
+}
+
+.operation-status.high {
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--danger-color);
+}
+
+.operation-status.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+}
+
+.operation-status.low {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success-color);
+}
+
+.operation-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.operation-button.critical {
+  background: var(--critical-color);
+  color: white;
+}
+
+.operation-button.critical:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.operation-button.high {
+  background: var(--danger-color);
+  color: white;
+}
+
+.operation-button.high:hover {
+  background: #ea580c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.operation-button.medium {
+  background: var(--warning-color);
+  color: white;
+}
+
+.operation-button.medium:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.operation-button.low {
+  background: var(--success-color);
+  color: white;
+}
+
+.operation-button.low:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
 /* Stats Grid */
 .stats-grid {
   display: grid;
@@ -1103,14 +1297,21 @@ body {
 
 .section-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
 }
 
 .section-header h2 {
   font-size: 1.25rem;
   font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 .view-all-btn {
@@ -2390,6 +2591,26 @@ body {
   .action-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+  
+  .security-operations-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .operation-card {
+    padding: 1.25rem;
+  }
+  
+  .operation-header {
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .operation-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
   }
   
   .stats-grid,

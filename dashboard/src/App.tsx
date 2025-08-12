@@ -1098,26 +1098,68 @@ Thank you,
               </div>
             </div>
 
-            {/* Security Actions */}
-            <div className="security-actions">
-              <h3>Security Operations</h3>
-              <div className="action-grid">
-                <button className="action-button critical" onClick={handleRevokeAccess}>
-                  <span className="action-icon"></span>
-                  <span className="action-text">Revoke Risky Access</span>
-                </button>
-                <button className="action-button high" onClick={handlePasswordCheck}>
-                  <span className="action-icon"></span>
-                  <span className="action-text">Security Audit</span>
-                </button>
-                <button className="action-button medium" onClick={handleComplianceReport}>
-                  <span className="action-icon"></span>
-                  <span className="action-text">Generate Report</span>
-                </button>
-                <button className="action-button low" onClick={handlePrivacyRequests}>
-                  <span className="action-icon"></span>
-                  <span className="action-text">Policy Actions</span>
-                </button>
+            {/* Security Operations */}
+            <div className="dashboard-section">
+              <div className="section-header">
+                <h2>Security Operations</h2>
+                <span className="section-subtitle">Critical security actions and controls</span>
+              </div>
+              <div className="security-operations-grid">
+                <div className="operation-card critical">
+                  <div className="operation-header">
+                    <div className="operation-icon critical">🚨</div>
+                    <div className="operation-info">
+                      <h3>Revoke Risky Access</h3>
+                      <p>Remove high-risk application permissions</p>
+                    </div>
+                    <div className="operation-status critical">3 Apps</div>
+                  </div>
+                  <button className="operation-button critical" onClick={handleRevokeAccess}>
+                    Take Action
+                  </button>
+                </div>
+
+                <div className="operation-card high">
+                  <div className="operation-header">
+                    <div className="operation-icon high">🔍</div>
+                    <div className="operation-info">
+                      <h3>Security Audit</h3>
+                      <p>Run comprehensive security assessment</p>
+                    </div>
+                    <div className="operation-status high">Pending</div>
+                  </div>
+                  <button className="operation-button high" onClick={handlePasswordCheck}>
+                    Start Audit
+                  </button>
+                </div>
+
+                <div className="operation-card medium">
+                  <div className="operation-header">
+                    <div className="operation-icon medium">📊</div>
+                    <div className="operation-info">
+                      <h3>Generate Report</h3>
+                      <p>Create compliance and security reports</p>
+                    </div>
+                    <div className="operation-status medium">Ready</div>
+                  </div>
+                  <button className="operation-button medium" onClick={handleComplianceReport}>
+                    Generate
+                  </button>
+                </div>
+
+                <div className="operation-card low">
+                  <div className="operation-header">
+                    <div className="operation-icon low">⚙️</div>
+                    <div className="operation-info">
+                      <h3>Policy Actions</h3>
+                      <p>Manage access policies and controls</p>
+                    </div>
+                    <div className="operation-status low">Active</div>
+                  </div>
+                  <button className="operation-button low" onClick={handlePrivacyRequests}>
+                    Manage
+                  </button>
+                </div>
               </div>
             </div>
 
