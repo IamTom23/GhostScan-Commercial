@@ -800,11 +800,6 @@ Thank you,
     oauthService.initiateOAuth('microsoft');
   };
 
-  const handleClearConnections = () => {
-    if (confirm('This will disconnect all OAuth integrations. Are you sure?')) {
-      oauthService.clearAllConnections();
-    }
-  };
 
   // Load OAuth apps into dashboard data
   useEffect(() => {
