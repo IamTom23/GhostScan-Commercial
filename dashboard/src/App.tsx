@@ -8,6 +8,7 @@ import ProfileSettings from './components/ProfileSettings';
 import './components/ProfileSettings.css';
 import { exportService } from './services/exportService';
 import { oauthService } from './services/oauthService';
+import { apiService } from './services/apiService';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
