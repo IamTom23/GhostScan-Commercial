@@ -879,8 +879,9 @@ Thank you,
       <header className="header">
         <div className="header-content">
           <div className="logo">
-            <CloudyxLogo size="medium" variant="header" showText={true} />
+            <CloudyxLogo size="medium" variant="header" showText={false} />
             <div className="brand-info">
+              <h1 className="brand-name">Cloudyx</h1>
               <span className="company-tag">AI-Powered SaaS Security Management</span>
             </div>
           </div>

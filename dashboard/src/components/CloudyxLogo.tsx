@@ -17,37 +17,53 @@ export const CloudyxLogo: React.FC<CloudyxLogoProps> = ({
   const getSizeClasses = () => {
     switch (size) {
       case 'small':
-        return { icon: 'w-6 h-6', text: 'text-lg' };
+        return { 
+          icon: { width: '24px', height: '24px' }, 
+          text: { fontSize: '1.125rem' } 
+        };
       case 'large':
-        return { icon: 'w-14 h-14', text: 'text-4xl' };
+        return { 
+          icon: { width: '56px', height: '56px' }, 
+          text: { fontSize: '2.25rem' } 
+        };
       default:
-        return { icon: 'w-10 h-10', text: 'text-2xl' };
+        return { 
+          icon: { width: '40px', height: '40px' }, 
+          text: { fontSize: '1.5rem' } 
+        };
     }
   };
 
-  const getVariantClasses = () => {
+  const getVariantStyles = () => {
+    const baseStyle = { display: 'flex', alignItems: 'center', gap: '0.5rem' };
     switch (variant) {
       case 'header':
-        return 'flex items-center gap-2';
+        return baseStyle;
       case 'auth':
-        return 'flex flex-col items-center gap-2';
+        return { ...baseStyle, flexDirection: 'column' as const };
       default:
-        return 'flex items-center gap-2';
+        return baseStyle;
     }
   };
 
   const sizes = getSizeClasses();
-  const variantClasses = getVariantClasses();
+  const variantStyles = getVariantStyles();
 
   return (
-    <div className={`${variantClasses} ${className}`}>
+    <div style={variantStyles} className={className}>
       {/* Cloudyx Icon - Modern cloud with security shield */}
-      <div className={`${sizes.icon} relative flex items-center justify-center`}>
+      <div style={{ 
+        ...sizes.icon, 
+        position: 'relative', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
         <svg
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
+          style={{ width: '100%', height: '100%' }}
         >
           {/* Cloud base */}
           <path
@@ -98,25 +114,32 @@ export const CloudyxLogo: React.FC<CloudyxLogoProps> = ({
       
       {/* Cloudyx Text */}
       {showText && (
-        <div className="flex flex-col">
-          <h1 className={`${sizes.text} font-bold leading-tight`} style={{
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 style={{
+            ...sizes.text,
             background: 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
             letterSpacing: '-0.025em',
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            margin: 0
+            margin: 0,
+            fontWeight: 'bold',
+            lineHeight: 1.2
           }}>
             Cloudyx
           </h1>
           {variant === 'auth' && (
-            <span className="text-xs text-center font-medium uppercase" style={{
+            <span style={{
               color: 'var(--secondary-color)',
               letterSpacing: '1.4px',
               marginTop: '0.375rem',
               opacity: 0.9,
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              fontSize: '0.75rem',
+              textAlign: 'center',
+              fontWeight: 500,
+              textTransform: 'uppercase'
             }}>
               AI-Powered SaaS Security Management
             </span>
