@@ -1,6 +1,6 @@
-# GhostScan Business Backend MVP
+# Cloudyx Business Backend MVP
 
-Privacy & Security Management API for Startups and SMBs
+AI-Powered SaaS Security Management API for Startups and SMBs
 
 ## 🚀 Quick Start
 

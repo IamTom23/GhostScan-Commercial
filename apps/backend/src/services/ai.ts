@@ -1,4 +1,4 @@
-// Mock AI services for GhostScan Business - Startup & SMB Security Management
+// Mock AI services for Cloudyx Business - Startup & SMB Security Management
 import { SaaSApp, BreachAlert, GhostProfile, AIAssistantQuery } from '../types/shared';
 
 export class ThreatAnalyzer {

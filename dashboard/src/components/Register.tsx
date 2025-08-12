@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import './Auth.css';
+import { CloudyxLogo } from './CloudyxLogo';
 
 interface RegisterProps {
   onSwitchToLogin?: () => void;
@@ -114,9 +115,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       <div className="auth-card register-card">
         <div className="auth-header">
           <div className="logo">
-            <span className="logo-icon">☁️</span>
-            <h1>Cloudyx</h1>
-            <span className="company-tag">SaaS Security Management</span>
+            <CloudyxLogo size="large" variant="auth" />
           </div>
           <h2>Start Securing Your Business</h2>
           <p>Create your account and get insights in under 60 seconds</p>

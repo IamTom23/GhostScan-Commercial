@@ -3,6 +3,7 @@ import './App.css';
 import { Onboarding } from './components/Onboarding';
 import { useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
+import { CloudyxLogo } from './components/CloudyxLogo';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -870,9 +871,8 @@ Thank you,
       <header className="header">
         <div className="header-content">
           <div className="logo">
-            <span className="logo-icon">C</span>
-            <h1>Cloudyx</h1>
-            <span className="company-tag">SaaS Security Management</span>
+            <CloudyxLogo size="medium" variant="header" />
+            <span className="company-tag">AI-Powered SaaS Security Management</span>
           </div>
           <div className="user-info">
             <div className="admin-badge">

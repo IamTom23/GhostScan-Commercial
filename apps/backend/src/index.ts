@@ -301,7 +301,7 @@ app.get('/health', async (req, res) => {
 app.get('/api', (req, res) => {
   res.json({
     name: 'Cloudyx API',
-    description: 'AI-powered SaaS Security Management Platform',
+    description: 'AI-Powered SaaS Security Management Platform',
     version: '1.0.0-mvp',
     endpoints: {
       health: 'GET /health',
@@ -775,7 +775,7 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Cloudyx API running on port ${PORT}`);
-  console.log(`🏢 AI-powered SaaS Security Management Platform`);
+  console.log(`🏢 AI-Powered SaaS Security Management Platform`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔍 API Documentation: http://localhost:${PORT}/api`);
 });

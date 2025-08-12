@@ -1,17 +1,17 @@
 {
-  "name": "ghostscan-personal",
+  "name": "cloudyx-platform",
   "version": "1.0.0",
-  "description": "GhostScan Personal - AI-powered digital exposure detection and privacy management",
+  "description": "Cloudyx - AI-powered SaaS security management platform for businesses",
   "private": true,
   "type": "module",
   "workspaces": [
-    "GhostScan-Commercial/apps/backend",
-    "GhostScan-Commercial/dashboard",
-    "GhostScan-Commercial/packages/*"
+    "Cloudyx-Platform/apps/backend",
+    "Cloudyx-Platform/dashboard",
+    "Cloudyx-Platform/packages/*"
   ],
   "scripts": {
     "dev": "npm run dev --workspaces",
-    "build": "cd GhostScan-Commercial/apps/dashboard && npm install && npm run build",
+    "build": "cd dashboard && npm install && npm run build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -20,10 +20,12 @@
     "install:all": "npm install"
   },
   "keywords": [
-    "ghostscan",
-    "privacy",
-    "security",
-    "ai"
+    "cloudyx",
+    "saas-security",
+    "enterprise-security",
+    "compliance",
+    "ai",
+    "security-management"
   ],
   "author": "",
   "license": "MIT",
