@@ -6,6 +6,8 @@ import AuthPage from './components/AuthPage';
 import { CloudyxLogo } from './components/CloudyxLogo';
 import ProfileSettings from './components/ProfileSettings';
 import './components/ProfileSettings.css';
+import { exportService } from './services/exportService';
+import { oauthService } from './services/oauthService';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -789,6 +791,66 @@ Thank you,
     alert(message);
   };
 
+  // OAuth Integration Functions
+  const handleConnectGoogle = () => {
+    oauthService.initiateOAuth('google');
+  };
+
+  const handleConnectMicrosoft = () => {
+    oauthService.initiateOAuth('microsoft');
+  };
+
+  const handleClearConnections = () => {
+    if (confirm('This will disconnect all OAuth integrations. Are you sure?')) {
+      oauthService.clearAllConnections();
+    }
+  };
+
+  // Load OAuth apps into dashboard data
+  useEffect(() => {
+    const connectedApps = oauthService.getStoredConnectedApps();
+    if (connectedApps.length > 0) {
+      const dashboardApps = oauthService.convertToDashboardApps(connectedApps);
+      setApps(prevApps => [...prevApps, ...dashboardApps]);
+    }
+  }, []);
+
+  // Export Functions
+  const handleExportPDFReport = () => {
+    const reportData = {
+      organizationName: userProfile?.email?.split('@')[1]?.split('.')[0] || 'Your Organization',
+      reportDate: new Date().toISOString(),
+      overallScore: securityScoreBreakdown.overallScore,
+      overallGrade: securityScoreBreakdown.overallGrade,
+      totalApps: apps.length,
+      highRiskApps: apps.filter(app => ['HIGH', 'CRITICAL'].includes(app.riskLevel)).length,
+      dimensions: securityScoreBreakdown.dimensions,
+      recommendations: securityScoreBreakdown.recommendations,
+      riskFactors: securityScoreBreakdown.riskFactors,
+      apps: apps,
+      breachAlerts: breachAlerts,
+      actionItems: actionItems
+    };
+    
+    exportService.generatePDFReport(reportData);
+  };
+
+  const handleExportAppsCSV = () => {
+    if (apps.length === 0) {
+      alert('No applications data available to export.');
+      return;
+    }
+    exportService.exportAppsToCSV(apps);
+  };
+
+  const handleExportActionsCSV = () => {
+    if (actionItems.length === 0) {
+      alert('No security actions data available to export.');
+      return;
+    }
+    exportService.exportActionsToCSV(actionItems);
+  };
+
   // Show loading spinner while authentication is being checked
   if (isLoading) {
     return (
@@ -886,6 +948,31 @@ Thank you,
             </div>
           </div>
           <div className="user-info">
+            <div className="export-buttons">
+              <button className="export-btn" onClick={handleExportPDFReport} title="Export PDF Report">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                PDF Report
+              </button>
+              <div className="export-dropdown">
+                <button className="export-btn dropdown-toggle" title="Export Data">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Export CSV
+                </button>
+                <div className="dropdown-menu">
+                  <button onClick={handleExportAppsCSV}>Applications Data</button>
+                  <button onClick={handleExportActionsCSV}>Security Actions</button>
+                </div>
+              </div>
+            </div>
             <button className="admin-badge" onClick={() => setShowProfile(true)}>
               <div className="admin-info">
                 <span className="role-indicator">Security Admin</span>
@@ -1189,6 +1276,55 @@ Thank you,
                   </div>
                   <button className="operation-button low" onClick={handlePrivacyRequests}>
                     Manage
+                  </button>
+                </div>
+
+                {/* OAuth Integration Cards */}
+                <div className="security-operation">
+                  <div className="operation-content">
+                    <div className="operation-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Google Workspace</h3>
+                      <p>Connect and monitor Google services</p>
+                    </div>
+                    <div className={`operation-status ${oauthService.getConnectionStatus().google ? 'low' : 'medium'}`}>
+                      {oauthService.getConnectionStatus().google ? 'Connected' : 'Disconnected'}
+                    </div>
+                  </div>
+                  <button 
+                    className={`operation-button ${oauthService.getConnectionStatus().google ? 'low' : 'medium'}`}
+                    onClick={handleConnectGoogle}
+                  >
+                    {oauthService.getConnectionStatus().google ? 'Manage' : 'Connect'}
+                  </button>
+                </div>
+
+                <div className="security-operation">
+                  <div className="operation-content">
+                    <div className="operation-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Microsoft 365</h3>
+                      <p>Connect and monitor Microsoft services</p>
+                    </div>
+                    <div className={`operation-status ${oauthService.getConnectionStatus().microsoft ? 'low' : 'medium'}`}>
+                      {oauthService.getConnectionStatus().microsoft ? 'Connected' : 'Disconnected'}
+                    </div>
+                  </div>
+                  <button 
+                    className={`operation-button ${oauthService.getConnectionStatus().microsoft ? 'low' : 'medium'}`}
+                    onClick={handleConnectMicrosoft}
+                  >
+                    {oauthService.getConnectionStatus().microsoft ? 'Manage' : 'Connect'}
                   </button>
                 </div>
               </div>
