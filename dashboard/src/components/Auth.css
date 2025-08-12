@@ -425,6 +425,11 @@
   gap: 0.5rem;
 }
 
+.checkmark-icon {
+  color: var(--success-color);
+  flex-shrink: 0;
+}
+
 .loading-screen {
   min-height: 100vh;
   display: flex;
