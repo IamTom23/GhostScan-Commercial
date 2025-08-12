@@ -4,6 +4,8 @@ import { Onboarding } from './components/Onboarding';
 import { useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
 import { CloudyxLogo } from './components/CloudyxLogo';
+import ProfileSettings from './components/ProfileSettings';
+import './components/ProfileSettings.css';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -468,6 +470,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isScanning, setIsScanning] = useState(false);
   const [hasData, setHasData] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
 
   // Load demo data from backend API on component mount
@@ -808,6 +811,11 @@ Thank you,
     return <AuthPage />;
   }
 
+  // Show profile settings if requested
+  if (showProfile) {
+    return <ProfileSettings onBack={() => setShowProfile(false)} />;
+  }
+
   // Show welcome screen if no data has been loaded
   if (!hasData) {
     return (
@@ -878,10 +886,15 @@ Thank you,
             </div>
           </div>
           <div className="user-info">
-            <div className="admin-badge">
-              <span className="role-indicator">Security Admin</span>
-              <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
-            </div>
+            <button className="admin-badge" onClick={() => setShowProfile(true)}>
+              <div className="admin-info">
+                <span className="role-indicator">Security Admin</span>
+                <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
             <div className="threat-score">
               <div 
                 className="score-circle clickable" 
