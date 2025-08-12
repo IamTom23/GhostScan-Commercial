@@ -58,7 +58,6 @@ interface GhostProfile {
   confidence: number;
   dataExposed: string[];
 }
-import { apiService } from './services/apiService';
 
 // Local utility functions to avoid build issues
 const getRiskColor = (riskLevel: string): string => {
@@ -506,12 +505,12 @@ function App() {
         console.log('API not available, loading fallback demo data');
         
         // Load fallback demo data
-        const fallbackApps = [
+        const fallbackApps: SaaSApp[] = [
           {
             id: 'slack-demo',
             name: 'Slack',
             domain: 'slack.com',
-            riskLevel: 'MEDIUM' as const,
+            riskLevel: 'MEDIUM',
             dataTypes: ['communication', 'files', 'personal'],
             hasBreaches: false,
             thirdPartySharing: true,
@@ -524,7 +523,7 @@ function App() {
             id: 'github-demo',
             name: 'GitHub',
             domain: 'github.com',
-            riskLevel: 'HIGH' as const,
+            riskLevel: 'HIGH',
             dataTypes: ['code', 'personal', 'workplace'],
             hasBreaches: true,
             thirdPartySharing: false,
@@ -537,7 +536,7 @@ function App() {
             id: 'notion-demo',
             name: 'Notion',
             domain: 'notion.so',
-            riskLevel: 'LOW' as const,
+            riskLevel: 'LOW',
             dataTypes: ['documents', 'personal'],
             hasBreaches: false,
             thirdPartySharing: false,
@@ -550,7 +549,7 @@ function App() {
             id: 'figma-demo',
             name: 'Figma',
             domain: 'figma.com',
-            riskLevel: 'MEDIUM' as const,
+            riskLevel: 'MEDIUM',
             dataTypes: ['design', 'collaboration'],
             hasBreaches: false,
             thirdPartySharing: true,
@@ -563,7 +562,7 @@ function App() {
             id: 'zapier-demo',
             name: 'Zapier',
             domain: 'zapier.com',
-            riskLevel: 'HIGH' as const,
+            riskLevel: 'HIGH',
             dataTypes: ['integration', 'automation', 'personal'],
             hasBreaches: false,
             thirdPartySharing: true,
