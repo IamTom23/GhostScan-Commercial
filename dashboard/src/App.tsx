@@ -503,8 +503,123 @@ function App() {
         }
 
         // If API fails, still show the dashboard with minimal data
-        console.log('API not available, showing demo data message');
-        setHasData(true); // Show dashboard anyway
+        console.log('API not available, loading fallback demo data');
+        
+        // Load fallback demo data
+        const fallbackApps = [
+          {
+            id: 'slack-demo',
+            name: 'Slack',
+            domain: 'slack.com',
+            riskLevel: 'MEDIUM' as const,
+            dataTypes: ['communication', 'files', 'personal'],
+            hasBreaches: false,
+            thirdPartySharing: true,
+            lastAccessed: new Date(Date.now() - 2 * 60 * 60 * 1000),
+            oauthProvider: 'Slack',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+          {
+            id: 'github-demo',
+            name: 'GitHub',
+            domain: 'github.com',
+            riskLevel: 'HIGH' as const,
+            dataTypes: ['code', 'personal', 'workplace'],
+            hasBreaches: true,
+            thirdPartySharing: false,
+            lastAccessed: new Date(Date.now() - 30 * 60 * 1000),
+            oauthProvider: 'GitHub',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+          {
+            id: 'notion-demo',
+            name: 'Notion',
+            domain: 'notion.so',
+            riskLevel: 'LOW' as const,
+            dataTypes: ['documents', 'personal'],
+            hasBreaches: false,
+            thirdPartySharing: false,
+            lastAccessed: new Date(Date.now() - 60 * 60 * 1000),
+            oauthProvider: 'Notion',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'MEDIUM',
+          },
+          {
+            id: 'figma-demo',
+            name: 'Figma',
+            domain: 'figma.com',
+            riskLevel: 'MEDIUM' as const,
+            dataTypes: ['design', 'collaboration'],
+            hasBreaches: false,
+            thirdPartySharing: true,
+            lastAccessed: new Date(Date.now() - 45 * 60 * 1000),
+            oauthProvider: 'Figma',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+          {
+            id: 'zapier-demo',
+            name: 'Zapier',
+            domain: 'zapier.com',
+            riskLevel: 'HIGH' as const,
+            dataTypes: ['integration', 'automation', 'personal'],
+            hasBreaches: false,
+            thirdPartySharing: true,
+            lastAccessed: new Date(Date.now() - 15 * 60 * 1000),
+            oauthProvider: 'Multiple',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+        ];
+
+        const fallbackProfile = {
+          id: 'demo-user',
+          email: 'admin@company.com',
+          riskScore: 73,
+          totalApps: fallbackApps.length,
+          highRiskApps: fallbackApps.filter(app => app.riskLevel === 'HIGH').length,
+          lastScanDate: new Date(),
+          organization: {
+            name: 'Demo Company',
+            type: 'startup' as const,
+            employees: 25,
+            industry: 'Technology',
+            website: 'company.com',
+          },
+          preferences: {
+            breachAlerts: true,
+            weeklyReports: true,
+            autoPrivacyRequests: false,
+          },
+        };
+
+        const fallbackActions = [
+          {
+            id: 'review-github-perms',
+            title: 'Review GitHub Third-party Access',
+            description: 'GitHub has high risk level. Review connected applications and remove unnecessary access.',
+            priority: 'HIGH',
+            type: 'ACCESS_REVIEW',
+            estimatedTime: '20 minutes',
+            completed: false,
+          },
+          {
+            id: 'enable-slack-2fa',
+            title: 'Enable Two-factor Authentication on Slack',
+            description: 'Add an extra layer of security to your Slack account.',
+            priority: 'MEDIUM',
+            type: 'SECURITY_HARDENING',
+            estimatedTime: '10 minutes',
+            completed: false,
+          },
+        ];
+
+        setUserProfile(fallbackProfile);
+        setApps(fallbackApps);
+        setActionItems(fallbackActions);
+        setHasData(true);
         
       } catch (error) {
         console.error('Error loading data:', error);
