@@ -42,7 +42,9 @@
     "typescript": "^5.3.0"
   },
   "keywords": [
-    "ghostscan",
+    "cloudyx",
+    "saas-security",
+    "enterprise-security",
     "backend",
     "api"
   ],

@@ -3,6 +3,12 @@ import './App.css';
 import { Onboarding } from './components/Onboarding';
 import { useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
+import { CloudyxLogo } from './components/CloudyxLogo';
+import ProfileSettings from './components/ProfileSettings';
+import './components/ProfileSettings.css';
+import { exportService } from './services/exportService';
+import { oauthService } from './services/oauthService';
+import { apiService } from './services/apiService';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -52,7 +58,6 @@ interface GhostProfile {
   confidence: number;
   dataExposed: string[];
 }
-import { apiService } from './services/apiService';
 
 // Local utility functions to avoid build issues
 const getRiskColor = (riskLevel: string): string => {
@@ -467,6 +472,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isScanning, setIsScanning] = useState(false);
   const [hasData, setHasData] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
 
   // Load demo data from backend API on component mount
@@ -496,8 +502,123 @@ function App() {
         }
 
         // If API fails, still show the dashboard with minimal data
-        console.log('API not available, showing demo data message');
-        setHasData(true); // Show dashboard anyway
+        console.log('API not available, loading fallback demo data');
+        
+        // Load fallback demo data
+        const fallbackApps: SaaSApp[] = [
+          {
+            id: 'slack-demo',
+            name: 'Slack',
+            domain: 'slack.com',
+            riskLevel: 'MEDIUM',
+            dataTypes: ['communication', 'files', 'personal'],
+            hasBreaches: false,
+            thirdPartySharing: true,
+            lastAccessed: new Date(Date.now() - 2 * 60 * 60 * 1000),
+            oauthProvider: 'Slack',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+          {
+            id: 'github-demo',
+            name: 'GitHub',
+            domain: 'github.com',
+            riskLevel: 'HIGH',
+            dataTypes: ['code', 'personal', 'workplace'],
+            hasBreaches: true,
+            thirdPartySharing: false,
+            lastAccessed: new Date(Date.now() - 30 * 60 * 1000),
+            oauthProvider: 'GitHub',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+          {
+            id: 'notion-demo',
+            name: 'Notion',
+            domain: 'notion.so',
+            riskLevel: 'LOW',
+            dataTypes: ['documents', 'personal'],
+            hasBreaches: false,
+            thirdPartySharing: false,
+            lastAccessed: new Date(Date.now() - 60 * 60 * 1000),
+            oauthProvider: 'Notion',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'MEDIUM',
+          },
+          {
+            id: 'figma-demo',
+            name: 'Figma',
+            domain: 'figma.com',
+            riskLevel: 'MEDIUM',
+            dataTypes: ['design', 'collaboration'],
+            hasBreaches: false,
+            thirdPartySharing: true,
+            lastAccessed: new Date(Date.now() - 45 * 60 * 1000),
+            oauthProvider: 'Figma',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+          {
+            id: 'zapier-demo',
+            name: 'Zapier',
+            domain: 'zapier.com',
+            riskLevel: 'HIGH',
+            dataTypes: ['integration', 'automation', 'personal'],
+            hasBreaches: false,
+            thirdPartySharing: true,
+            lastAccessed: new Date(Date.now() - 15 * 60 * 1000),
+            oauthProvider: 'Multiple',
+            accountStatus: 'ACTIVE',
+            passwordStrength: 'STRONG',
+          },
+        ];
+
+        const fallbackProfile = {
+          id: 'demo-user',
+          email: 'admin@company.com',
+          riskScore: 73,
+          totalApps: fallbackApps.length,
+          highRiskApps: fallbackApps.filter(app => app.riskLevel === 'HIGH').length,
+          lastScanDate: new Date(),
+          organization: {
+            name: 'Demo Company',
+            type: 'startup' as const,
+            employees: 25,
+            industry: 'Technology',
+            website: 'company.com',
+          },
+          preferences: {
+            breachAlerts: true,
+            weeklyReports: true,
+            autoPrivacyRequests: false,
+          },
+        };
+
+        const fallbackActions = [
+          {
+            id: 'review-github-perms',
+            title: 'Review GitHub Third-party Access',
+            description: 'GitHub has high risk level. Review connected applications and remove unnecessary access.',
+            priority: 'HIGH',
+            type: 'ACCESS_REVIEW',
+            estimatedTime: '20 minutes',
+            completed: false,
+          },
+          {
+            id: 'enable-slack-2fa',
+            title: 'Enable Two-factor Authentication on Slack',
+            description: 'Add an extra layer of security to your Slack account.',
+            priority: 'MEDIUM',
+            type: 'SECURITY_HARDENING',
+            estimatedTime: '10 minutes',
+            completed: false,
+          },
+        ];
+
+        setUserProfile(fallbackProfile);
+        setApps(fallbackApps);
+        setActionItems(fallbackActions);
+        setHasData(true);
         
       } catch (error) {
         console.error('Error loading data:', error);
@@ -584,7 +705,7 @@ Thank you,
 
     // Show results
     const resultText = requests.map(req => 
-      `📧 ${req.app} (${req.domain})\n${req.template}\n\n---\n`
+      `${req.app} (${req.domain})\n${req.template}\n\n---\n`
     ).join('\n');
 
     alert(`Privacy Request Templates Generated!\n\n${resultText}\n\nCopy these templates and send them to each company.`);
@@ -597,10 +718,10 @@ Thank you,
     const weakPasswords = apps.filter(app => app.passwordStrength === 'WEAK');
     const reusedPasswords = apps.filter(app => app.isReused);
     
-    let result = '🔒 Password Security Analysis:\n\n';
+    let result = 'Password Security Analysis:\n\n';
     
     if (weakPasswords.length > 0) {
-      result += `⚠️ Weak Passwords Found: ${weakPasswords.length}\n`;
+      result += `Weak Passwords Found: ${weakPasswords.length}\n`;
       weakPasswords.forEach(app => {
         result += `• ${app.name} (${app.domain})\n`;
       });
@@ -608,7 +729,7 @@ Thank you,
     }
     
     if (reusedPasswords.length > 0) {
-      result += `🔄 Reused Passwords Found: ${reusedPasswords.length}\n`;
+      result += `Reused Passwords Found: ${reusedPasswords.length}\n`;
       reusedPasswords.forEach(app => {
         result += `• ${app.name} (${app.domain})\n`;
       });
@@ -616,9 +737,9 @@ Thank you,
     }
     
     if (weakPasswords.length === 0 && reusedPasswords.length === 0) {
-      result += '✅ All passwords appear to be strong and unique!\n';
+      result += 'All passwords appear to be strong and unique!\n';
     } else {
-      result += '💡 Recommendations:\n';
+      result += 'Recommendations:\n';
       result += '• Use a password manager\n';
       result += '• Generate unique passwords for each account\n';
       result += '• Enable two-factor authentication\n';
@@ -631,10 +752,10 @@ Thank you,
   const handleComplianceReport = async () => {
     console.log('Generating compliance report...');
     
-    const report = `📊 GDPR Compliance Report\n\n` +
-      `✅ Compliant Apps: ${apps.filter(app => !app.thirdPartySharing).length}\n` +
-      `⚠️ Needs Review: ${apps.filter(app => app.thirdPartySharing).length}\n` +
-      `🚨 High Risk: ${apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL').length}\n\n` +
+    const report = `GDPR Compliance Report\n\n` +
+      `Compliant Apps: ${apps.filter(app => !app.thirdPartySharing).length}\n` +
+      `Needs Review: ${apps.filter(app => app.thirdPartySharing).length}\n` +
+      `High Risk: ${apps.filter(app => app.riskLevel === 'HIGH' || app.riskLevel === 'CRITICAL').length}\n\n` +
       `Recommendations:\n` +
       `• Review data processing agreements\n` +
       `• Update privacy policies\n` +
@@ -653,7 +774,7 @@ Thank you,
       return daysSinceAccess > 30;
     });
     
-    const result = `🔐 Access Review Complete\n\n` +
+    const result = `Access Review Complete\n\n` +
       `${unusedApps.length} applications haven't been used in 30+ days:\n\n` +
       unusedApps.map(app => `• ${app.name} (last used ${Math.floor((Date.now() - new Date(app.lastAccessed).getTime()) / (1000 * 60 * 60 * 24))} days ago)`).join('\n') +
       `\n\nRecommendation: Review these applications and revoke access if no longer needed.`;
@@ -664,11 +785,11 @@ Thank you,
   const handleActionFix = (action: any) => {
     console.log('Handling action fix:', action);
     
-    let message = `🔧 Fixing: ${action.title}\n\n`;
+    let message = `Fixing: ${action.title}\n\n`;
     
     switch (action.type) {
       case 'PRIVACY_REVIEW':
-        message += '📋 Steps to review privacy settings:\n';
+        message += 'Steps to review privacy settings:\n';
         message += '1. Visit the app\'s privacy settings page\n';
         message += '2. Review data sharing permissions\n';
         message += '3. Disable unnecessary data collection\n';
@@ -676,7 +797,7 @@ Thank you,
         break;
         
       case 'OAUTH_CLEANUP':
-        message += '🔗 Steps to remove OAuth connections:\n';
+        message += 'Steps to remove OAuth connections:\n';
         message += '1. Go to your account settings\n';
         message += '2. Find "Connected Apps" or "OAuth"\n';
         message += '3. Remove unused connections\n';
@@ -684,7 +805,7 @@ Thank you,
         break;
         
       case 'TRACKING_PROTECTION':
-        message += '🚫 Steps to block tracking:\n';
+        message += 'Steps to block tracking:\n';
         message += '1. Configure browser privacy settings\n';
         message += '2. Enable tracker blocking in browser\n';
         message += '3. Clear existing tracking cookies\n';
@@ -692,7 +813,7 @@ Thank you,
         break;
         
       case 'SECURITY':
-        message += '🔐 Steps to improve security:\n';
+        message += 'Steps to improve security:\n';
         message += '1. Change passwords immediately\n';
         message += '2. Enable two-factor authentication\n';
         message += '3. Review account activity\n';
@@ -700,7 +821,7 @@ Thank you,
         break;
         
       case 'PRIVACY_IMPROVEMENT':
-        message += '📈 Steps to improve privacy score:\n';
+        message += 'Steps to improve privacy score:\n';
         message += '1. Follow the generated recommendations\n';
         message += '2. Remove high-risk apps\n';
         message += '3. Update privacy settings\n';
@@ -708,14 +829,14 @@ Thank you,
         break;
         
       default:
-        message += '📝 General privacy improvement steps:\n';
+        message += 'General privacy improvement steps:\n';
         message += '1. Review the app\'s privacy policy\n';
         message += '2. Update account settings\n';
         message += '3. Remove unnecessary permissions\n';
         message += '4. Monitor data sharing\n';
     }
     
-    message += '\n✅ Action marked as completed!';
+    message += '\nAction marked as completed!';
     
     // Mark the action as completed
     setActionItems(prev => prev.map(item => 
@@ -728,12 +849,12 @@ Thank you,
   const handleTipLearnMore = (tip: any) => {
     console.log('Learning more about tip:', tip);
     
-    let message = `📚 ${tip.title}\n\n`;
+    let message = `${tip.title}\n\n`;
     message += `${tip.description}\n\n`;
     
     switch (tip.category) {
       case 'OAUTH':
-        message += '🔗 OAuth Best Practices:\n';
+        message += 'OAuth Best Practices:\n';
         message += '• Only connect apps you trust\n';
         message += '• Regularly review connected apps\n';
         message += '• Remove unused connections\n';
@@ -741,7 +862,7 @@ Thank you,
         break;
         
       case 'TRACKING':
-        message += '🚫 Tracking Protection Tips:\n';
+        message += 'Tracking Protection Tips:\n';
         message += '• Enable browser tracking protection\n';
         message += '• Clear cookies regularly\n';
         message += '• Use incognito mode for sensitive browsing\n';
@@ -749,7 +870,7 @@ Thank you,
         break;
         
       case 'SECURITY':
-        message += '🔐 Security Best Practices:\n';
+        message += 'Security Best Practices:\n';
         message += '• Use strong, unique passwords\n';
         message += '• Enable two-factor authentication\n';
         message += '• Keep software updated\n';
@@ -757,7 +878,7 @@ Thank you,
         break;
         
       case 'DATA_SHARING':
-        message += '📊 Data Sharing Awareness:\n';
+        message += 'Data Sharing Awareness:\n';
         message += '• Read privacy policies carefully\n';
         message += '• Opt out of data sharing when possible\n';
         message += '• Use privacy-focused alternatives\n';
@@ -765,7 +886,7 @@ Thank you,
         break;
         
       case 'GENERAL':
-        message += '💡 General Privacy Tips:\n';
+        message += 'General Privacy Tips:\n';
         message += '• Be mindful of what you share online\n';
         message += '• Use privacy-focused browsers\n';
         message += '• Consider using a VPN\n';
@@ -773,16 +894,71 @@ Thank you,
         break;
         
       default:
-        message += '💡 Additional Tips:\n';
+        message += 'Additional Tips:\n';
         message += '• Stay informed about privacy news\n';
         message += '• Use privacy tools and settings\n';
         message += '• Regularly audit your accounts\n';
         message += '• Consider your digital footprint\n';
     }
     
-    message += '\n⏱️ Estimated time: ' + tip.timeEstimate;
+    message += '\nEstimated time: ' + tip.timeEstimate;
     
     alert(message);
+  };
+
+  // OAuth Integration Functions
+  const handleConnectGoogle = () => {
+    oauthService.initiateOAuth('google');
+  };
+
+  const handleConnectMicrosoft = () => {
+    oauthService.initiateOAuth('microsoft');
+  };
+
+
+  // Load OAuth apps into dashboard data
+  useEffect(() => {
+    const connectedApps = oauthService.getStoredConnectedApps();
+    if (connectedApps.length > 0) {
+      const dashboardApps = oauthService.convertToDashboardApps(connectedApps);
+      setApps(prevApps => [...prevApps, ...dashboardApps]);
+    }
+  }, []);
+
+  // Export Functions
+  const handleExportPDFReport = () => {
+    const reportData = {
+      organizationName: userProfile?.email?.split('@')[1]?.split('.')[0] || 'Your Organization',
+      reportDate: new Date().toISOString(),
+      overallScore: securityScoreBreakdown.overallScore,
+      overallGrade: securityScoreBreakdown.overallGrade,
+      totalApps: apps.length,
+      highRiskApps: apps.filter(app => ['HIGH', 'CRITICAL'].includes(app.riskLevel)).length,
+      dimensions: securityScoreBreakdown.dimensions,
+      recommendations: securityScoreBreakdown.recommendations,
+      riskFactors: securityScoreBreakdown.riskFactors,
+      apps: apps,
+      breachAlerts: breachAlerts,
+      actionItems: actionItems
+    };
+    
+    exportService.generatePDFReport(reportData);
+  };
+
+  const handleExportAppsCSV = () => {
+    if (apps.length === 0) {
+      alert('No applications data available to export.');
+      return;
+    }
+    exportService.exportAppsToCSV(apps);
+  };
+
+  const handleExportActionsCSV = () => {
+    if (actionItems.length === 0) {
+      alert('No security actions data available to export.');
+      return;
+    }
+    exportService.exportActionsToCSV(actionItems);
   };
 
   // Show loading spinner while authentication is being checked
@@ -791,7 +967,7 @@ Thank you,
       <div className="app">
         <div className="loading-screen">
           <div className="loading-content">
-            <h1>☁️ Cloudyx</h1>
+            <h1>Cloudyx</h1>
             <div className="loading-spinner">
               <div className="spinner"></div>
             </div>
@@ -807,13 +983,18 @@ Thank you,
     return <AuthPage />;
   }
 
+  // Show profile settings if requested
+  if (showProfile) {
+    return <ProfileSettings onBack={() => setShowProfile(false)} />;
+  }
+
   // Show welcome screen if no data has been loaded
   if (!hasData) {
     return (
       <div className="app">
         <div className="welcome-screen">
           <div className="welcome-content">
-            <h1>☁️ Welcome to Cloudyx</h1>
+            <h1>Welcome to Cloudyx</h1>
             <p>Your cloud security dashboard is ready to protect your organization!</p>
             <div className="welcome-steps">
               <div className="step">
@@ -830,7 +1011,7 @@ Thank you,
               </div>
             </div>
             <button onClick={startScan} className="start-scan-button">
-              🚀 Start Your First Scan
+              Start Your First Scan
             </button>
           </div>
         </div>
@@ -870,15 +1051,47 @@ Thank you,
       <header className="header">
         <div className="header-content">
           <div className="logo">
-            <span className="logo-icon">☁️</span>
-            <h1>Cloudyx</h1>
-            <span className="company-tag">SaaS Security Management</span>
+            <CloudyxLogo size="medium" variant="header" showText={false} />
+            <div className="brand-info">
+              <h1 className="brand-name">Cloudyx</h1>
+              <span className="company-tag">AI-Powered SaaS Security Management</span>
+            </div>
           </div>
           <div className="user-info">
-            <div className="admin-badge">
-              <span className="role-indicator">🛡️ Security Admin</span>
-              <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
+            <div className="export-buttons">
+              <button className="export-btn" onClick={handleExportPDFReport} title="Export PDF Report">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                PDF Report
+              </button>
+              <div className="export-dropdown">
+                <button className="export-btn dropdown-toggle" title="Export Data">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Export CSV
+                </button>
+                <div className="dropdown-menu">
+                  <button onClick={handleExportAppsCSV}>Applications Data</button>
+                  <button onClick={handleExportActionsCSV}>Security Actions</button>
+                </div>
+              </div>
             </div>
+            <button className="admin-badge" onClick={() => setShowProfile(true)}>
+              <div className="admin-info">
+                <span className="role-indicator">Security Admin</span>
+                <span className="user-email">{userProfile?.email || 'admin@company.com'}</span>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
             <div className="threat-score">
               <div 
                 className="score-circle clickable" 
@@ -901,14 +1114,14 @@ Thank you,
           className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
         >
-          <span>📊</span>
+          <span></span>
           <span>App Security Overview</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
           onClick={() => setActiveTab('apps')}
         >
-          <span>📱</span>
+          <span></span>
           <span>Connected Apps</span>
           <span className="nav-badge">({apps.length})</span>
         </button>
@@ -916,7 +1129,7 @@ Thank you,
           className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
           onClick={() => setActiveTab('threats')}
         >
-          <span>🚨</span>
+          <span></span>
           <span>Risky Permissions</span>
           <span className="nav-badge">({actionItems.filter(item => !item.completed).length})</span>
         </button>
@@ -924,7 +1137,7 @@ Thank you,
           className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
           onClick={() => setActiveTab('exposure')}
         >
-          <span>🔍</span>
+          <span></span>
           <span>Data Access</span>
           <span className="nav-badge">({ghostProfiles.length})</span>
         </button>
@@ -932,21 +1145,21 @@ Thank you,
           className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
           onClick={() => setActiveTab('intel')}
         >
-          <span>⚠️</span>
+          <span></span>
           <span>Security Alerts</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
           onClick={() => setActiveTab('policies')}
         >
-          <span>⚙️</span>
+          <span></span>
           <span>Access Controls</span>
         </button>
         <button 
           className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
           onClick={() => setActiveTab('threat-info')}
         >
-          <span>🛡️</span>
+          <span></span>
           <span>Threat Levels Guide</span>
         </button>
       </nav>
@@ -966,7 +1179,7 @@ Thank you,
                     onClick={startScan}
                     disabled={isScanning}
                   >
-                    {isScanning ? '🔍 Scanning Cloud Apps...' : '🔍 Run Security Scan'}
+                    {isScanning ? 'Scanning Cloud Apps...' : 'Run Security Scan'}
                   </button>
                   <div className="scan-status">
                     <span className="last-scan-label">Last scan:</span>
@@ -985,11 +1198,11 @@ Thank you,
 
             {/* Enhanced Security Score Breakdown */}
             <div className="security-score-section">
-              <h2>🛡️ Security Score Breakdown</h2>
+              <h2>Security Score Breakdown</h2>
               <div className="score-dimensions-grid">
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔗</span>
+                    <span className="dimension-icon"></span>
                     <h3>OAuth Risk</h3>
                     <span className="dimension-weight">40%</span>
                   </div>
@@ -1004,7 +1217,7 @@ Thank you,
                 
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔒</span>
+                    <span className="dimension-icon"></span>
                     <h3>Data Exposure</h3>
                     <span className="dimension-weight">25%</span>
                   </div>
@@ -1019,7 +1232,7 @@ Thank you,
                 
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">📋</span>
+                    <span className="dimension-icon"></span>
                     <h3>Compliance</h3>
                     <span className="dimension-weight">20%</span>
                   </div>
@@ -1034,7 +1247,7 @@ Thank you,
                 
                 <div className="score-dimension-card">
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔐</span>
+                    <span className="dimension-icon"></span>
                     <h3>Access Control</h3>
                     <span className="dimension-weight">15%</span>
                   </div>
@@ -1051,11 +1264,11 @@ Thank you,
               {/* Security Recommendations */}
               {securityScoreBreakdown.recommendations.length > 0 && (
                 <div className="security-recommendations">
-                  <h3>🎯 Priority Recommendations</h3>
+                  <h3>Priority Recommendations</h3>
                   <div className="recommendations-list">
                     {securityScoreBreakdown.recommendations.map((recommendation, index) => (
                       <div key={index} className="recommendation-item">
-                        <span className="recommendation-icon">⚠️</span>
+                        <span className="recommendation-icon"></span>
                         <span className="recommendation-text">{recommendation}</span>
                       </div>
                     ))}
@@ -1095,36 +1308,145 @@ Thank you,
               </div>
             </div>
 
-            {/* Security Actions */}
-            <div className="security-actions">
-              <h3>🛡️ Security Operations</h3>
-              <div className="action-grid">
-                <button className="action-button critical" onClick={handleRevokeAccess}>
-                  <span className="action-icon">🔐</span>
-                  <span className="action-text">Revoke Risky Access</span>
-                </button>
-                <button className="action-button high" onClick={handlePasswordCheck}>
-                  <span className="action-icon">🔒</span>
-                  <span className="action-text">Security Audit</span>
-                </button>
-                <button className="action-button medium" onClick={handleComplianceReport}>
-                  <span className="action-icon">📊</span>
-                  <span className="action-text">Generate Report</span>
-                </button>
-                <button className="action-button low" onClick={handlePrivacyRequests}>
-                  <span className="action-icon">⚙️</span>
-                  <span className="action-text">Policy Actions</span>
-                </button>
+            {/* Security Operations */}
+            <div className="dashboard-section">
+              <div className="section-header">
+                <h2>Security Operations</h2>
+                <span className="section-subtitle">Critical security actions and controls</span>
+              </div>
+              <div className="security-operations-grid">
+                <div className="operation-card critical">
+                  <div className="operation-header">
+                    <div className="operation-icon critical">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56991 17.3333 3.53223 19 5.07183 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Revoke Risky Access</h3>
+                      <p>Remove high-risk application permissions</p>
+                    </div>
+                    <div className="operation-status critical">3 Apps</div>
+                  </div>
+                  <button className="operation-button critical" onClick={handleRevokeAccess}>
+                    Take Action
+                  </button>
+                </div>
+
+                <div className="operation-card high">
+                  <div className="operation-header">
+                    <div className="operation-icon high">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                        <path d="21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Security Audit</h3>
+                      <p>Run comprehensive security assessment</p>
+                    </div>
+                    <div className="operation-status high">Pending</div>
+                  </div>
+                  <button className="operation-button high" onClick={handlePasswordCheck}>
+                    Start Audit
+                  </button>
+                </div>
+
+                <div className="operation-card medium">
+                  <div className="operation-header">
+                    <div className="operation-icon medium">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3V21H21V3H3ZM7 17H5V10H7V17ZM13 17H11V7H13V17ZM19 17H17V13H19V17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Generate Report</h3>
+                      <p>Create compliance and security reports</p>
+                    </div>
+                    <div className="operation-status medium">Ready</div>
+                  </div>
+                  <button className="operation-button medium" onClick={handleComplianceReport}>
+                    Generate
+                  </button>
+                </div>
+
+                <div className="operation-card low">
+                  <div className="operation-header">
+                    <div className="operation-icon low">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.2583 9.77251 19.9887C9.5799 19.7191 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.74168 9.96512 4.01127 9.77251C4.28087 9.5799 4.48571 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Policy Actions</h3>
+                      <p>Manage access policies and controls</p>
+                    </div>
+                    <div className="operation-status low">Active</div>
+                  </div>
+                  <button className="operation-button low" onClick={handlePrivacyRequests}>
+                    Manage
+                  </button>
+                </div>
+
+                {/* OAuth Integration Cards */}
+                <div className="security-operation">
+                  <div className="operation-content">
+                    <div className="operation-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Google Workspace</h3>
+                      <p>Connect and monitor Google services</p>
+                    </div>
+                    <div className={`operation-status ${oauthService.getConnectionStatus().google ? 'low' : 'medium'}`}>
+                      {oauthService.getConnectionStatus().google ? 'Connected' : 'Disconnected'}
+                    </div>
+                  </div>
+                  <button 
+                    className={`operation-button ${oauthService.getConnectionStatus().google ? 'low' : 'medium'}`}
+                    onClick={handleConnectGoogle}
+                  >
+                    {oauthService.getConnectionStatus().google ? 'Manage' : 'Connect'}
+                  </button>
+                </div>
+
+                <div className="security-operation">
+                  <div className="operation-content">
+                    <div className="operation-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                      </svg>
+                    </div>
+                    <div className="operation-info">
+                      <h3>Microsoft 365</h3>
+                      <p>Connect and monitor Microsoft services</p>
+                    </div>
+                    <div className={`operation-status ${oauthService.getConnectionStatus().microsoft ? 'low' : 'medium'}`}>
+                      {oauthService.getConnectionStatus().microsoft ? 'Connected' : 'Disconnected'}
+                    </div>
+                  </div>
+                  <button 
+                    className={`operation-button ${oauthService.getConnectionStatus().microsoft ? 'low' : 'medium'}`}
+                    onClick={handleConnectMicrosoft}
+                  >
+                    {oauthService.getConnectionStatus().microsoft ? 'Manage' : 'Connect'}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Security Metrics */}
             <div className="security-metrics">
-              <h3>📊 Security Metrics</h3>
+              <h3>Security Metrics</h3>
               <div className="metrics-grid">
                 <div className="metric-card threat-level">
                   <div className="metric-header">
-                    <span className="metric-icon">☁️</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">Cloud Apps Monitored</span>
                   </div>
                   <div className="metric-value">{userProfile?.totalApps || 0}</div>
@@ -1132,7 +1454,7 @@ Thank you,
                 </div>
                 <div className="metric-card critical">
                   <div className="metric-header">
-                    <span className="metric-icon">🚨</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">Critical Threats</span>
                   </div>
                   <div className="metric-value danger">{apps.filter(app => app.riskLevel === 'CRITICAL').length}</div>
@@ -1140,7 +1462,7 @@ Thank you,
                 </div>
                 <div className="metric-card high-risk">
                   <div className="metric-header">
-                    <span className="metric-icon">⚠️</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">High Risk Apps</span>
                   </div>
                   <div className="metric-value warning">{userProfile?.highRiskApps || 0}</div>
@@ -1148,7 +1470,7 @@ Thank you,
                 </div>
                 <div className="metric-card security-score">
                   <div className="metric-header">
-                    <span className="metric-icon">🛡️</span>
+                    <span className="metric-icon"></span>
                     <span className="metric-title">Security Posture</span>
                   </div>
                   <div className="metric-value">{Math.max(85, 100 - (userProfile?.highRiskApps || 0) * 5)}%</div>
@@ -1157,7 +1479,7 @@ Thank you,
               </div>
             </div>
 
-            {/* Action Items Preview */}
+            {/* Quick Actions Preview */}
             <div className="action-preview">
               <div className="section-header">
                 <h2>Quick Actions</h2>
@@ -1168,15 +1490,21 @@ Thank you,
               <div className="action-list">
                 {actionItems.slice(0, 3).map(item => (
                   <div key={item.id} className="action-item-preview">
-                    <div className="action-priority" style={{ backgroundColor: item.priority === 'HIGH' ? '#EF4444' : '#F59E0B' }}>
-                      {item.priority}
+                    <div className="action-item-header">
+                      <div className={`action-priority ${item.priority.toLowerCase()}`}>
+                        {item.priority}
+                      </div>
+                      <div className="action-info">
+                        <h4>{item.title}</h4>
+                        <p>{item.description}</p>
+                      </div>
                     </div>
-                    <div className="action-content">
-                      <h4>{item.title}</h4>
-                      <p>{item.description}</p>
-                      <span className="action-time">⏱️ {item.estimatedTime}</span>
+                    <div className="action-meta">
+                      <span className="action-time">{item.estimatedTime}</span>
+                      <button className="action-btn" onClick={() => handleActionFix(item)}>
+                        Fix Now
+                      </button>
                     </div>
-                    <button className="action-btn" onClick={() => handleActionFix(item)}>Fix Now</button>
                   </div>
                 ))}
               </div>
@@ -1193,13 +1521,21 @@ Thank you,
               <div className="tips-list">
                 {privacyTips.slice(0, 2).map(tip => (
                   <div key={tip.id} className="tip-item-preview">
-                    <div className="tip-category">{tip.category}</div>
-                    <div className="tip-content">
-                      <h4>{tip.title}</h4>
-                      <p>{tip.description}</p>
-                      <span className="tip-time">⏱️ {tip.timeEstimate}</span>
+                    <div className="tip-item-header">
+                      <div className={`tip-category ${tip.category.toLowerCase()}`}>
+                        {tip.category}
+                      </div>
+                      <div className="tip-info">
+                        <h4>{tip.title}</h4>
+                        <p>{tip.description}</p>
+                      </div>
                     </div>
-                    <button className="tip-btn" onClick={() => handleTipLearnMore(tip)}>Learn More</button>
+                    <div className="tip-meta">
+                      <span className="tip-time">{tip.timeEstimate}</span>
+                      <button className="tip-btn" onClick={() => handleTipLearnMore(tip)}>
+                        Learn More
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1211,7 +1547,7 @@ Thank you,
               <div className="activity-list">
                 {breachAlerts.filter(b => b.isNew).map(alert => (
                   <div key={alert.id} className="activity-item danger">
-                    <span className="activity-icon">🚨</span>
+                    <span className="activity-icon"></span>
                     <div className="activity-content">
                       <div className="activity-title">New Breach Alert</div>
                       <div className="activity-description">
@@ -1222,7 +1558,7 @@ Thank you,
                 ))}
                 {apps.filter(app => app.isReused).map(app => (
                   <div key={app.id} className="activity-item warning">
-                    <span className="activity-icon">🔒</span>
+                    <span className="activity-icon"></span>
                     <div className="activity-content">
                       <div className="activity-title">Password Reuse Detected</div>
                       <div className="activity-description">
@@ -1232,7 +1568,7 @@ Thank you,
                   </div>
                 ))}
                 <div className="activity-item success">
-                  <span className="activity-icon">✅</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Privacy Score Improved</div>
                     <div className="activity-description">
@@ -1241,7 +1577,7 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item info">
-                  <span className="activity-icon">📧</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Email Scan Completed</div>
                     <div className="activity-description">
@@ -1250,7 +1586,7 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item success">
-                  <span className="activity-icon">🔐</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Two-Factor Enabled</div>
                     <div className="activity-description">
@@ -1259,7 +1595,7 @@ Thank you,
                   </div>
                 </div>
                 <div className="activity-item info">
-                  <span className="activity-icon">🔍</span>
+                  <span className="activity-icon"></span>
                   <div className="activity-content">
                     <div className="activity-title">Compliance Scan Completed</div>
                     <div className="activity-description">
@@ -1275,7 +1611,7 @@ Thank you,
         {activeTab === 'threats' && (
           <div className="threats-view">
             <div className="threats-header">
-              <h2>🚨 Active Security Threats</h2>
+              <h2>Active Security Threats</h2>
               <div className="threat-summary">
                 <span className="summary-item critical">
                   <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'CRITICAL').length}</span>
@@ -1311,7 +1647,7 @@ Thank you,
                     <p>{item.description}</p>
                     <div className="action-meta">
                       <span className="action-time">⏱️ {item.estimatedTime}</span>
-                      {item.completed && <span className="completed-badge">✅ Completed</span>}
+                      {item.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
                   <div className="action-actions">
@@ -1350,7 +1686,7 @@ Thank you,
                     <p>{tip.description}</p>
                     <div className="tip-meta">
                       <span className="tip-time">⏱️ {tip.timeEstimate}</span>
-                      {tip.completed && <span className="completed-badge">✅ Completed</span>}
+                      {tip.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
                   <div className="tip-actions">
@@ -1395,10 +1731,10 @@ Thank you,
                     <p>Domain: {app.domain}</p>
                     <p>Last accessed: {formatDate(app.lastAccessed!)}</p>
                     {app.hasBreaches && (
-                      <p className="breach-warning">⚠️ Has been breached</p>
+                      <p className="breach-warning">Has been breached</p>
                     )}
                     {app.isReused && (
-                      <p className="password-warning">🔒 Password reused</p>
+                      <p className="password-warning">Password reused</p>
                     )}
                   </div>
                   <div className="app-actions">
@@ -1418,7 +1754,7 @@ Thank you,
               {breachAlerts.map(alert => (
                 <div key={alert.id} className="breach-card">
                   <div className="breach-header">
-                    <h3>🚨 {alert.description}</h3>
+                    <h3>{alert.description}</h3>
                     {alert.isNew && <span className="new-badge">NEW</span>}
                   </div>
                   <div className="breach-details">
@@ -1438,14 +1774,14 @@ Thank you,
 
         {activeTab === 'exposure' && (
           <div className="exposure-view">
-            <h2>🔍 Public Data Exposure Analysis</h2>
+            <h2>Public Data Exposure Analysis</h2>
             <div className="exposure-info">
               <p>Comprehensive scan results showing your organization's publicly visible data, credentials, and potential security exposures across the web.</p>
             </div>
             {ghostProfiles.length === 0 ? (
               <div className="no-exposure">
                 <div className="empty-state">
-                  <span className="empty-icon">🔒</span>
+                  <span className="empty-icon"></span>
                   <h3>Excellent Security Posture</h3>
                   <p>Our comprehensive scan found no publicly exposed credentials, data leaks, or security vulnerabilities associated with your organization. Your digital footprint appears well-secured.</p>
                   <div className="security-metrics">
@@ -1463,7 +1799,7 @@ Thank you,
                     </div>
                   </div>
                   <button className="scan-button" onClick={() => alert('Enhanced deep scan initiated - monitoring 150+ additional sources')}>
-                    🔍 Run Enhanced Deep Scan
+                    Run Enhanced Deep Scan
                   </button>
                 </div>
               </div>
@@ -1472,7 +1808,7 @@ Thank you,
                 {ghostProfiles.map(profile => (
                   <div key={profile.id} className="exposure-card">
                     <div className="exposure-header">
-                      <h3>🔍 {profile.platform}</h3>
+                      <h3>{profile.platform}</h3>
                       <span className="confidence-badge">
                         {Math.round(profile.confidence * 100)}% confidence
                       </span>
@@ -1496,10 +1832,10 @@ Thank you,
 
         {activeTab === 'intel' && (
           <div className="intel-view">
-            <h2>⚠️ SaaS Security Alerts</h2>
+            <h2>SaaS Security Alerts</h2>
             <div className="intel-grid">
               <div className="intel-section">
-                <h3>🚨 Critical App Risks</h3>
+                <h3>Critical App Risks</h3>
                 <div className="intel-cards">
                   <div className="intel-card critical">
                     <div className="intel-header">
@@ -1541,7 +1877,7 @@ Thank you,
               </div>
               
               <div className="intel-section">
-                <h3>📊 SaaS Security Trends</h3>
+                <h3>SaaS Security Trends</h3>
                 <div className="trend-cards">
                   <div className="trend-card">
                     <h4>Shadow SaaS Growth</h4>
@@ -1566,77 +1902,77 @@ Thank you,
 
         {activeTab === 'policies' && (
           <div className="policies-view">
-            <h2>⚙️ SaaS Access Controls</h2>
+            <h2>SaaS Access Controls</h2>
             <p className="section-description">Control who can access your business data across all your SaaS applications</p>
             
             <div className="policies-grid">
               <div className="policy-section">
-                <h3>🔐 App Permission Management</h3>
+                <h3>App Permission Management</h3>
                 <div className="policy-cards">
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>🔗 Connected App Monitoring</h4>
+                      <h4>Connected App Monitoring</h4>
                       <span className="policy-status active">ACTIVE</span>
                     </div>
                     <p>Track all third-party applications connected to your Google Workspace, Microsoft 365, and Slack. Get alerts when new apps request access to sensitive business data.</p>
                     <div className="policy-stats">
-                      <span>✅ 23 apps being monitored</span>
-                      <span>🚨 2 apps need attention</span>
+                      <span>23 apps being monitored</span>
+                      <span>2 apps need attention</span>
                     </div>
                   </div>
                   
                   <div className="policy-card warning">
                     <div className="policy-header">
-                      <h4>📧 Email & Document Access Control</h4>
+                      <h4>Email & Document Access Control</h4>
                       <span className="policy-status warning">REVIEWING</span>
                     </div>
                     <p>Review which apps can read your emails, access Google Drive files, or modify documents. Remove unnecessary permissions to protect confidential business information.</p>
                     <div className="policy-stats">
-                      <span>⚠️ Grammarly has email access</span>
-                      <span>🔍 5 apps can read all files</span>
+                      <span>Grammarly has email access</span>
+                      <span>5 apps can read all files</span>
                     </div>
                   </div>
                   
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>👥 User Access Governance</h4>
+                      <h4>User Access Governance</h4>
                       <span className="policy-status active">MANAGED</span>
                     </div>
                     <p>Ensure employees only have access to the business applications they need for their role. Automatically detect when former employees still have app access.</p>
                     <div className="policy-stats">
-                      <span>✅ 15 users properly managed</span>
-                      <span>📋 Access reviews up to date</span>
+                      <span>15 users properly managed</span>
+                      <span>Access reviews up to date</span>
                     </div>
                   </div>
                 </div>
               </div>
               
               <div className="policy-section">
-                <h3>🎯 Quick Actions</h3>
+                <h3>Quick Actions</h3>
                 <div className="quick-actions-grid">
                   <div className="quick-action-card">
-                    <div className="action-icon">🔒</div>
+                    <div className="action-icon"></div>
                     <h4>Revoke Suspicious Apps</h4>
                     <p>2 apps have excessive permissions</p>
                     <button className="action-btn primary">Review Now</button>
                   </div>
                   
                   <div className="quick-action-card">
-                    <div className="action-icon">👤</div>
+                    <div className="action-icon"></div>
                     <h4>Audit User Access</h4>
                     <p>Quarterly access review is due</p>
                     <button className="action-btn">Start Review</button>
                   </div>
                   
                   <div className="quick-action-card">
-                    <div className="action-icon">📱</div>
+                    <div className="action-icon"></div>
                     <h4>Enable SSO</h4>
                     <p>4 apps can use single sign-on</p>
                     <button className="action-btn">Configure</button>
                   </div>
                   
                   <div className="quick-action-card">
-                    <div className="action-icon">📊</div>
+                    <div className="action-icon"></div>
                     <h4>Generate Report</h4>
                     <p>Create access control summary</p>
                     <button className="action-btn">Export PDF</button>
@@ -1645,7 +1981,7 @@ Thank you,
               </div>
               
               <div className="policy-section">
-                <h3>🏢 Business Application Inventory</h3>
+                <h3>Business Application Inventory</h3>
                 <div className="app-inventory">
                   <div className="inventory-header">
                     <span>All business applications with data access</span>
@@ -1654,7 +1990,7 @@ Thank you,
                   <div className="inventory-list">
                     <div className="inventory-item high-risk">
                       <div className="app-info">
-                        <span className="app-icon">✏️</span>
+                        <span className="app-icon"></span>
                         <div className="app-details">
                           <h5>Grammarly</h5>
                           <p>Can read and modify all documents & emails</p>
@@ -1666,7 +2002,7 @@ Thank you,
                     
                     <div className="inventory-item medium-risk">
                       <div className="app-info">
-                        <span className="app-icon">📅</span>
+                        <span className="app-icon"></span>
                         <div className="app-details">
                           <h5>Calendly</h5>
                           <p>Access to calendar and contact information</p>
@@ -1678,7 +2014,7 @@ Thank you,
                     
                     <div className="inventory-item low-risk">
                       <div className="app-info">
-                        <span className="app-icon">📊</span>
+                        <span className="app-icon"></span>
                         <div className="app-details">
                           <h5>Google Analytics</h5>
                           <p>Read-only access to website data</p>
@@ -1700,10 +2036,10 @@ Thank you,
 
         {activeTab === 'knowledge' && (
           <div className="knowledge-view">
-            <h2>📚 Privacy & Security Knowledge Base</h2>
+            <h2>Privacy & Security Knowledge Base</h2>
             <div className="knowledge-sections">
               <div className="knowledge-section">
-                <h3>🔒 Security Best Practices</h3>
+                <h3>Security Best Practices</h3>
                 <div className="knowledge-cards">
                   <div className="knowledge-card">
                     <h4>Multi-Factor Authentication (MFA)</h4>
@@ -1724,7 +2060,7 @@ Thank you,
               </div>
               
               <div className="knowledge-section">
-                <h3>⚖️ Compliance Guidelines</h3>
+                <h3>Compliance Guidelines</h3>
                 <div className="knowledge-cards">
                   <div className="knowledge-card">
                     <h4>GDPR Requirements</h4>
@@ -1745,7 +2081,7 @@ Thank you,
               </div>
 
               <div className="knowledge-section">
-                <h3>⚠️ Common Risk Areas</h3>
+                <h3>Common Risk Areas</h3>
                 <div className="knowledge-cards">
                   <div className="knowledge-card">
                     <h4>Shadow IT Applications</h4>
@@ -1772,7 +2108,7 @@ Thank you,
         {activeTab === 'threat-info' && (
           <div className="threat-info-content">
             <div className="threat-info-header">
-              <h2>🛡️ Understanding Threat Levels</h2>
+              <h2>Understanding Threat Levels</h2>
               <p>Learn how we calculate your organization's threat level and how to improve it</p>
             </div>
 
@@ -1851,7 +2187,7 @@ Thank you,
             </div>
 
             <div className="improvement-section">
-              <h3>🎯 How to Improve Your Threat Level</h3>
+              <h3>How to Improve Your Threat Level</h3>
               <div className="improvement-steps">
                 <div className="improvement-step">
                   <span className="step-number">1</span>
@@ -1885,7 +2221,7 @@ Thank you,
             </div>
 
             <div className="threat-calculation">
-              <h3>📊 How We Calculate Your Score</h3>
+              <h3>How We Calculate Your Score</h3>
               <div className="calculation-factors">
                 <div className="factor">
                   <span className="factor-weight">40%</span>

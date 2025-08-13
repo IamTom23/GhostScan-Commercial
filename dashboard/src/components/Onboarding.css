@@ -137,7 +137,33 @@
 }
 
 .provider-icon {
-  font-size: 2rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.provider-icon.enterprise {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+}
+
+.provider-icon.email {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+}
+
+.provider-icon.chat {
+  background: linear-gradient(135deg, #8B5CF6, #A855F7);
+  color: white;
+}
+
+.provider-icon.search {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
 }
 
 .provider-tag {
@@ -265,7 +291,15 @@
 }
 
 .scan-icon {
-  font-size: 1.25rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  flex-shrink: 0;
 }
 
 /* Results Step */

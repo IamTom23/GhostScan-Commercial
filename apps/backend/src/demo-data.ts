@@ -1,4 +1,4 @@
-// Demo data seeder for GhostScan Business MVP
+// Demo data seeder for Cloudyx Business MVP
 import { OrganizationProfile, UserProfile, SaaSApp } from './types/shared';
 
 export const seedDemoOrganizations = (): OrganizationProfile[] => {
@@ -200,7 +200,7 @@ export const seedDemoApps = (): SaaSApp[] => {
 
 // Helper function to initialize demo data
 export const initializeDemoData = () => {
-  console.log('🚀 Initializing GhostScan Business demo data...');
+  console.log('🚀 Initializing Cloudyx Business demo data...');
   
   const organizations = seedDemoOrganizations();
   const users = seedDemoUsers();

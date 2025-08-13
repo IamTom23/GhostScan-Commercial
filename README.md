@@ -1,76 +1,76 @@
-# GhostScan - Your AI-Powered Privacy Guardian
+# Cloudyx - AI-Powered SaaS Security Management
 
 **by Virtrus**
 
-An AI-powered app that detects, explains, and helps you eliminate digital exposure in just a few taps. Think of it as a Ghostbuster for your data.
+An AI-Powered platform that helps businesses detect, analyze, and secure their digital footprint across all cloud applications. Enterprise-grade security management made simple.
 
-## 🎯 **Consumer-First Strategy**
+## 🎯 **Business-First Strategy**
 
-GhostScan is designed for privacy-conscious individuals who want to take control of their digital footprint. Our target audience includes:
+Cloudyx is designed for businesses that need comprehensive visibility and control over their SaaS security posture. Our target audience includes:
 
-- **👨‍👩‍👧‍👦 Privacy-conscious individuals** (25-45)
-- **🧑‍💼 Freelancers & creators** who use many SaaS tools
-- **🎓 Students** who sign up for free services
-- **👨‍💻 Tech-savvy professionals** who want transparency
-- **👴👵 Privacy-aware seniors** who want to protect their data
+- **🏢 Startups & SMBs** (10-500 employees) managing cloud applications
+- **👩‍💼 IT Security Teams** needing centralized oversight
+- **🔒 Compliance Officers** ensuring regulatory adherence
+- **👨‍💻 DevOps Teams** securing development workflows
+- **📊 Executive Leadership** requiring security visibility
 
 ## 🚀 **Core Features**
 
-### **🔍 SaaS Exposure Scan**
-- **OAuth History**: Track all "Sign in with Google/Facebook" connections
-- **Email Analysis**: Scan inbox for signups and subscriptions
+### **🔍 SaaS Discovery & Monitoring**
+- **OAuth History**: Track all "Sign in with Google/Microsoft" business connections
 - **Cloud API Integration**: Deep scanning of your cloud applications and services
-- **Device Analysis**: Cross-device account discovery
+- **Shadow IT Detection**: Discover unauthorized applications in your organization
+- **Department-Level Analysis**: Cross-department security oversight
 
-### **🧠 AI-Powered Threat Rating**
+### **🧠 AI-Powered Security Analysis**
 - **Risk Assessment**: Each app gets a LOW/MEDIUM/HIGH/CRITICAL rating
-- **Data Type Analysis**: What sensitive data each app accesses
-- **Third-Party Sharing**: Which apps sell/share your data
-- **Breach History**: Past data breaches and their impact
+- **Business Data Analysis**: What sensitive business data each app accesses
+- **Third-Party Sharing**: Which vendors share your organizational data
+- **Breach History**: Past data breaches and business impact assessment
 
-### **✉️ Auto Privacy Request Engine**
-- **One-Click GDPR/CCPA**: Automated compliance requests
-- **Account Deletion**: Streamlined account removal process
-- **Data Export**: Request your data from any service
-- **Opt-Out Automation**: Stop data sharing with one click
+### **✉️ Compliance Management Engine**
+- **One-Click GDPR/CCPA**: Automated compliance requests for the organization
+- **Vendor Management**: Streamlined vendor access control
+- **Data Processing Agreements**: Track and manage DPAs with vendors
+- **Regulatory Reporting**: Automated compliance documentation
 
-### **🕵️ Ghost Profile Hunter**
-- **Shadow Profile Detection**: Find profiles you didn't create
-- **Breach Data Correlation**: Connect leaked data to your accounts
-- **Connected Service Analysis**: Discover linked accounts
-- **Confidence Scoring**: How certain we are about each finding
+### **🕵️ Unauthorized Access Detection**
+- **Shadow Account Detection**: Find unauthorized business accounts
+- **Breach Data Correlation**: Connect leaked data to your organization
+- **Connected Service Analysis**: Discover all linked business services
+- **Confidence Scoring**: Risk assessment for detected exposures
 
-### **🔒 Password Reuse Detection**
-- **Weak Password Alerts**: Identify easily crackable passwords
-- **Reuse Detection**: Find passwords used across multiple accounts
-- **Strength Recommendations**: AI-powered password suggestions
-- **Security Best Practices**: Two-factor authentication guidance
+### **🔒 Enterprise Access Control**
+- **Weak Password Alerts**: Identify compromised business accounts
+- **SSO Integration**: Centralized authentication management
+- **MFA Enforcement**: Multi-factor authentication compliance
+- **Security Best Practices**: Enterprise security policy guidance
 
-### **💥 Disconnect Dead Apps**
-- **Inactive Account Detection**: Find unused accounts
-- **OAuth Cleanup**: Remove unnecessary app connections
+### **💥 Application Lifecycle Management**
+- **Inactive Application Detection**: Find unused business applications
+- **OAuth Cleanup**: Remove unnecessary organizational connections
 - **SSO Management**: Centralized single sign-on control
-- **Account Deletion**: One-click removal of unwanted accounts
+- **Vendor Offboarding**: Streamlined application removal process
 
-### **📊 Privacy Dashboard**
-- **Privacy Score**: A-F grade based on your digital exposure
-- **Visual Risk Breakdown**: Easy-to-understand risk visualization
-- **Weekly AI Recommendations**: Personalized improvement suggestions
-- **Progress Tracking**: Monitor your privacy improvements over time
+### **📊 Security Dashboard**
+- **Security Grade**: A-F grade based on your organizational security posture
+- **Visual Risk Breakdown**: Executive-level security visualization
+- **Weekly AI Recommendations**: Business-focused security improvements
+- **Progress Tracking**: Monitor organizational security improvements over time
 
-### **🧠 Private AI Assistant**
-- **Context-Aware Responses**: Ask about specific apps or concerns
-- **Privacy Education**: Learn about data practices and risks
-- **Actionable Advice**: Get step-by-step privacy improvement guidance
-- **24/7 Support**: Always-available privacy expert
+### **🧠 Security AI Assistant**
+- **Context-Aware Responses**: Ask about specific business security concerns
+- **Compliance Education**: Learn about regulatory requirements and risks
+- **Actionable Advice**: Get step-by-step security improvement guidance
+- **24/7 Support**: Always-available security expert for your business
 
 ## 🎨 **User Experience**
 
-### **Privacy Score Hero**
-- **Visual Grade Display**: Large A-F grade with color coding
-- **Motivational Messaging**: Encouraging progress updates
-- **Quick Actions**: One-tap access to common tasks
-- **Progress Tracking**: See improvements over time
+### **Security Score Dashboard**
+- **Visual Grade Display**: Large A-F grade with color coding for executives
+- **Business Insights**: Data-driven security recommendations
+- **Quick Actions**: One-click access to critical security tasks
+- **Progress Tracking**: Monitor organizational security improvements
 
 ### **Action Items**
 - **Prioritized Tasks**: High/Medium/Low priority actions
@@ -86,65 +86,65 @@ GhostScan is designed for privacy-conscious individuals who want to take control
 
 ## 💰 **Pricing Strategy**
 
-### **Free Tier**
-- Basic privacy scan (5 apps)
-- Breach alerts
-- Simple privacy score
-- Limited AI assistant queries
+### **Starter ($49/month)**
+- Up to 25 applications monitored
+- Basic security scanning
+- Email breach alerts
+- Standard compliance reporting
 
-### **Pro Tier ($9.99/month)**
-- Unlimited scans
-- Full AI assistant access
-- Privacy request automation
-- Advanced ghost profile detection
-- Cross-device sync
+### **Professional ($149/month)**
+- Unlimited application monitoring
+- Advanced AI-Powered insights
+- Automated compliance requests
+- Priority support
+- Department-level analytics
 
-### **Family Tier ($19.99/month)**
-- Up to 5 family members
-- Shared privacy insights
-- Family breach monitoring
-- Parental controls
-- Family privacy education
+### **Enterprise ($499/month)**
+- White-label deployment
+- Custom compliance frameworks
+- Dedicated security consultant
+- Advanced API access
+- Custom integrations
 
 ## 🚀 **Go-to-Market Strategy**
 
 ### **Phase 1: Launch (Months 1-3)**
-- **Product Launch**: Full consumer dashboard
+- **Product Launch**: Full business security dashboard
 - **Cloud Integrations**: Google Workspace and Microsoft 365 connectors
-- **Content Marketing**: Privacy blog and social media
-- **Influencer Partnerships**: Privacy advocates and tech influencers
+- **Content Marketing**: Security blog and industry publications
+- **Partnership Outreach**: Security consultants and IT service providers
 
 ### **Phase 2: Growth (Months 4-6)**
-- **Mobile App**: iOS and Android apps
-- **Viral Features**: "Check your privacy score" sharing
-- **Referral Program**: Free months for successful referrals
-- **Partnerships**: Password managers, VPNs, security tools
+- **Mobile App**: iOS and Android apps for IT administrators
+- **Sharing Features**: "Check your security posture" reports
+- **Partner Program**: Channel partnerships with IT consultants
+- **Integrations**: SIEM tools, identity providers, security platforms
 
 ### **Phase 3: Scale (Months 7-12)**
-- **Advanced Features**: AI-powered recommendations
-- **Enterprise Features**: Team and family management
-- **API Access**: Third-party integrations
-- **International Expansion**: GDPR/CCPA compliance globally
+- **Advanced Features**: Predictive security analytics
+- **Enterprise Features**: Multi-tenant and white-label solutions
+- **API Marketplace**: Third-party security tool integrations
+- **International Expansion**: Global compliance framework support
 
 ## 🎯 **Success Metrics**
 
-### **User Acquisition**
-- **Monthly Active Users**: Target 100K by year 1
-- **Conversion Rate**: 5% free-to-paid conversion
-- **Viral Coefficient**: 1.2+ through sharing features
-- **Customer Acquisition Cost**: <$50 per paid user
+### **Business Acquisition**
+- **Active Organizations**: Target 5K businesses by year 1
+- **Conversion Rate**: 15% trial-to-paid conversion
+- **Referral Rate**: 25% through partner channel
+- **Customer Acquisition Cost**: <$500 per organization
 
-### **User Engagement**
-- **Daily Active Users**: 40% of monthly users
-- **Feature Adoption**: 70% use AI assistant monthly
-- **Action Completion**: 60% complete recommended actions
-- **Retention**: 80% month-over-month retention
+### **Business Engagement**
+- **Daily Active Organizations**: 60% of monthly organizations
+- **Feature Adoption**: 85% use AI assistant for security insights
+- **Action Completion**: 75% complete recommended security actions
+- **Retention**: 90% month-over-month retention
 
 ### **Business Metrics**
-- **Monthly Recurring Revenue**: $500K by year 1
-- **Average Revenue Per User**: $12/month
-- **Customer Lifetime Value**: $300+
-- **Churn Rate**: <5% monthly
+- **Monthly Recurring Revenue**: $2M by year 1
+- **Average Revenue Per Organization**: $200/month
+- **Customer Lifetime Value**: $5,000+
+- **Churn Rate**: <3% monthly
 
 ## 🔧 **Technical Architecture**
 
@@ -205,7 +205,7 @@ GhostScan is designed for privacy-conscious individuals who want to take control
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd GhostScan_Commercial
+cd Cloudyx_Platform
 
 # Install dependencies
 npm install
@@ -216,13 +216,13 @@ npm run dev
 
 ### **Backend API**
 ```bash
-cd GhostScan-Commercial/apps/backend
+cd Cloudyx-Platform/apps/backend
 npm run dev  # Runs on http://localhost:3001
 ```
 
 ### **Dashboard**
 ```bash
-cd GhostScan-Commercial/apps/dashboard
+cd Cloudyx-Platform/apps/dashboard
 npm run dev  # Runs on http://localhost:5174
 ```
 
@@ -238,14 +238,14 @@ npm run dev  # Runs on http://localhost:5174
 
 MIT License - see LICENSE file for details.
 
-## 🔐 **Privacy Commitment**
+## 🔐 **Security Commitment**
 
-GhostScan is designed with privacy in mind. We believe in:
-- **Transparency**: Clear about what data we collect and why
-- **Minimalism**: Only collect data necessary for the service
-- **User Control**: You own and control your data
-- **Security**: Industry-standard encryption and security practices
+Cloudyx is designed with enterprise security in mind. We believe in:
+- **Transparency**: Clear about what business data we analyze and why
+- **Minimalism**: Only collect data necessary for security analysis
+- **Business Control**: Your organization owns and controls all data
+- **Enterprise Security**: Industry-leading encryption and security practices
 
 ---
 
-**GhostScan by Virtrus** - Making privacy simple, actionable, and effective for everyone. 👻✨
+**Cloudyx by Virtrus** - Making enterprise security simple, actionable, and effective for every business. ☁️🔒
