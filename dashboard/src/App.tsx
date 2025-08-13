@@ -1815,10 +1815,28 @@ Thank you,
                       </span>
                     </div>
                     <div className="exposure-details">
-                      <p>Email: {profile.email}</p>
-                      {profile.username && <p>Username: {profile.username}</p>}
-                      <p>Found via: {profile.foundVia}</p>
-                      <p>Data exposed: {profile.dataExposed.join(', ')}</p>
+                      <div className="detail-row">
+                        <span className="detail-label">Email:</span>
+                        <span className="detail-value">{profile.email}</span>
+                      </div>
+                      {profile.username && (
+                        <div className="detail-row">
+                          <span className="detail-label">Username:</span>
+                          <span className="detail-value">{profile.username}</span>
+                        </div>
+                      )}
+                      <div className="detail-row">
+                        <span className="detail-label">Found via:</span>
+                        <span className="detail-value">{profile.foundVia}</span>
+                      </div>
+                      <div className="detail-row data-exposed">
+                        <span className="detail-label">Data exposed:</span>
+                        <div className="data-tags">
+                          {profile.dataExposed.map((data, index) => (
+                            <span key={index} className="data-tag">{data}</span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     <div className="exposure-actions">
                       <button className="exposure-action">Verify</button>
