@@ -1084,6 +1084,20 @@ body {
     width: 100%;
     text-align: center;
   }
+  
+  .threat-summary {
+    gap: 1rem;
+    padding: 1rem;
+    justify-content: space-around;
+  }
+  
+  .summary-item {
+    min-width: 60px;
+  }
+  
+  .summary-number {
+    font-size: 1.5rem;
+  }
 }
 
 /* Main Content */
@@ -1849,24 +1863,69 @@ body {
   gap: 2rem;
 }
 
+/* Threat Summary Section */
+.threats-view {
+  padding: 2rem 0;
+}
+
+.threats-header {
+  margin-bottom: 2rem;
+}
+
+.threats-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.threat-summary {
+  display: flex;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  flex-wrap: wrap;
+}
+
 .summary-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  min-width: 80px;
 }
 
 .summary-number {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: var(--primary-color);
+  line-height: 1;
+}
+
+.summary-item.critical .summary-number {
+  color: var(--danger-color);
+}
+
+.summary-item.high .summary-number {
+  color: var(--warning-color);
+}
+
+.summary-item.medium .summary-number {
+  color: #f59e0b;
+}
+
+.summary-item.resolved .summary-number {
+  color: var(--success-color);
 }
 
 .summary-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .actions-list {
