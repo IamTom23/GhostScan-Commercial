@@ -10,6 +10,7 @@ import './components/ProfileSettings.css';
 import { exportService } from './services/exportService';
 import { oauthService } from './services/oauthService';
 import { apiService } from './services/apiService';
+import { ThreatIntelligence } from './components/ThreatIntelligence';
 // Local type definitions to avoid build issues
 interface SaaSApp {
   id: string;
@@ -2617,6 +2618,15 @@ Thank you,
             </div>
           </div>
         )}
+
+        {/* Threat Intelligence Demo Sections */}
+        <ThreatIntelligence 
+          activeTab={activeTab}
+          threatFeeds={threatFeeds}
+          securityAlerts={securityAlerts}
+          vulnerabilityScans={vulnerabilityScans}
+          incidents={incidents}
+        />
 
         {activeTab === 'policies' && (
           <div className="policies-view">
