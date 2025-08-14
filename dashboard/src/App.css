@@ -708,7 +708,7 @@ body {
 
 /* Security Alerts (Intel) Section */
 .intel-view {
-  padding: 2rem 0;
+  padding: 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 .intel-view h2 {
@@ -897,7 +897,7 @@ body {
 
 /* Data Access / Exposure View Styling */
 .exposure-view {
-  padding: 2rem 0;
+  padding: 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 .exposure-view h2 {
@@ -1332,7 +1332,7 @@ body {
 
 /* Legacy main class for compatibility - Improved spacing */
 .main {
-  padding: 2rem; /* More generous padding */
+  padding: 2rem 0; /* Only vertical padding since views handle horizontal spacing */
   width: 100%;
   max-width: none;
   margin: 0;
@@ -1379,6 +1379,7 @@ body {
   flex-direction: column;
   gap: 2.5rem; /* More space between dashboard sections */
   min-height: calc(100vh - 70px - 4rem);
+  padding: 0 2rem; /* Ensure consistent edge spacing across all tabs */
 }
 
 /* Privacy Hero & Security Hero - Better spacing */
@@ -2132,7 +2133,7 @@ body {
 
 /* Threat Summary Section */
 .threats-view {
-  padding: 2rem 0;
+  padding: 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 .threats-header {
@@ -2320,6 +2321,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 .tips-header {
@@ -2533,6 +2535,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 .apps-header {
@@ -2643,6 +2646,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 .breaches-view h2 {
@@ -4256,6 +4260,10 @@ html[style*="--viewport-scale"] {
 }
 
 /* Policy Cards Styling */
+.policies-view {
+  padding: 2rem; /* Add horizontal padding to prevent content touching edges */
+}
+
 .policies-view h2 {
   font-size: 2rem;
   font-weight: 700;
@@ -4460,6 +4468,11 @@ html[style*="--viewport-scale"] {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Knowledge View */
+.knowledge-view {
+  padding: 2rem; /* Add horizontal padding to prevent content touching edges */
 }
 
 /* Threat Info Tab Styles */
