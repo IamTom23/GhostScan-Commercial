@@ -482,6 +482,9 @@ function App() {
     compliance: true
   });
 
+  // State for security score modals
+  const [activeScoreModal, setActiveScoreModal] = useState<string | null>(null);
+
   // Toggle dropdown sections
   const toggleSection = (sectionKey: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -1268,9 +1271,12 @@ Thank you,
             <div className="security-score-section">
               <h2>Security Score Breakdown</h2>
               <div className="score-dimensions-grid">
-                <div className="score-dimension-card">
+                <div 
+                  className="score-dimension-card clickable"
+                  onClick={() => setActiveScoreModal('oauth')}
+                >
                   <div className="dimension-header">
-                    <span className="dimension-icon"></span>
+                    <span className="dimension-icon">🔗</span>
                     <h3>OAuth Risk</h3>
                     <span className="dimension-weight">40%</span>
                   </div>
@@ -1278,14 +1284,29 @@ Thank you,
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).color }}>
                       <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).grade}</span>
                     </div>
-                    <span className="score-number">{securityScoreBreakdown.dimensions.oauthRiskScore}/100</span>
+                    <div className="score-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ 
+                            width: `${securityScoreBreakdown.dimensions.oauthRiskScore}%`,
+                            backgroundColor: getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).color
+                          }}
+                        ></div>
+                      </div>
+                      <span className="score-number">{securityScoreBreakdown.dimensions.oauthRiskScore}/100</span>
+                    </div>
                   </div>
                   <p className="dimension-description">App permissions and OAuth connections</p>
+                  <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
-                <div className="score-dimension-card">
+                <div 
+                  className="score-dimension-card clickable"
+                  onClick={() => setActiveScoreModal('exposure')}
+                >
                   <div className="dimension-header">
-                    <span className="dimension-icon"></span>
+                    <span className="dimension-icon">🔍</span>
                     <h3>Data Exposure</h3>
                     <span className="dimension-weight">25%</span>
                   </div>
@@ -1293,14 +1314,29 @@ Thank you,
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).color }}>
                       <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).grade}</span>
                     </div>
-                    <span className="score-number">{securityScoreBreakdown.dimensions.dataExposureScore}/100</span>
+                    <div className="score-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ 
+                            width: `${securityScoreBreakdown.dimensions.dataExposureScore}%`,
+                            backgroundColor: getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).color
+                          }}
+                        ></div>
+                      </div>
+                      <span className="score-number">{securityScoreBreakdown.dimensions.dataExposureScore}/100</span>
+                    </div>
                   </div>
                   <p className="dimension-description">Data breaches and sharing risks</p>
+                  <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
-                <div className="score-dimension-card">
+                <div 
+                  className="score-dimension-card clickable"
+                  onClick={() => setActiveScoreModal('compliance')}
+                >
                   <div className="dimension-header">
-                    <span className="dimension-icon"></span>
+                    <span className="dimension-icon">⚖️</span>
                     <h3>Compliance</h3>
                     <span className="dimension-weight">20%</span>
                   </div>
@@ -1308,9 +1344,21 @@ Thank you,
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color }}>
                       <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).grade}</span>
                     </div>
-                    <span className="score-number">{securityScoreBreakdown.dimensions.complianceScore}/100</span>
+                    <div className="score-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ 
+                            width: `${securityScoreBreakdown.dimensions.complianceScore}%`,
+                            backgroundColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color
+                          }}
+                        ></div>
+                      </div>
+                      <span className="score-number">{securityScoreBreakdown.dimensions.complianceScore}/100</span>
+                    </div>
                   </div>
                   <p className="dimension-description">Regulatory compliance status</p>
+                  <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
                 <div className="score-dimension-card">
