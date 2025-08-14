@@ -2186,6 +2186,22 @@ body {
   align-items: center;
   gap: 0.5rem;
   min-width: 80px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.summary-item.clickable:hover {
+  background: var(--bg-hover);
+  transform: translateY(-2px);
+}
+
+.summary-item.clickable.active {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--primary-color);
 }
 
 .summary-number {
@@ -2217,6 +2233,71 @@ body {
   letter-spacing: 0.5px;
   font-weight: 600;
   text-align: center;
+}
+
+/* Mini progress bars for threat summary */
+.summary-progress {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.progress-bar-mini {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill-mini {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill-mini.critical {
+  background: var(--danger-color);
+}
+
+.progress-fill-mini.high {
+  background: var(--warning-color);
+}
+
+.progress-fill-mini.medium {
+  background: #f59e0b;
+}
+
+.progress-fill-mini.resolved {
+  background: var(--success-color);
+}
+
+/* Trend arrows for threat summary */
+.summary-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.trend-arrow {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0.8;
+}
+
+.trend-arrow.increasing {
+  color: var(--warning-color);
+}
+
+.trend-arrow.decreasing {
+  color: var(--success-color);
+}
+
+.trend-number {
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .actions-list {

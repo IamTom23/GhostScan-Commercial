@@ -491,6 +491,17 @@ function App() {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
+  // State for threat filtering
+  const [threatFilter, setThreatFilter] = useState<'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'completed'>('all');
+  
+  // Mock trend data for threat changes
+  const threatTrends = {
+    CRITICAL: { change: 0, trend: 'stable' },
+    HIGH: { change: -1, trend: 'decreasing' },
+    MEDIUM: { change: +2, trend: 'increasing' },
+    completed: { change: +3, trend: 'increasing' }
+  };
+
   // Debug log (temporary)
   if (activeScoreModal) {
     console.log('Active modal:', activeScoreModal);
@@ -543,6 +554,17 @@ function App() {
 
     return filtered;
   }, [apps, searchTerm, riskFilter, sortBy, sortOrder]);
+
+  // Filter threats based on active filter
+  const filteredThreats = React.useMemo(() => {
+    if (threatFilter === 'all') {
+      return actionItems;
+    } else if (threatFilter === 'completed') {
+      return actionItems.filter(item => item.completed);
+    } else {
+      return actionItems.filter(item => !item.completed && item.priority === threatFilter);
+    }
+  }, [actionItems, threatFilter]);
 
   // Load demo data from backend API on component mount
   useEffect(() => {
@@ -1795,26 +1817,109 @@ Thank you,
             <div className="threats-header">
               <h2>Active Security Threats</h2>
               <div className="threat-summary">
-                <span className="summary-item critical">
-                  <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'CRITICAL').length}</span>
+                <button 
+                  className={`summary-item critical clickable ${threatFilter === 'CRITICAL' ? 'active' : ''}`}
+                  onClick={() => setThreatFilter(threatFilter === 'CRITICAL' ? 'all' : 'CRITICAL')}
+                >
+                  <div className="summary-header">
+                    <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'CRITICAL').length}</span>
+                    {threatTrends.CRITICAL.change !== 0 && (
+                      <span className={`trend-arrow ${threatTrends.CRITICAL.trend}`}>
+                        {threatTrends.CRITICAL.change > 0 ? '↗' : '↘'}
+                        <span className="trend-number">{Math.abs(threatTrends.CRITICAL.change)}</span>
+                      </span>
+                    )}
+                  </div>
                   <span className="summary-label">Critical</span>
-                </span>
-                <span className="summary-item high">
-                  <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'HIGH').length}</span>
+                  <div className="summary-progress">
+                    <div className="progress-bar-mini">
+                      <div 
+                        className="progress-fill-mini critical" 
+                        style={{ width: `${actionItems.filter(item => !item.completed && item.priority === 'CRITICAL').length > 0 ? 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </button>
+                <button 
+                  className={`summary-item high clickable ${threatFilter === 'HIGH' ? 'active' : ''}`}
+                  onClick={() => setThreatFilter(threatFilter === 'HIGH' ? 'all' : 'HIGH')}
+                >
+                  <div className="summary-header">
+                    <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'HIGH').length}</span>
+                    {threatTrends.HIGH.change !== 0 && (
+                      <span className={`trend-arrow ${threatTrends.HIGH.trend}`}>
+                        {threatTrends.HIGH.change > 0 ? '↗' : '↘'}
+                        <span className="trend-number">{Math.abs(threatTrends.HIGH.change)}</span>
+                      </span>
+                    )}
+                  </div>
                   <span className="summary-label">High</span>
-                </span>
-                <span className="summary-item medium">
-                  <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'MEDIUM').length}</span>
+                  <div className="summary-progress">
+                    <div className="progress-bar-mini">
+                      <div 
+                        className="progress-fill-mini high" 
+                        style={{ width: `${actionItems.filter(item => !item.completed && item.priority === 'HIGH').length > 0 ? 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </button>
+                <button 
+                  className={`summary-item medium clickable ${threatFilter === 'MEDIUM' ? 'active' : ''}`}
+                  onClick={() => setThreatFilter(threatFilter === 'MEDIUM' ? 'all' : 'MEDIUM')}
+                >
+                  <div className="summary-header">
+                    <span className="summary-number">{actionItems.filter(item => !item.completed && item.priority === 'MEDIUM').length}</span>
+                    {threatTrends.MEDIUM.change !== 0 && (
+                      <span className={`trend-arrow ${threatTrends.MEDIUM.trend}`}>
+                        {threatTrends.MEDIUM.change > 0 ? '↗' : '↘'}
+                        <span className="trend-number">{Math.abs(threatTrends.MEDIUM.change)}</span>
+                      </span>
+                    )}
+                  </div>
                   <span className="summary-label">Medium</span>
-                </span>
-                <span className="summary-item resolved">
-                  <span className="summary-number">{actionItems.filter(item => item.completed).length}</span>
+                  <div className="summary-progress">
+                    <div className="progress-bar-mini">
+                      <div 
+                        className="progress-fill-mini medium" 
+                        style={{ width: `${actionItems.filter(item => !item.completed && item.priority === 'MEDIUM').length > 0 ? 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </button>
+                <button 
+                  className={`summary-item resolved clickable ${threatFilter === 'completed' ? 'active' : ''}`}
+                  onClick={() => setThreatFilter(threatFilter === 'completed' ? 'all' : 'completed')}
+                >
+                  <div className="summary-header">
+                    <span className="summary-number">{actionItems.filter(item => item.completed).length}</span>
+                    {threatTrends.completed.change !== 0 && (
+                      <span className={`trend-arrow ${threatTrends.completed.trend}`}>
+                        {threatTrends.completed.change > 0 ? '↗' : '↘'}
+                        <span className="trend-number">{Math.abs(threatTrends.completed.change)}</span>
+                      </span>
+                    )}
+                  </div>
                   <span className="summary-label">Resolved</span>
-                </span>
+                  <div className="summary-progress">
+                    <div className="progress-bar-mini">
+                      <div 
+                        className="progress-fill-mini resolved" 
+                        style={{ width: `${actionItems.filter(item => item.completed).length > 0 ? 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
             <div className="actions-list">
-              {actionItems.map(item => (
+              {filteredThreats.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon"></div>
+                  <h3>No {threatFilter === 'all' ? 'threats' : threatFilter.toLowerCase() + ' threats'} found</h3>
+                  <p>{threatFilter === 'all' ? 'All security threats have been resolved!' : `No ${threatFilter.toLowerCase()} priority threats at this time.`}</p>
+                </div>
+              ) : (
+                filteredThreats.map(item => (
                 <div key={item.id} className={`action-card ${item.completed ? 'completed' : ''}`}>
                   <div className="action-header">
                     <div className="action-priority-badge" style={{ backgroundColor: item.priority === 'HIGH' ? '#EF4444' : '#F59E0B' }}>
@@ -1840,7 +1945,7 @@ Thank you,
                     )}
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         )}
