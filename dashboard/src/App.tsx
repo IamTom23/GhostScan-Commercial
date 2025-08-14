@@ -1,4 +1,4 @@
-// Cloudyx Dashboard - Security Management Platform
+// Cloudyx Dashboard - Security Management Platform - Functional Version
 import { useState, useEffect } from 'react';
 import './App.css';
 import { Onboarding } from './components/Onboarding';
