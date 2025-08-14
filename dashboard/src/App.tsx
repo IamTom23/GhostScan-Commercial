@@ -1327,7 +1327,7 @@ Thank you,
                   onClick={() => setActiveScoreModal('oauth')}
                 >
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔗</span>
+                    <span className="dimension-icon"></span>
                     <h3>OAuth Risk</h3>
                     <span className="dimension-weight">40%</span>
                   </div>
@@ -1357,7 +1357,7 @@ Thank you,
                   onClick={() => setActiveScoreModal('exposure')}
                 >
                   <div className="dimension-header">
-                    <span className="dimension-icon">🔍</span>
+                    <span className="dimension-icon"></span>
                     <h3>Data Exposure</h3>
                     <span className="dimension-weight">25%</span>
                   </div>
@@ -1387,7 +1387,7 @@ Thank you,
                   onClick={() => setActiveScoreModal('compliance')}
                 >
                   <div className="dimension-header">
-                    <span className="dimension-icon">⚖️</span>
+                    <span className="dimension-icon"></span>
                     <h3>Compliance</h3>
                     <span className="dimension-weight">20%</span>
                   </div>
@@ -1412,7 +1412,10 @@ Thank you,
                   <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
-                <div className="score-dimension-card">
+                <div 
+                  className="score-dimension-card clickable"
+                  onClick={() => setActiveScoreModal('access')}
+                >
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
                     <h3>Access Control</h3>
@@ -1422,9 +1425,21 @@ Thank you,
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).color }}>
                       <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).grade}</span>
                     </div>
-                    <span className="score-number">{securityScoreBreakdown.dimensions.accessControlScore}/100</span>
+                    <div className="score-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ 
+                            width: `${securityScoreBreakdown.dimensions.accessControlScore}%`,
+                            backgroundColor: getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).color
+                          }}
+                        ></div>
+                      </div>
+                      <span className="score-number">{securityScoreBreakdown.dimensions.accessControlScore}/100</span>
+                    </div>
                   </div>
                   <p className="dimension-description">Authentication and authorization</p>
+                  <div className="card-hover-indicator">Click for details →</div>
                 </div>
               </div>
               
@@ -1916,7 +1931,7 @@ Thank you,
             
             {filteredAndSortedApps.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">🔍</div>
+                <div className="empty-icon"></div>
                 <h3>No apps found</h3>
                 <p>Try adjusting your search terms or filters</p>
               </div>

@@ -4820,7 +4820,7 @@ html[style*="--viewport-scale"] {
 .score-dimension-card.clickable:hover {
   border-color: var(--primary-color);
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .card-hover-indicator {
