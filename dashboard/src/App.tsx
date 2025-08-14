@@ -1108,65 +1108,107 @@ Thank you,
         </div>
       </header>
 
+      {/* App Layout with Sidebar */}
+      <div className="app-layout">
+        {/* Sidebar Navigation */}
+        <nav className="sidebar-nav">
+          <div className="nav-logo">
+            <span className="nav-logo-icon">🛡️</span>
+            <span className="nav-logo-text">Cloudyx</span>
+          </div>
+          
+          {/* Dashboard Section */}
+          <div className="nav-section">
+            <button 
+              className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              <span className="nav-icon">📊</span>
+              <span className="nav-text">Dashboard</span>
+            </button>
+          </div>
 
-      {/* Navigation */}
-      <nav className="nav">
-        <button 
-          className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          <span></span>
-          <span>App Security Overview</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
-          onClick={() => setActiveTab('apps')}
-        >
-          <span></span>
-          <span>Connected Apps</span>
-          <span className="nav-badge">({apps.length})</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
-          onClick={() => setActiveTab('threats')}
-        >
-          <span></span>
-          <span>Risky Permissions</span>
-          <span className="nav-badge">({actionItems.filter(item => !item.completed).length})</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
-          onClick={() => setActiveTab('exposure')}
-        >
-          <span></span>
-          <span>Data Access</span>
-          <span className="nav-badge">({ghostProfiles.length})</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
-          onClick={() => setActiveTab('intel')}
-        >
-          <span></span>
-          <span>Security Alerts</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
-          onClick={() => setActiveTab('policies')}
-        >
-          <span></span>
-          <span>Access Controls</span>
-        </button>
-        <button 
-          className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
-          onClick={() => setActiveTab('threat-info')}
-        >
-          <span></span>
-          <span>Threat Levels Guide</span>
-        </button>
-      </nav>
+          {/* Security Management Section */}
+          <div className="nav-section">
+            <div className="nav-section-header">
+              <span className="section-icon">🔒</span>
+              <span className="section-title">Security Management</span>
+              <span className="section-toggle">▼</span>
+            </div>
+            <div className="nav-section-items">
+              <button 
+                className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
+                onClick={() => setActiveTab('apps')}
+              >
+                <span className="nav-icon">🔗</span>
+                <span className="nav-text">Connected Apps</span>
+                <span className="nav-badge">{apps.length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
+                onClick={() => setActiveTab('threats')}
+              >
+                <span className="nav-icon">⚠️</span>
+                <span className="nav-text">Risky Permissions</span>
+                <span className="nav-badge">{actionItems.filter(item => !item.completed).length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
+                onClick={() => setActiveTab('exposure')}
+              >
+                <span className="nav-icon">🔍</span>
+                <span className="nav-text">Data Access</span>
+                <span className="nav-badge">{ghostProfiles.length}</span>
+              </button>
+            </div>
+          </div>
 
-      {/* Main Content */}
-      <main className="main">
+          {/* Threat Intelligence Section */}
+          <div className="nav-section">
+            <div className="nav-section-header">
+              <span className="section-icon">🚨</span>
+              <span className="section-title">Threat Intelligence</span>
+              <span className="section-toggle">▼</span>
+            </div>
+            <div className="nav-section-items">
+              <button 
+                className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
+                onClick={() => setActiveTab('intel')}
+              >
+                <span className="nav-icon">📡</span>
+                <span className="nav-text">Security Alerts</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
+                onClick={() => setActiveTab('threat-info')}
+              >
+                <span className="nav-icon">📚</span>
+                <span className="nav-text">Threat Guide</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Compliance & Controls Section */}
+          <div className="nav-section">
+            <div className="nav-section-header">
+              <span className="section-icon">⚖️</span>
+              <span className="section-title">Compliance</span>
+              <span className="section-toggle">▼</span>
+            </div>
+            <div className="nav-section-items">
+              <button 
+                className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
+                onClick={() => setActiveTab('policies')}
+              >
+                <span className="nav-icon">🛡️</span>
+                <span className="nav-text">Access Controls</span>
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main className="main-content">
         {activeTab === 'dashboard' && (
           <div className="dashboard">
             {/* Security Status Hero */}
@@ -2274,7 +2316,8 @@ Thank you,
             </div>
           </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
