@@ -1112,10 +1112,6 @@ Thank you,
       <div className="app-layout">
         {/* Sidebar Navigation */}
         <nav className="sidebar-nav">
-          <div className="nav-logo">
-            <span className="nav-logo-icon">🛡️</span>
-            <span className="nav-logo-text">Cloudyx</span>
-          </div>
           
           {/* Dashboard Section */}
           <div className="nav-section">

@@ -1113,9 +1113,7 @@ body {
     overflow-y: visible;
   }
   
-  .nav-logo {
-    padding: 1rem;
-  }
+  /* Nav logo removed - logo now only in header */
   
   .nav-section-header {
     padding: 0.5rem 1rem;
@@ -1151,27 +1149,10 @@ body {
   flex-direction: column;
   overflow-y: auto;
   flex-shrink: 0;
+  padding-top: 1rem;
 }
 
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 1rem;
-}
-
-.nav-logo-icon {
-  font-size: 1.5rem;
-  color: var(--primary-color);
-}
-
-.nav-logo-text {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
+/* Remove nav-logo styles as logo is now in header only */
 
 /* Navigation Sections */
 .nav-section {
