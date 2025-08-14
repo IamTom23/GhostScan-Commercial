@@ -474,7 +474,21 @@ function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [hasData, setHasData] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  
+  // State for dropdown sections - all expanded by default
+  const [expandedSections, setExpandedSections] = useState({
+    securityManagement: true,
+    threatIntelligence: true,
+    compliance: true
+  });
 
+  // Toggle dropdown sections
+  const toggleSection = (sectionKey: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
 
   // Load demo data from backend API on component mount
   useEffect(() => {
@@ -1126,12 +1140,17 @@ Thank you,
 
           {/* Security Management Section */}
           <div className="nav-section">
-            <div className="nav-section-header">
+            <div 
+              className="nav-section-header"
+              onClick={() => toggleSection('securityManagement')}
+            >
               <span className="section-icon">🔒</span>
               <span className="section-title">Security Management</span>
-              <span className="section-toggle">▼</span>
+              <span className={`section-toggle ${expandedSections.securityManagement ? 'expanded' : 'collapsed'}`}>
+                {expandedSections.securityManagement ? '▼' : '▶'}
+              </span>
             </div>
-            <div className="nav-section-items">
+            <div className={`nav-section-items ${expandedSections.securityManagement ? 'expanded' : 'collapsed'}`}>
               <button 
                 className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
                 onClick={() => setActiveTab('apps')}
@@ -1161,12 +1180,17 @@ Thank you,
 
           {/* Threat Intelligence Section */}
           <div className="nav-section">
-            <div className="nav-section-header">
+            <div 
+              className="nav-section-header"
+              onClick={() => toggleSection('threatIntelligence')}
+            >
               <span className="section-icon">🚨</span>
               <span className="section-title">Threat Intelligence</span>
-              <span className="section-toggle">▼</span>
+              <span className={`section-toggle ${expandedSections.threatIntelligence ? 'expanded' : 'collapsed'}`}>
+                {expandedSections.threatIntelligence ? '▼' : '▶'}
+              </span>
             </div>
-            <div className="nav-section-items">
+            <div className={`nav-section-items ${expandedSections.threatIntelligence ? 'expanded' : 'collapsed'}`}>
               <button 
                 className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
                 onClick={() => setActiveTab('intel')}
@@ -1186,12 +1210,17 @@ Thank you,
 
           {/* Compliance & Controls Section */}
           <div className="nav-section">
-            <div className="nav-section-header">
+            <div 
+              className="nav-section-header"
+              onClick={() => toggleSection('compliance')}
+            >
               <span className="section-icon">⚖️</span>
               <span className="section-title">Compliance</span>
-              <span className="section-toggle">▼</span>
+              <span className={`section-toggle ${expandedSections.compliance ? 'expanded' : 'collapsed'}`}>
+                {expandedSections.compliance ? '▼' : '▶'}
+              </span>
             </div>
-            <div className="nav-section-items">
+            <div className={`nav-section-items ${expandedSections.compliance ? 'expanded' : 'collapsed'}`}>
               <button 
                 className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
                 onClick={() => setActiveTab('policies')}
