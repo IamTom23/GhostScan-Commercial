@@ -5386,3 +5386,57 @@ button {
   background: var(--success-color);
   color: white;
 }
+
+/* Enhanced modal content styles */
+.risk-factor {
+  border-left: 4px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.risk-factor.risk-critical {
+  border-left-color: var(--danger-color);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.risk-factor.risk-medium {
+  border-left-color: var(--warning-color);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.risk-factor.risk-positive {
+  border-left-color: var(--success-color);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.factor-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+}
+
+.detail-item {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.rec-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.rec-time,
+.rec-impact {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.rec-impact {
+  color: var(--success-color);
+}

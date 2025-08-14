@@ -2619,6 +2619,401 @@ Thank you,
         )}
         </main>
       </div>
+
+      {/* Security Score Detail Modal */}
+      {activeScoreModal && (
+        <div className="modal-overlay" onClick={() => setActiveScoreModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {activeScoreModal === 'oauth' && 'OAuth Risk Analysis'}
+                {activeScoreModal === 'exposure' && 'Data Exposure Assessment'}
+                {activeScoreModal === 'compliance' && 'Compliance Overview'}
+                {activeScoreModal === 'access' && 'Access Control Review'}
+              </h2>
+              <button className="modal-close" onClick={() => setActiveScoreModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              {activeScoreModal === 'oauth' && (
+                <div className="score-detail">
+                  <div className="score-overview">
+                    <div className="score-circle-large" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).color }}>
+                      <span className="score-grade-large">{getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).grade}</span>
+                      <span className="score-number-large">{securityScoreBreakdown.dimensions.oauthRiskScore}/100</span>
+                    </div>
+                    <div className="score-description">
+                      <h3>OAuth Security Assessment</h3>
+                      <p>Comprehensive analysis of your application permissions and OAuth connection security across all connected services.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="score-breakdown">
+                    <h4>Risk Factors Analysis</h4>
+                    <div className="risk-factors">
+                      <div className="risk-factor risk-critical">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">High-Risk Applications</span>
+                          <span className="factor-impact">-15 points</span>
+                        </div>
+                        <p>2 connected applications (Grammarly, MailChimp) have extensive permissions and security vulnerabilities in their recent history.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Grammarly: Access to all documents and emails</span>
+                          <span className="detail-item">• MailChimp: Contact list and email content access</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-medium">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Excessive Permissions</span>
+                          <span className="factor-impact">-10 points</span>
+                        </div>
+                        <p>3 applications have broader permissions than necessary for their core functionality.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Slack: Calendar access not utilized</span>
+                          <span className="detail-item">• Zoom: Contact list access unnecessary</span>
+                          <span className="detail-item">• Figma: Email access unused</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-positive">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">MFA Protection</span>
+                          <span className="factor-impact">+5 points</span>
+                        </div>
+                        <p>85% of critical applications are protected by multi-factor authentication.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Google Workspace: MFA enabled</span>
+                          <span className="detail-item">• Microsoft 365: MFA enabled</span>
+                          <span className="detail-item">• Salesforce: MFA enabled</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recommendations">
+                    <h4>Priority Recommendations</h4>
+                    <div className="recommendation-list">
+                      <div className="recommendation">
+                        <span className="rec-priority high">High Priority</span>
+                        <div className="rec-content">
+                          <h5>Review Grammarly Permissions</h5>
+                          <p>Grammarly currently has access to all documents and emails. Consider limiting scope or switching to Grammarly Business for better security controls.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 10 minutes</span>
+                            <span className="rec-impact">Impact: +8 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recommendation">
+                        <span className="rec-priority medium">Medium Priority</span>
+                        <div className="rec-content">
+                          <h5>Audit Unused Permissions</h5>
+                          <p>Remove calendar access from Slack and contact access from Zoom as these permissions are not being utilized.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 15 minutes</span>
+                            <span className="rec-impact">Impact: +5 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recommendation">
+                        <span className="rec-priority low">Low Priority</span>
+                        <div className="rec-content">
+                          <h5>Enable MFA for Remaining Apps</h5>
+                          <p>Complete MFA setup for the remaining 15% of applications to achieve full security coverage.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 20 minutes</span>
+                            <span className="rec-impact">Impact: +2 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeScoreModal === 'exposure' && (
+                <div className="score-detail">
+                  <div className="score-overview">
+                    <div className="score-circle-large" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).color }}>
+                      <span className="score-grade-large">{getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).grade}</span>
+                      <span className="score-number-large">{securityScoreBreakdown.dimensions.dataExposureScore}/100</span>
+                    </div>
+                    <div className="score-description">
+                      <h3>Data Exposure Analysis</h3>
+                      <p>Assessment of your organization's data exposure risk through breaches, public databases, and data sharing practices.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="score-breakdown">
+                    <h4>Exposure Assessment</h4>
+                    <div className="risk-factors">
+                      <div className="risk-factor risk-critical">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Recent Data Breaches</span>
+                          <span className="factor-impact">-20 points</span>
+                        </div>
+                        <p>1 connected service experienced a data breach affecting your organization in the last 12 months.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• MailChimp breach (August 2024): Email addresses exposed</span>
+                          <span className="detail-item">• Estimated records affected: 2,500</span>
+                          <span className="detail-item">• Data types: Email addresses, names, subscription status</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-medium">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Public Data Findings</span>
+                          <span className="factor-impact">-5 points</span>
+                        </div>
+                        <p>Employee information found in public databases and social networks.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• LinkedIn data scraping: 12 employee profiles</span>
+                          <span className="detail-item">• GitHub commits: 3 developer emails exposed</span>
+                          <span className="detail-item">• Conference speaker lists: Executive contact info</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-positive">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Data Protection Measures</span>
+                          <span className="factor-impact">+10 points</span>
+                        </div>
+                        <p>Strong data protection practices and minimal voluntary data sharing.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• No public company directories</span>
+                          <span className="detail-item">• Privacy-focused website analytics</span>
+                          <span className="detail-item">• Minimal social media business presence</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recommendations">
+                    <h4>Data Protection Actions</h4>
+                    <div className="recommendation-list">
+                      <div className="recommendation">
+                        <span className="rec-priority high">High Priority</span>
+                        <div className="rec-content">
+                          <h5>Address MailChimp Breach Impact</h5>
+                          <p>Update affected customer communications and consider migrating to a more secure email platform.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 2 hours</span>
+                            <span className="rec-impact">Impact: +15 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recommendation">
+                        <span className="rec-priority medium">Medium Priority</span>
+                        <div className="rec-content">
+                          <h5>Implement Data Monitoring</h5>
+                          <p>Set up alerts for when company information appears in new data breaches or public databases.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 30 minutes</span>
+                            <span className="rec-impact">Impact: +3 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeScoreModal === 'compliance' && (
+                <div className="score-detail">
+                  <div className="score-overview">
+                    <div className="score-circle-large" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color }}>
+                      <span className="score-grade-large">{getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).grade}</span>
+                      <span className="score-number-large">{securityScoreBreakdown.dimensions.complianceScore}/100</span>
+                    </div>
+                    <div className="score-description">
+                      <h3>Compliance Assessment</h3>
+                      <p>Evaluation of your adherence to security frameworks and regulatory requirements across multiple standards.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="score-breakdown">
+                    <h4>Framework Compliance</h4>
+                    <div className="risk-factors">
+                      <div className="risk-factor risk-positive">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">GDPR Compliance</span>
+                          <span className="factor-impact">+15 points</span>
+                        </div>
+                        <p>Strong data protection practices and comprehensive user consent management.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Privacy policy updated and comprehensive</span>
+                          <span className="detail-item">• Cookie consent implemented</span>
+                          <span className="detail-item">• Data processing agreements in place</span>
+                          <span className="detail-item">• Right to deletion procedures established</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-medium">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">SOC 2 Readiness</span>
+                          <span className="factor-impact">-5 points</span>
+                        </div>
+                        <p>Some security controls need documentation and formalization for SOC 2 compliance.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Incident response plan needs documentation</span>
+                          <span className="detail-item">• Access control procedures require formalization</span>
+                          <span className="detail-item">• Monitoring and logging partially implemented</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-positive">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">ISO 27001 Elements</span>
+                          <span className="factor-impact">+8 points</span>
+                        </div>
+                        <p>Several key information security management practices already in place.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Risk assessment framework established</span>
+                          <span className="detail-item">• Security awareness training conducted</span>
+                          <span className="detail-item">• Regular security reviews performed</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recommendations">
+                    <h4>Compliance Improvements</h4>
+                    <div className="recommendation-list">
+                      <div className="recommendation">
+                        <span className="rec-priority medium">Medium Priority</span>
+                        <div className="rec-content">
+                          <h5>Document Security Policies</h5>
+                          <p>Create formal documentation for incident response and access control procedures to improve SOC 2 readiness.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 4 hours</span>
+                            <span className="rec-impact">Impact: +8 compliance points</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recommendation">
+                        <span className="rec-priority low">Low Priority</span>
+                        <div className="rec-content">
+                          <h5>Enhance Monitoring & Logging</h5>
+                          <p>Implement comprehensive security event logging and monitoring to meet SOC 2 requirements.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 6 hours</span>
+                            <span className="rec-impact">Impact: +5 compliance points</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeScoreModal === 'access' && (
+                <div className="score-detail">
+                  <div className="score-overview">
+                    <div className="score-circle-large" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).color }}>
+                      <span className="score-grade-large">{getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).grade}</span>
+                      <span className="score-number-large">{securityScoreBreakdown.dimensions.accessControlScore}/100</span>
+                    </div>
+                    <div className="score-description">
+                      <h3>Access Control Analysis</h3>
+                      <p>Comprehensive assessment of authentication security and authorization controls across all your systems and applications.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="score-breakdown">
+                    <h4>Access Control Assessment</h4>
+                    <div className="risk-factors">
+                      <div className="risk-factor risk-positive">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Multi-Factor Authentication</span>
+                          <span className="factor-impact">+20 points</span>
+                        </div>
+                        <p>Excellent MFA adoption across critical business systems and applications.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Google Workspace: MFA enforced (100% coverage)</span>
+                          <span className="detail-item">• Microsoft 365: MFA enforced (100% coverage)</span>
+                          <span className="detail-item">• Salesforce: MFA enforced (100% coverage)</span>
+                          <span className="detail-item">• GitHub: MFA enforced for all developers</span>
+                          <span className="detail-item">• AWS Console: MFA required for all users</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-medium">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Password Policy Gaps</span>
+                          <span className="factor-impact">-5 points</span>
+                        </div>
+                        <p>Some systems lack comprehensive password requirements and rotation policies.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• MailChimp: Basic password requirements</span>
+                          <span className="detail-item">• Figma: No enforced password rotation</span>
+                          <span className="detail-item">• Slack: Weak password complexity rules</span>
+                        </div>
+                      </div>
+                      <div className="risk-factor risk-positive">
+                        <div className="factor-header">
+                          <span className="factor-icon"></span>
+                          <span className="factor-name">Role-Based Access Control</span>
+                          <span className="factor-impact">+10 points</span>
+                        </div>
+                        <p>Well-implemented role-based permissions and principle of least privilege.</p>
+                        <div className="factor-details">
+                          <span className="detail-item">• Google Workspace: Role-based admin controls</span>
+                          <span className="detail-item">• AWS: IAM roles properly configured</span>
+                          <span className="detail-item">• Salesforce: Profile-based access controls</span>
+                          <span className="detail-item">• Regular access reviews conducted quarterly</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="recommendations">
+                    <h4>Access Control Improvements</h4>
+                    <div className="recommendation-list">
+                      <div className="recommendation">
+                        <span className="rec-priority high">High Priority</span>
+                        <div className="rec-content">
+                          <h5>Strengthen Password Policies</h5>
+                          <p>Implement stronger password requirements and rotation policies for MailChimp, Figma, and Slack.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 1 hour</span>
+                            <span className="rec-impact">Impact: +8 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recommendation">
+                        <span className="rec-priority medium">Medium Priority</span>
+                        <div className="rec-content">
+                          <h5>Implement Single Sign-On</h5>
+                          <p>Consider implementing SSO for remaining applications to centralize access control and improve security.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 3 hours</span>
+                            <span className="rec-impact">Impact: +5 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="recommendation">
+                        <span className="rec-priority low">Low Priority</span>
+                        <div className="rec-content">
+                          <h5>Automated Access Reviews</h5>
+                          <p>Set up automated quarterly access reviews to ensure permissions remain appropriate.</p>
+                          <div className="rec-actions">
+                            <span className="rec-time">Est. time: 2 hours</span>
+                            <span className="rec-impact">Impact: +3 security points</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
