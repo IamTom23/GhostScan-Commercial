@@ -484,11 +484,6 @@ function App() {
 
   // State for security score modals
   const [activeScoreModal, setActiveScoreModal] = useState<string | null>(null);
-  
-  // Debug log (temporary)
-  if (activeScoreModal) {
-    console.log('Active modal:', activeScoreModal);
-  }
 
   // Toggle dropdown sections
   const toggleSection = (sectionKey: keyof typeof expandedSections) => {
