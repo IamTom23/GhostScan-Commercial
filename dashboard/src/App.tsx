@@ -51,6 +51,72 @@ interface BreachAlert {
   isNew: boolean;
 }
 
+// Enhanced CASB Interfaces
+interface DLPAlert {
+  id: string;
+  appId: string;
+  appName: string;
+  alertType: 'SENSITIVE_DATA_SHARED' | 'POLICY_VIOLATION' | 'UNUSUAL_DOWNLOAD' | 'EXTERNAL_SHARE';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  timestamp: Date;
+  userEmail: string;
+  dataTypes: string[];
+  fileName?: string;
+  fileSize?: number;
+  externalDomains?: string[];
+  policyViolated: string;
+  actionTaken: 'BLOCKED' | 'QUARANTINED' | 'ALLOWED' | 'PENDING_REVIEW';
+  status: 'NEW' | 'INVESTIGATING' | 'RESOLVED' | 'FALSE_POSITIVE';
+  riskScore: number;
+}
+
+interface ShadowITApp {
+  id: string;
+  name: string;
+  domain: string;
+  discoveredVia: 'NETWORK_TRAFFIC' | 'DNS_LOGS' | 'BROWSER_EXTENSION' | 'OAUTH_LOGS';
+  userCount: number;
+  dataTypes: string[];
+  riskScore: number;
+  riskFactors: string[];
+  businessJustification?: string;
+  approvalStatus: 'APPROVED' | 'REJECTED' | 'PENDING' | 'UNDER_REVIEW';
+  firstSeen: Date;
+  lastActivity: Date;
+  estimatedSpend?: number;
+}
+
+interface UserBehaviorAnalytic {
+  id: string;
+  userId: string;
+  userEmail: string;
+  anomalyType: 'UNUSUAL_LOGIN_TIME' | 'UNUSUAL_LOCATION' | 'MASS_DOWNLOAD' | 'EXTERNAL_SHARING_SPIKE' | 'NEW_APP_ACCESS';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  timestamp: Date;
+  description: string;
+  baselinePeriod: string;
+  currentActivity: string;
+  confidenceScore: number;
+  affectedApps: string[];
+  ipAddress?: string;
+  location?: string;
+  deviceInfo?: string;
+}
+
+interface ThreatProtectionAlert {
+  id: string;
+  appId: string;
+  appName: string;
+  threatType: 'MALWARE_DETECTED' | 'PHISHING_ATTEMPT' | 'SUSPICIOUS_LOGIN' | 'DATA_EXFILTRATION' | 'ACCOUNT_TAKEOVER';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  timestamp: Date;
+  userEmail: string;
+  threatSource: string;
+  indicators: string[];
+  actionTaken: 'BLOCKED' | 'QUARANTINED' | 'USER_NOTIFIED' | 'ADMIN_REVIEW';
+  status: 'ACTIVE' | 'MITIGATED' | 'FALSE_POSITIVE';
+  remediationSteps: string[];
+}
 
 // Threat Intelligence Interfaces
 interface ThreatFeed {
@@ -503,6 +569,196 @@ const mockProgressData = {
   streakDays: 7,
 };
 
+// Enhanced CASB Mock Data
+const mockDLPAlerts: DLPAlert[] = [
+  {
+    id: 'dlp001',
+    appId: 'gdrive001',
+    appName: 'Google Drive',
+    alertType: 'SENSITIVE_DATA_SHARED',
+    severity: 'HIGH',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    userEmail: 'sarah.chen@company.com',
+    dataTypes: ['Credit Card Numbers', 'SSN'],
+    fileName: 'customer_payment_data.xlsx',
+    fileSize: 2.4,
+    externalDomains: ['contractor-firm.com'],
+    policyViolated: 'PCI Data Protection Policy',
+    actionTaken: 'BLOCKED',
+    status: 'NEW',
+    riskScore: 87
+  },
+  {
+    id: 'dlp002',
+    appId: 'slack001',
+    appName: 'Slack',
+    alertType: 'EXTERNAL_SHARE',
+    severity: 'MEDIUM',
+    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    userEmail: 'mike.rodriguez@company.com',
+    dataTypes: ['API Keys', 'Internal Docs'],
+    policyViolated: 'External Sharing Policy',
+    actionTaken: 'QUARANTINED',
+    status: 'INVESTIGATING',
+    riskScore: 64
+  },
+  {
+    id: 'dlp003',
+    appId: 'dropbox001',
+    appName: 'Dropbox',
+    alertType: 'UNUSUAL_DOWNLOAD',
+    severity: 'CRITICAL',
+    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    userEmail: 'alex.thompson@company.com',
+    dataTypes: ['Employee Records', 'Financial Data'],
+    fileName: 'Q4_financials_CONFIDENTIAL.pdf',
+    fileSize: 15.7,
+    policyViolated: 'Mass Download Prevention Policy',
+    actionTaken: 'PENDING_REVIEW',
+    status: 'NEW',
+    riskScore: 92
+  }
+];
+
+const mockShadowITApps: ShadowITApp[] = [
+  {
+    id: 'shadow001',
+    name: 'Loom',
+    domain: 'loom.com',
+    discoveredVia: 'OAUTH_LOGS',
+    userCount: 23,
+    dataTypes: ['Video Recordings', 'Meeting Content'],
+    riskScore: 45,
+    riskFactors: ['No SSO Integration', 'No DLP Support', 'Limited Admin Controls'],
+    approvalStatus: 'PENDING',
+    firstSeen: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    estimatedSpend: 299
+  },
+  {
+    id: 'shadow002',
+    name: 'Notion',
+    domain: 'notion.so',
+    discoveredVia: 'NETWORK_TRAFFIC',
+    userCount: 89,
+    dataTypes: ['Documents', 'Project Data', 'Personal Notes'],
+    riskScore: 72,
+    riskFactors: ['High Data Exposure', 'External Collaboration', 'No Data Classification'],
+    businessJustification: 'Product team project management',
+    approvalStatus: 'UNDER_REVIEW',
+    firstSeen: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    lastActivity: new Date(Date.now() - 15 * 60 * 1000),
+    estimatedSpend: 1200
+  },
+  {
+    id: 'shadow003',
+    name: 'Figma',
+    domain: 'figma.com',
+    discoveredVia: 'BROWSER_EXTENSION',
+    userCount: 12,
+    dataTypes: ['Design Files', 'Product Mockups'],
+    riskScore: 38,
+    riskFactors: ['Limited Audit Logs', 'Public Link Sharing'],
+    businessJustification: 'Design team collaboration tool',
+    approvalStatus: 'APPROVED',
+    firstSeen: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+    lastActivity: new Date(Date.now() - 30 * 60 * 1000),
+    estimatedSpend: 180
+  }
+];
+
+const mockUserBehaviorAnalytics: UserBehaviorAnalytic[] = [
+  {
+    id: 'uba001',
+    userId: 'u001',
+    userEmail: 'john.doe@company.com',
+    anomalyType: 'MASS_DOWNLOAD',
+    severity: 'HIGH',
+    timestamp: new Date(Date.now() - 45 * 60 * 1000),
+    description: 'Downloaded 47 files (2.3GB) from Google Drive in 10 minutes',
+    baselinePeriod: 'Average: 3 files per day',
+    currentActivity: '47 files in 10 minutes',
+    confidenceScore: 94,
+    affectedApps: ['Google Drive'],
+    ipAddress: '192.168.1.45',
+    location: 'San Francisco, CA',
+    deviceInfo: 'MacBook Pro (Chrome)'
+  },
+  {
+    id: 'uba002',
+    userId: 'u002',
+    userEmail: 'lisa.wang@company.com',
+    anomalyType: 'UNUSUAL_LOGIN_TIME',
+    severity: 'MEDIUM',
+    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    description: 'Login to Office 365 at 2:47 AM (outside normal hours)',
+    baselinePeriod: 'Typical login: 8:30 AM - 6:00 PM',
+    currentActivity: 'Login at 2:47 AM',
+    confidenceScore: 78,
+    affectedApps: ['Office 365', 'SharePoint'],
+    ipAddress: '203.45.67.12',
+    location: 'Bangkok, Thailand',
+    deviceInfo: 'Unknown Device (Firefox)'
+  },
+  {
+    id: 'uba003',
+    userId: 'u003',
+    userEmail: 'carlos.rivera@company.com',
+    anomalyType: 'EXTERNAL_SHARING_SPIKE',
+    severity: 'HIGH',
+    timestamp: new Date(Date.now() - 90 * 60 * 1000),
+    description: 'Shared 15 documents externally in past hour',
+    baselinePeriod: 'Average: 1 external share per week',
+    currentActivity: '15 external shares in 1 hour',
+    confidenceScore: 89,
+    affectedApps: ['Google Drive', 'Slack'],
+    ipAddress: '10.0.1.123',
+    location: 'Austin, TX',
+    deviceInfo: 'Windows 11 (Edge)'
+  }
+];
+
+const mockThreatProtectionAlerts: ThreatProtectionAlert[] = [
+  {
+    id: 'threat001',
+    appId: 'outlook001',
+    appName: 'Office 365',
+    threatType: 'PHISHING_ATTEMPT',
+    severity: 'CRITICAL',
+    timestamp: new Date(Date.now() - 15 * 60 * 1000),
+    userEmail: 'jennifer.kim@company.com',
+    threatSource: 'malicious-sender@fake-bank.com',
+    indicators: ['Suspicious URL', 'Credential Harvesting', 'Domain Spoofing'],
+    actionTaken: 'BLOCKED',
+    status: 'ACTIVE',
+    remediationSteps: [
+      'Email blocked and quarantined',
+      'User notified of phishing attempt',
+      'IT security team alerted',
+      'Domain added to block list'
+    ]
+  },
+  {
+    id: 'threat002',
+    appId: 'gdrive001',
+    appName: 'Google Drive',
+    threatType: 'MALWARE_DETECTED',
+    severity: 'HIGH',
+    timestamp: new Date(Date.now() - 60 * 60 * 1000),
+    userEmail: 'david.johnson@company.com',
+    threatSource: 'uploaded_presentation.pptx',
+    indicators: ['Macro Malware', 'Trojan.Win32.Agent', 'Suspicious Behavior'],
+    actionTaken: 'QUARANTINED',
+    status: 'MITIGATED',
+    remediationSteps: [
+      'File quarantined automatically',
+      'Endpoint security scan initiated',
+      'User device isolated from network',
+      'Incident response team engaged'
+    ]
+  }
+];
+
 // Threat Intelligence Mock Data
 const mockThreatFeeds: ThreatFeed[] = [
   {
@@ -804,6 +1060,12 @@ function App() {
   const [actionItems, setActionItems] = useState<any[]>([]);
   const [progressData] = useState(mockProgressData);
   
+  // Enhanced CASB State
+  const [dlpAlerts, setDlpAlerts] = useState<DLPAlert[]>([]);
+  const [shadowITApps, setShadowITApps] = useState<ShadowITApp[]>([]);
+  const [userBehaviorAnalytics, setUserBehaviorAnalytics] = useState<UserBehaviorAnalytic[]>([]);
+  const [threatProtectionAlerts, setThreatProtectionAlerts] = useState<ThreatProtectionAlert[]>([]);
+
   // Threat Intelligence State
   const [threatFeeds, setThreatFeeds] = useState<ThreatFeed[]>([]);
   const [securityAlerts, setSecurityAlerts] = useState<SecurityAlert[]>([]);
@@ -817,6 +1079,7 @@ function App() {
   // State for dropdown sections - all expanded by default
   const [expandedSections, setExpandedSections] = useState({
     securityManagement: true,
+    casb: true,
     threatIntelligence: true,
     compliance: true
   });
@@ -1048,7 +1311,11 @@ function App() {
         setApps(fallbackApps);
         setActionItems(fallbackActions);
         
-        // Load threat intelligence data
+        // Load CASB and threat intelligence data
+        setDlpAlerts(mockDLPAlerts);
+        setShadowITApps(mockShadowITApps);
+        setUserBehaviorAnalytics(mockUserBehaviorAnalytics);
+        setThreatProtectionAlerts(mockThreatProtectionAlerts);
         setThreatFeeds(mockThreatFeeds);
         setSecurityAlerts(mockSecurityAlerts);
         setVulnerabilityScans(mockVulnerabilityScans);
@@ -1084,7 +1351,11 @@ function App() {
             setBreachAlerts(dashboardData.breachAlerts);
             setActionItems(dashboardData.actions);
             
-            // Load threat intelligence data
+            // Load CASB and threat intelligence data
+            setDlpAlerts(mockDLPAlerts);
+            setShadowITApps(mockShadowITApps);
+            setUserBehaviorAnalytics(mockUserBehaviorAnalytics);
+            setThreatProtectionAlerts(mockThreatProtectionAlerts);
             setThreatFeeds(mockThreatFeeds);
             setSecurityAlerts(mockSecurityAlerts);
             setVulnerabilityScans(mockVulnerabilityScans);
@@ -1501,6 +1772,54 @@ function App() {
                 <span className="nav-icon"></span>
                 <span className="nav-text">Data Access</span>
                 <span className="nav-badge">0</span>
+              </button>
+            </div>
+          </div>
+
+          {/* CASB Security Section */}
+          <div className="nav-section">
+            <div 
+              className="nav-section-header"
+              onClick={() => toggleSection('casb')}
+            >
+              <span className="section-icon"></span>
+              <span className="section-title">CASB Security</span>
+              <span className={`section-toggle ${expandedSections.casb ? 'expanded' : 'collapsed'}`}>
+                {expandedSections.casb ? '▼' : '▶'}
+              </span>
+            </div>
+            <div className={`nav-section-content ${expandedSections.casb ? 'expanded' : 'collapsed'}`}>
+              <button 
+                className={`nav-item ${activeTab === 'dlp-alerts' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dlp-alerts')}
+              >
+                <span className="nav-icon"></span>
+                <span className="nav-text">DLP Alerts</span>
+                <span className="nav-badge">{dlpAlerts.filter(a => a.status === 'NEW').length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'shadow-it' ? 'active' : ''}`}
+                onClick={() => setActiveTab('shadow-it')}
+              >
+                <span className="nav-icon"></span>
+                <span className="nav-text">Shadow IT</span>
+                <span className="nav-badge">{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'behavior-analytics' ? 'active' : ''}`}
+                onClick={() => setActiveTab('behavior-analytics')}
+              >
+                <span className="nav-icon"></span>
+                <span className="nav-text">User Behavior</span>
+                <span className="nav-badge">{userBehaviorAnalytics.filter(uba => uba.severity === 'HIGH' || uba.severity === 'CRITICAL').length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'threat-protection' ? 'active' : ''}`}
+                onClick={() => setActiveTab('threat-protection')}
+              >
+                <span className="nav-icon"></span>
+                <span className="nav-text">Threat Protection</span>
+                <span className="nav-badge">{threatProtectionAlerts.filter(t => t.status === 'ACTIVE').length}</span>
               </button>
             </div>
           </div>
@@ -2400,6 +2719,318 @@ function App() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced CASB Security Sections */}
+        {activeTab === 'dlp-alerts' && (
+          <div className="dlp-alerts-view">
+            <h2>Data Loss Prevention Alerts</h2>
+            <div className="alerts-summary">
+              <div className="summary-card critical">
+                <h3>{dlpAlerts.filter(a => a.severity === 'CRITICAL').length}</h3>
+                <p>Critical Alerts</p>
+              </div>
+              <div className="summary-card high">
+                <h3>{dlpAlerts.filter(a => a.severity === 'HIGH').length}</h3>
+                <p>High Risk</p>
+              </div>
+              <div className="summary-card blocked">
+                <h3>{dlpAlerts.filter(a => a.actionTaken === 'BLOCKED').length}</h3>
+                <p>Blocked Actions</p>
+              </div>
+            </div>
+            <div className="alerts-list">
+              {dlpAlerts.map(alert => (
+                <div key={alert.id} className={`alert-card severity-${alert.severity.toLowerCase()}`}>
+                  <div className="alert-header">
+                    <div className="alert-info">
+                      <h3>{alert.appName} - {alert.alertType.replace(/_/g, ' ')}</h3>
+                      <p>{alert.userEmail} • {new Date(alert.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="alert-badges">
+                      <span className={`severity-badge ${alert.severity.toLowerCase()}`}>{alert.severity}</span>
+                      <span className={`action-badge ${alert.actionTaken.toLowerCase()}`}>{alert.actionTaken}</span>
+                    </div>
+                  </div>
+                  <div className="alert-details">
+                    <div className="detail-section">
+                      <strong>Policy Violated:</strong>
+                      <p>{alert.policyViolated}</p>
+                    </div>
+                    {alert.fileName && (
+                      <div className="detail-section">
+                        <strong>File:</strong>
+                        <p>{alert.fileName} ({alert.fileSize}MB)</p>
+                      </div>
+                    )}
+                    <div className="detail-section">
+                      <strong>Data Types:</strong>
+                      <div className="data-types">
+                        {alert.dataTypes.map(type => (
+                          <span key={type} className="data-type-tag">{type}</span>
+                        ))}
+                      </div>
+                    </div>
+                    {alert.externalDomains && (
+                      <div className="detail-section">
+                        <strong>External Domains:</strong>
+                        <div className="external-domains">
+                          {alert.externalDomains.map(domain => (
+                            <span key={domain} className="domain-tag">{domain}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="alert-actions">
+                    <button className="action-btn primary">Investigate</button>
+                    <button className="action-btn secondary">Mark Resolved</button>
+                    <button className="action-btn tertiary">False Positive</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'shadow-it' && (
+          <div className="shadow-it-view">
+            <h2>Shadow IT Discovery</h2>
+            <div className="shadow-summary">
+              <div className="summary-card total">
+                <h3>{shadowITApps.length}</h3>
+                <p>Apps Discovered</p>
+              </div>
+              <div className="summary-card pending">
+                <h3>{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</h3>
+                <p>Awaiting Review</p>
+              </div>
+              <div className="summary-card high-risk">
+                <h3>{shadowITApps.filter(app => app.riskScore > 70).length}</h3>
+                <p>High Risk</p>
+              </div>
+              <div className="summary-card spend">
+                <h3>${shadowITApps.reduce((sum, app) => sum + (app.estimatedSpend || 0), 0).toLocaleString()}</h3>
+                <p>Est. Annual Spend</p>
+              </div>
+            </div>
+            <div className="shadow-apps-list">
+              {shadowITApps.map(app => (
+                <div key={app.id} className="shadow-app-card">
+                  <div className="app-header">
+                    <div className="app-info">
+                      <h3>{app.name}</h3>
+                      <p>{app.domain} • {app.userCount} users</p>
+                    </div>
+                    <div className="app-badges">
+                      <span className={`risk-badge ${app.riskScore > 70 ? 'high' : app.riskScore > 40 ? 'medium' : 'low'}`}>
+                        Risk: {app.riskScore}
+                      </span>
+                      <span className={`approval-badge ${app.approvalStatus.toLowerCase()}`}>
+                        {app.approvalStatus}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="app-details">
+                    <div className="detail-row">
+                      <strong>Discovered via:</strong> {app.discoveredVia.replace(/_/g, ' ')}
+                    </div>
+                    <div className="detail-row">
+                      <strong>First seen:</strong> {new Date(app.firstSeen).toLocaleDateString()}
+                    </div>
+                    <div className="detail-row">
+                      <strong>Last activity:</strong> {new Date(app.lastActivity).toLocaleString()}
+                    </div>
+                    {app.estimatedSpend && (
+                      <div className="detail-row">
+                        <strong>Estimated spend:</strong> ${app.estimatedSpend}/month
+                      </div>
+                    )}
+                    <div className="detail-row">
+                      <strong>Data types:</strong>
+                      <div className="data-types">
+                        {app.dataTypes.map(type => (
+                          <span key={type} className="data-type-tag">{type}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Risk factors:</strong>
+                      <ul className="risk-factors">
+                        {app.riskFactors.map(factor => (
+                          <li key={factor}>{factor}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    {app.businessJustification && (
+                      <div className="detail-row">
+                        <strong>Business justification:</strong>
+                        <p>{app.businessJustification}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="app-actions">
+                    <button className="action-btn primary">Approve</button>
+                    <button className="action-btn secondary">Request Justification</button>
+                    <button className="action-btn danger">Block</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'behavior-analytics' && (
+          <div className="behavior-analytics-view">
+            <h2>User Behavior Analytics</h2>
+            <div className="analytics-summary">
+              <div className="summary-card critical">
+                <h3>{userBehaviorAnalytics.filter(uba => uba.severity === 'CRITICAL').length}</h3>
+                <p>Critical Anomalies</p>
+              </div>
+              <div className="summary-card high">
+                <h3>{userBehaviorAnalytics.filter(uba => uba.severity === 'HIGH').length}</h3>
+                <p>High Risk</p>
+              </div>
+              <div className="summary-card active">
+                <h3>{userBehaviorAnalytics.length}</h3>
+                <p>Active Alerts</p>
+              </div>
+            </div>
+            <div className="analytics-list">
+              {userBehaviorAnalytics.map(analytic => (
+                <div key={analytic.id} className={`analytic-card severity-${analytic.severity.toLowerCase()}`}>
+                  <div className="analytic-header">
+                    <div className="user-info">
+                      <h3>{analytic.userEmail}</h3>
+                      <p>{analytic.anomalyType.replace(/_/g, ' ')} • {new Date(analytic.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="analytic-badges">
+                      <span className={`severity-badge ${analytic.severity.toLowerCase()}`}>{analytic.severity}</span>
+                      <span className="confidence-badge">
+                        {analytic.confidenceScore}% confidence
+                      </span>
+                    </div>
+                  </div>
+                  <div className="analytic-details">
+                    <div className="description">
+                      <strong>Description:</strong>
+                      <p>{analytic.description}</p>
+                    </div>
+                    <div className="comparison">
+                      <div className="baseline">
+                        <strong>Baseline:</strong>
+                        <p>{analytic.baselinePeriod}</p>
+                      </div>
+                      <div className="current">
+                        <strong>Current Activity:</strong>
+                        <p>{analytic.currentActivity}</p>
+                      </div>
+                    </div>
+                    <div className="context-info">
+                      {analytic.location && (
+                        <div className="context-item">
+                          <strong>Location:</strong> {analytic.location}
+                        </div>
+                      )}
+                      {analytic.ipAddress && (
+                        <div className="context-item">
+                          <strong>IP Address:</strong> {analytic.ipAddress}
+                        </div>
+                      )}
+                      {analytic.deviceInfo && (
+                        <div className="context-item">
+                          <strong>Device:</strong> {analytic.deviceInfo}
+                        </div>
+                      )}
+                      <div className="context-item">
+                        <strong>Affected Apps:</strong>
+                        <div className="apps-list">
+                          {analytic.affectedApps.map(app => (
+                            <span key={app} className="app-tag">{app}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="analytic-actions">
+                    <button className="action-btn primary">Investigate</button>
+                    <button className="action-btn secondary">Contact User</button>
+                    <button className="action-btn tertiary">Mark Safe</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'threat-protection' && (
+          <div className="threat-protection-view">
+            <h2>Advanced Threat Protection</h2>
+            <div className="protection-summary">
+              <div className="summary-card critical">
+                <h3>{threatProtectionAlerts.filter(t => t.severity === 'CRITICAL').length}</h3>
+                <p>Critical Threats</p>
+              </div>
+              <div className="summary-card active">
+                <h3>{threatProtectionAlerts.filter(t => t.status === 'ACTIVE').length}</h3>
+                <p>Active Threats</p>
+              </div>
+              <div className="summary-card blocked">
+                <h3>{threatProtectionAlerts.filter(t => t.actionTaken === 'BLOCKED').length}</h3>
+                <p>Threats Blocked</p>
+              </div>
+            </div>
+            <div className="threat-alerts-list">
+              {threatProtectionAlerts.map(threat => (
+                <div key={threat.id} className={`threat-card severity-${threat.severity.toLowerCase()}`}>
+                  <div className="threat-header">
+                    <div className="threat-info">
+                      <h3>{threat.appName} - {threat.threatType.replace(/_/g, ' ')}</h3>
+                      <p>{threat.userEmail} • {new Date(threat.timestamp).toLocaleString()}</p>
+                    </div>
+                    <div className="threat-badges">
+                      <span className={`severity-badge ${threat.severity.toLowerCase()}`}>{threat.severity}</span>
+                      <span className={`status-badge ${threat.status.toLowerCase()}`}>{threat.status}</span>
+                    </div>
+                  </div>
+                  <div className="threat-details">
+                    <div className="detail-section">
+                      <strong>Threat Source:</strong>
+                      <p>{threat.threatSource}</p>
+                    </div>
+                    <div className="detail-section">
+                      <strong>Indicators:</strong>
+                      <div className="indicators">
+                        {threat.indicators.map(indicator => (
+                          <span key={indicator} className="indicator-tag">{indicator}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="detail-section">
+                      <strong>Action Taken:</strong>
+                      <span className={`action-badge ${threat.actionTaken.toLowerCase()}`}>
+                        {threat.actionTaken.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="detail-section">
+                      <strong>Remediation Steps:</strong>
+                      <ul className="remediation-steps">
+                        {threat.remediationSteps.map((step, index) => (
+                          <li key={index}>{step}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="threat-actions">
+                    <button className="action-btn primary">View Details</button>
+                    <button className="action-btn secondary">Create Incident</button>
+                    <button className="action-btn tertiary">Mark Resolved</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
