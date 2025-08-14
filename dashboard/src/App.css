@@ -5440,3 +5440,712 @@ button {
 .rec-impact {
   color: var(--success-color);
 }
+
+/* ========================================
+   ENHANCED CASB SECURITY UI STYLES
+   ======================================== */
+
+/* Common CASB Layouts */
+.dlp-alerts-view,
+.shadow-it-view,
+.behavior-analytics-view,
+.threat-protection-view {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dlp-alerts-view h2,
+.shadow-it-view h2,
+.behavior-analytics-view h2,
+.threat-protection-view h2 {
+  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Summary Cards */
+.alerts-summary,
+.shadow-summary,
+.analytics-summary,
+.protection-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+  transform: translateY(-2px);
+}
+
+.summary-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.summary-card p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Severity-based summary cards */
+.summary-card.critical h3 { color: var(--danger-color); }
+.summary-card.high h3 { color: var(--warning-color); }
+.summary-card.blocked h3 { color: var(--danger-color); }
+.summary-card.pending h3 { color: var(--warning-color); }
+.summary-card.active h3 { color: var(--primary-color); }
+.summary-card.total h3 { color: var(--text-primary); }
+.summary-card.high-risk h3 { color: var(--danger-color); }
+.summary-card.spend h3 { color: var(--success-color); }
+
+/* Main Content Lists */
+.alerts-list,
+.shadow-apps-list,
+.analytics-list,
+.threat-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Card Styling */
+.alert-card,
+.shadow-app-card,
+.analytic-card,
+.threat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.alert-card:hover,
+.shadow-app-card:hover,
+.analytic-card:hover,
+.threat-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Severity-based left border indicators */
+.alert-card.severity-critical,
+.analytic-card.severity-critical,
+.threat-card.severity-critical {
+  border-left: 4px solid var(--danger-color);
+}
+
+.alert-card.severity-high,
+.analytic-card.severity-high,
+.threat-card.severity-high {
+  border-left: 4px solid var(--warning-color);
+}
+
+.alert-card.severity-medium,
+.analytic-card.severity-medium,
+.threat-card.severity-medium {
+  border-left: 4px solid #60a5fa;
+}
+
+.alert-card.severity-low,
+.analytic-card.severity-low,
+.threat-card.severity-low {
+  border-left: 4px solid var(--success-color);
+}
+
+/* Card Headers */
+.alert-header,
+.app-header,
+.analytic-header,
+.threat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.alert-info h3,
+.app-info h3,
+.user-info h3,
+.threat-info h3 {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.alert-info p,
+.app-info p,
+.user-info p,
+.threat-info p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Badge Styling */
+.alert-badges,
+.app-badges,
+.analytic-badges,
+.threat-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.severity-badge,
+.action-badge,
+.risk-badge,
+.approval-badge,
+.confidence-badge,
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+/* Severity badges */
+.severity-badge.critical { 
+  background: rgba(239, 68, 68, 0.15); 
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.severity-badge.high { 
+  background: rgba(245, 158, 11, 0.15); 
+  color: var(--warning-color);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.severity-badge.medium { 
+  background: rgba(96, 165, 250, 0.15); 
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+.severity-badge.low { 
+  background: rgba(16, 185, 129, 0.15); 
+  color: var(--success-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Action badges */
+.action-badge.blocked,
+.action-badge.quarantined {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.action-badge.pending_review,
+.action-badge.allowed {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-color);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Risk badges */
+.risk-badge.high {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.risk-badge.medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-color);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.risk-badge.low {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Approval badges */
+.approval-badge.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-color);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.approval-badge.approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.approval-badge.rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.approval-badge.under_review {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Confidence badge */
+.confidence-badge {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Status badges */
+.status-badge.active {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.mitigated {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Detail Sections */
+.alert-details,
+.app-details,
+.analytic-details,
+.threat-details {
+  margin-bottom: 1.5rem;
+}
+
+.detail-section,
+.detail-row {
+  margin-bottom: 1rem;
+}
+
+.detail-section:last-child,
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section strong,
+.detail-row strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.detail-section p,
+.detail-row p {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+/* Description sections */
+.description {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.description strong {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.description p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Data Type Tags */
+.data-types,
+.external-domains,
+.indicators,
+.apps-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.data-type-tag,
+.domain-tag,
+.indicator-tag,
+.app-tag {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+/* Risk Factors List */
+.risk-factors {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.risk-factors li {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  position: relative;
+  padding-left: 1rem;
+  line-height: 1.4;
+}
+
+.risk-factors li::before {
+  content: '•';
+  color: var(--warning-color);
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+/* Remediation Steps */
+.remediation-steps {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.remediation-steps li {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Comparison Layout for Analytics */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.baseline,
+.current {
+  text-align: center;
+}
+
+.baseline strong,
+.current strong {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.baseline p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.current p {
+  color: var(--warning-color);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Context Information */
+.context-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.context-item {
+  font-size: 0.875rem;
+}
+
+.context-item strong {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.context-item {
+  color: var(--text-secondary);
+}
+
+/* Action Buttons */
+.alert-actions,
+.app-actions,
+.analytic-actions,
+.threat-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  background: transparent;
+}
+
+.action-btn.primary {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.action-btn.primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.action-btn.secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.action-btn.secondary:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+
+.action-btn.tertiary {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+.action-btn.tertiary:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.action-btn.danger {
+  background: transparent;
+  color: var(--danger-color);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--danger-color);
+}
+
+/* Empty State Styling */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+}
+
+.empty-state-content h3 {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state-content p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+/* Loading States */
+.casb-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-left: 1rem;
+}
+
+/* Subtle Animations */
+.summary-card,
+.alert-card,
+.shadow-app-card,
+.analytic-card,
+.threat-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.alerts-list > *:nth-child(1) { animation-delay: 0.1s; }
+.alerts-list > *:nth-child(2) { animation-delay: 0.15s; }
+.alerts-list > *:nth-child(3) { animation-delay: 0.2s; }
+
+.shadow-apps-list > *:nth-child(1) { animation-delay: 0.1s; }
+.shadow-apps-list > *:nth-child(2) { animation-delay: 0.15s; }
+.shadow-apps-list > *:nth-child(3) { animation-delay: 0.2s; }
+
+.analytics-list > *:nth-child(1) { animation-delay: 0.1s; }
+.analytics-list > *:nth-child(2) { animation-delay: 0.15s; }
+.analytics-list > *:nth-child(3) { animation-delay: 0.2s; }
+
+.threat-alerts-list > *:nth-child(1) { animation-delay: 0.1s; }
+.threat-alerts-list > *:nth-child(2) { animation-delay: 0.15s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dlp-alerts-view,
+  .shadow-it-view,
+  .behavior-analytics-view,
+  .threat-protection-view {
+    padding: 1rem;
+  }
+  
+  .alerts-summary,
+  .shadow-summary,
+  .analytics-summary,
+  .protection-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .alert-header,
+  .app-header,
+  .analytic-header,
+  .threat-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .comparison {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+  
+  .context-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .alert-actions,
+  .app-actions,
+  .analytic-actions,
+  .threat-actions {
+    flex-direction: column;
+  }
+  
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .alerts-summary,
+  .shadow-summary,
+  .analytics-summary,
+  .protection-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .alert-badges,
+  .app-badges,
+  .analytic-badges,
+  .threat-badges {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

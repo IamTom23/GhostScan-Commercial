@@ -2742,7 +2742,15 @@ function App() {
               </div>
             </div>
             <div className="alerts-list">
-              {dlpAlerts.map(alert => (
+              {dlpAlerts.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-content">
+                    <h3>No DLP Alerts</h3>
+                    <p>All data loss prevention policies are being followed. New alerts will appear here when detected.</p>
+                  </div>
+                </div>
+              ) : (
+                dlpAlerts.map(alert => (
                 <div key={alert.id} className={`alert-card severity-${alert.severity.toLowerCase()}`}>
                   <div className="alert-header">
                     <div className="alert-info">
@@ -2790,7 +2798,8 @@ function App() {
                     <button className="action-btn tertiary">False Positive</button>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
