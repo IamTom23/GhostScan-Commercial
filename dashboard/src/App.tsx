@@ -1818,6 +1818,23 @@ Thank you,
               <h2>Active Security Threats</h2>
               <div className="threat-summary">
                 <button 
+                  className={`summary-item all clickable ${threatFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setThreatFilter('all')}
+                >
+                  <div className="summary-header">
+                    <span className="summary-number">{actionItems.length}</span>
+                  </div>
+                  <span className="summary-label">All</span>
+                  <div className="summary-progress">
+                    <div className="progress-bar-mini">
+                      <div 
+                        className="progress-fill-mini all" 
+                        style={{ width: `${actionItems.length > 0 ? 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </button>
+                <button 
                   className={`summary-item critical clickable ${threatFilter === 'CRITICAL' ? 'active' : ''}`}
                   onClick={() => setThreatFilter(threatFilter === 'CRITICAL' ? 'all' : 'CRITICAL')}
                 >
