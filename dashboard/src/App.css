@@ -1597,7 +1597,7 @@ body {
 
 .scan-button:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .scan-button:hover:not(:disabled)::before {
@@ -2014,7 +2014,7 @@ body {
 .action-btn:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 /* Privacy Tips Section */
@@ -2596,7 +2596,7 @@ body {
 .search-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px var(--border-accent);
 }
 
 .search-input::placeholder {
@@ -2624,7 +2624,7 @@ body {
 .sort-select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 1px var(--border-accent);
 }
 
 .empty-state {
@@ -4217,7 +4217,7 @@ html[style*="--viewport-scale"] {
 }
 
 .action-btn.primary:hover {
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .app-inventory {

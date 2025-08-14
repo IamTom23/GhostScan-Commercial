@@ -1187,7 +1187,7 @@ Thank you,
               className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
             >
-              <span className="nav-icon">📊</span>
+              <span className="nav-icon"></span>
               <span className="nav-text">Dashboard</span>
             </button>
           </div>
@@ -1198,7 +1198,7 @@ Thank you,
               className="nav-section-header"
               onClick={() => toggleSection('securityManagement')}
             >
-              <span className="section-icon">🔒</span>
+              <span className="section-icon"></span>
               <span className="section-title">Security Management</span>
               <span className={`section-toggle ${expandedSections.securityManagement ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.securityManagement ? '▼' : '▶'}
@@ -1209,7 +1209,7 @@ Thank you,
                 className={`nav-item ${activeTab === 'apps' ? 'active' : ''}`}
                 onClick={() => setActiveTab('apps')}
               >
-                <span className="nav-icon">🔗</span>
+                <span className="nav-icon"></span>
                 <span className="nav-text">Connected Apps</span>
                 <span className="nav-badge">{apps.length}</span>
               </button>
@@ -1217,7 +1217,7 @@ Thank you,
                 className={`nav-item ${activeTab === 'threats' ? 'active' : ''}`}
                 onClick={() => setActiveTab('threats')}
               >
-                <span className="nav-icon">⚠️</span>
+                <span className="nav-icon"></span>
                 <span className="nav-text">Risky Permissions</span>
                 <span className="nav-badge">{actionItems.filter(item => !item.completed).length}</span>
               </button>
@@ -1225,7 +1225,7 @@ Thank you,
                 className={`nav-item ${activeTab === 'exposure' ? 'active' : ''}`}
                 onClick={() => setActiveTab('exposure')}
               >
-                <span className="nav-icon">🔍</span>
+                <span className="nav-icon"></span>
                 <span className="nav-text">Data Access</span>
                 <span className="nav-badge">{ghostProfiles.length}</span>
               </button>
@@ -1238,7 +1238,7 @@ Thank you,
               className="nav-section-header"
               onClick={() => toggleSection('threatIntelligence')}
             >
-              <span className="section-icon">🚨</span>
+              <span className="section-icon"></span>
               <span className="section-title">Threat Intelligence</span>
               <span className={`section-toggle ${expandedSections.threatIntelligence ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.threatIntelligence ? '▼' : '▶'}
@@ -1249,14 +1249,14 @@ Thank you,
                 className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
                 onClick={() => setActiveTab('intel')}
               >
-                <span className="nav-icon">📡</span>
+                <span className="nav-icon"></span>
                 <span className="nav-text">Security Alerts</span>
               </button>
               <button 
                 className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
                 onClick={() => setActiveTab('threat-info')}
               >
-                <span className="nav-icon">📚</span>
+                <span className="nav-icon"></span>
                 <span className="nav-text">Threat Guide</span>
               </button>
             </div>
@@ -1268,7 +1268,7 @@ Thank you,
               className="nav-section-header"
               onClick={() => toggleSection('compliance')}
             >
-              <span className="section-icon">⚖️</span>
+              <span className="section-icon"></span>
               <span className="section-title">Compliance</span>
               <span className={`section-toggle ${expandedSections.compliance ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.compliance ? '▼' : '▶'}
@@ -1279,7 +1279,7 @@ Thank you,
                 className={`nav-item ${activeTab === 'policies' ? 'active' : ''}`}
                 onClick={() => setActiveTab('policies')}
               >
-                <span className="nav-icon">🛡️</span>
+                <span className="nav-icon"></span>
                 <span className="nav-text">Access Controls</span>
               </button>
             </div>
@@ -1828,7 +1828,7 @@ Thank you,
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
                     <div className="action-meta">
-                      <span className="action-time">⏱️ {item.estimatedTime}</span>
+                      <span className="action-time">{item.estimatedTime}</span>
                       {item.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
@@ -1867,7 +1867,7 @@ Thank you,
                     <h3>{tip.title}</h3>
                     <p>{tip.description}</p>
                     <div className="tip-meta">
-                      <span className="tip-time">⏱️ {tip.timeEstimate}</span>
+                      <span className="tip-time">{tip.timeEstimate}</span>
                       {tip.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
