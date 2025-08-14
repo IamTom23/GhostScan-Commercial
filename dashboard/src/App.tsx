@@ -51,15 +51,6 @@ interface BreachAlert {
   isNew: boolean;
 }
 
-interface GhostProfile {
-  id: string;
-  platform: string;
-  email: string;
-  username: string;
-  foundVia: string;
-  confidence: number;
-  dataExposed: string[];
-}
 
 // Threat Intelligence Interfaces
 interface ThreatFeed {
@@ -228,7 +219,7 @@ const calculateOAuthRiskScore = (apps: SaaSApp[]): number => {
   return Math.round(totalRisk / weightedTotal);
 };
 
-const calculateDataExposureScore = (apps: SaaSApp[], ghostProfiles: GhostProfile[]): number => {
+const calculateDataExposureScore = (apps: SaaSApp[]): number => {
   let baseScore = 90;
   
   // Penalize for breached apps
@@ -238,9 +229,6 @@ const calculateDataExposureScore = (apps: SaaSApp[], ghostProfiles: GhostProfile
   // Penalize for data sharing
   const sharingApps = apps.filter(app => app.thirdPartySharing);
   baseScore -= sharingApps.length * 8;
-  
-  // Penalize for ghost profiles
-  baseScore -= ghostProfiles.length * 10;
   
   // Bonus for good data practices
   const secureApps = apps.filter(app => 
@@ -300,12 +288,11 @@ const getSecurityGrade = (score: number): { grade: string; color: string; descri
 };
 
 const calculateEnhancedSecurityScore = (
-  apps: SaaSApp[], 
-  ghostProfiles: GhostProfile[]
+  apps: SaaSApp[]
 ): SecurityScoreBreakdown => {
   // Calculate individual dimension scores
   const oauthRiskScore = calculateOAuthRiskScore(apps);
-  const dataExposureScore = calculateDataExposureScore(apps, ghostProfiles);
+  const dataExposureScore = calculateDataExposureScore(apps);
   const accessControlScore = calculateAccessControlScore(apps);
   
   // Updated weights without compliance (redistributed)
@@ -512,7 +499,7 @@ const mockProgressData = {
   weeklyProgress: 75,
   monthlyProgress: 60,
   totalActionsCompleted: 12,
-  privacyScoreImprovement: 15,
+  securityScoreImprovement: 15,
   streakDays: 7,
 };
 
@@ -814,9 +801,7 @@ function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [apps, setApps] = useState<SaaSApp[]>([]);
   const [breachAlerts, setBreachAlerts] = useState<BreachAlert[]>([]);
-  const [ghostProfiles] = useState<GhostProfile[]>([]);
   const [actionItems, setActionItems] = useState<any[]>([]);
-  const [privacyTips, setPrivacyTips] = useState<any[]>([]);
   const [progressData] = useState(mockProgressData);
   
   // Threat Intelligence State
@@ -936,7 +921,6 @@ function App() {
               setApps(dashboardData.apps);
               setBreachAlerts(dashboardData.breachAlerts);
               setActionItems(dashboardData.actions);
-              setPrivacyTips(dashboardData.privacyTips);
               setHasData(true);
               console.log('Successfully loaded demo data from API:', dashboardData);
               return;
@@ -1099,7 +1083,6 @@ function App() {
             setApps(dashboardData.apps);
             setBreachAlerts(dashboardData.breachAlerts);
             setActionItems(dashboardData.actions);
-            setPrivacyTips(dashboardData.privacyTips);
             
             // Load threat intelligence data
             setThreatFeeds(mockThreatFeeds);
@@ -1128,47 +1111,6 @@ function App() {
   };
 
   // Quick Action Functions
-  const handlePrivacyRequests = async () => {
-    console.log('Initiating privacy requests...');
-    
-    // Get apps that share data with third parties
-    const appsWithThirdPartySharing = apps.filter(app => app.thirdPartySharing);
-    
-    if (appsWithThirdPartySharing.length === 0) {
-      alert('No apps found that share data with third parties.');
-      return;
-    }
-
-    // Generate privacy request templates
-    const requests = appsWithThirdPartySharing.map(app => ({
-      app: app.name,
-      domain: app.domain,
-      requestType: 'data_deletion',
-      template: `Subject: Data Deletion Request - ${app.name}
-
-Dear ${app.name} Privacy Team,
-
-I am writing to request the deletion of all personal data you have collected about me under the right to be forgotten (GDPR Article 17).
-
-Please delete all personal information associated with my account, including but not limited to:
-- Profile information
-- Usage data
-- Analytics data
-- Any third-party data sharing
-
-Please confirm receipt of this request and provide a timeline for completion.
-
-Thank you,
-[Your Name]`
-    }));
-
-    // Show results
-    const resultText = requests.map(req => 
-      `${req.app} (${req.domain})\n${req.template}\n\n---\n`
-    ).join('\n');
-
-    alert(`Privacy Request Templates Generated!\n\n${resultText}\n\nCopy these templates and send them to each company.`);
-  };
 
   const handlePasswordCheck = async () => {
     console.log('Initiating password check...');
@@ -1305,65 +1247,6 @@ Thank you,
     alert(message);
   };
 
-  const handleTipLearnMore = (tip: any) => {
-    console.log('Learning more about tip:', tip);
-    
-    let message = `${tip.title}\n\n`;
-    message += `${tip.description}\n\n`;
-    
-    switch (tip.category) {
-      case 'OAUTH':
-        message += 'OAuth Best Practices:\n';
-        message += '• Only connect apps you trust\n';
-        message += '• Regularly review connected apps\n';
-        message += '• Remove unused connections\n';
-        message += '• Check what data each app can access\n';
-        break;
-        
-      case 'TRACKING':
-        message += 'Tracking Protection Tips:\n';
-        message += '• Enable browser tracking protection\n';
-        message += '• Clear cookies regularly\n';
-        message += '• Use incognito mode for sensitive browsing\n';
-        message += '• Review browser privacy settings\n';
-        break;
-        
-      case 'SECURITY':
-        message += 'Security Best Practices:\n';
-        message += '• Use strong, unique passwords\n';
-        message += '• Enable two-factor authentication\n';
-        message += '• Keep software updated\n';
-        message += '• Monitor account activity\n';
-        break;
-        
-      case 'DATA_SHARING':
-        message += 'Data Sharing Awareness:\n';
-        message += '• Read privacy policies carefully\n';
-        message += '• Opt out of data sharing when possible\n';
-        message += '• Use privacy-focused alternatives\n';
-        message += '• Regularly audit your digital footprint\n';
-        break;
-        
-      case 'GENERAL':
-        message += 'General Privacy Tips:\n';
-        message += '• Be mindful of what you share online\n';
-        message += '• Use privacy-focused browsers\n';
-        message += '• Consider using a VPN\n';
-        message += '• Regularly review privacy settings\n';
-        break;
-        
-      default:
-        message += 'Additional Tips:\n';
-        message += '• Stay informed about privacy news\n';
-        message += '• Use privacy tools and settings\n';
-        message += '• Regularly audit your accounts\n';
-        message += '• Consider your digital footprint\n';
-    }
-    
-    message += '\nEstimated time: ' + tip.timeEstimate;
-    
-    alert(message);
-  };
 
   // OAuth Integration Functions
   const handleConnectGoogle = () => {
@@ -1462,11 +1345,11 @@ Thank you,
               </div>
               <div className="step">
                 <span className="step-number">2</span>
-                <span>Click "New Scan" to analyze your privacy</span>
+                <span>Click "New Scan" to analyze your security posture</span>
               </div>
               <div className="step">
                 <span className="step-number">3</span>
-                <span>View your personalized privacy insights</span>
+                <span>View your organization security insights</span>
               </div>
             </div>
             <button onClick={startScan} className="start-scan-button">
@@ -1500,9 +1383,9 @@ Thank you,
   }
 
   // Calculate enhanced security score
-  const securityScoreBreakdown = calculateEnhancedSecurityScore(apps, ghostProfiles);
-  const privacyScore = securityScoreBreakdown.overallScore;
-  const privacyGrade = getSecurityGrade(privacyScore);
+  const securityScoreBreakdown = calculateEnhancedSecurityScore(apps);
+  const securityScore = securityScoreBreakdown.overallScore;
+  const securityGrade = getSecurityGrade(securityScore);
 
   return (
     <div className="app">
@@ -1554,12 +1437,12 @@ Thank you,
             <div className="threat-score">
               <div 
                 className="score-circle clickable" 
-                style={{ borderColor: privacyGrade.color }}
+                style={{ borderColor: securityGrade.color }}
                 onClick={() => setActiveTab('threat-info')}
                 title="Click to learn about threat levels"
               >
-                <span className="score-grade">{privacyGrade.grade}</span>
-                <span className="score-number">{privacyScore}</span>
+                <span className="score-grade">{securityGrade.grade}</span>
+                <span className="score-number">{securityScore}</span>
               </div>
             </div>
           </div>
@@ -1617,7 +1500,7 @@ Thank you,
               >
                 <span className="nav-icon"></span>
                 <span className="nav-text">Data Access</span>
-                <span className="nav-badge">{ghostProfiles.length}</span>
+                <span className="nav-badge">0</span>
               </button>
             </div>
           </div>
@@ -1701,7 +1584,7 @@ Thank you,
             {/* Security Status Hero */}
             <div className="security-hero">
               <div className="hero-content">
-                <h2>Organization Security Grade: {privacyGrade.grade}</h2>
+                <h2>Organization Security Grade: {securityGrade.grade}</h2>
                 <p>Cloud security assessment for TechFlow Startup - 12 employees monitored</p>
                 <div className="scan-controls">
                   <button 
@@ -1718,8 +1601,8 @@ Thank you,
                 </div>
               </div>
               <div className="hero-visual">
-                <div className="threat-display" style={{ color: privacyGrade.color }}>
-                  <div className="threat-indicator-large" style={{ borderColor: privacyGrade.color }}>
+                <div className="threat-display" style={{ color: securityGrade.color }}>
+                  <div className="threat-indicator-large" style={{ borderColor: securityGrade.color }}>
                     {/* Clean threat indicator circle - no text */}
                   </div>
                 </div>
@@ -1856,7 +1739,7 @@ Thank you,
                 </div>
                 <div className="progress-card">
                   <div className="progress-circle">
-                    <span className="progress-number">+{progressData.privacyScoreImprovement}</span>
+                    <span className="progress-number">+{progressData.securityScoreImprovement}</span>
                     <span className="progress-label">Score Improved</span>
                   </div>
                 </div>
@@ -1945,7 +1828,7 @@ Thank you,
                     </div>
                     <div className="operation-status low">Active</div>
                   </div>
-                  <button className="operation-button low" onClick={handlePrivacyRequests}>
+                  <button className="operation-button low" onClick={() => alert('Policy management interface coming soon')}>
                     Manage
                   </button>
                 </div>
@@ -2071,34 +1954,15 @@ Thank you,
               </div>
             </div>
 
-            {/* Privacy Tips Preview */}
+            {/* Security Recommendations Preview */}
             <div className="tips-preview">
               <div className="section-header">
-                <h2>Privacy Tips</h2>
-                <button className="view-all-btn" onClick={() => setActiveTab('tips')}>
-                  View All
-                </button>
+                <h2>Security Recommendations</h2>
               </div>
               <div className="tips-list">
-                {privacyTips.slice(0, 2).map(tip => (
-                  <div key={tip.id} className="tip-item-preview">
-                    <div className="tip-item-header">
-                      <div className={`tip-category ${tip.category.toLowerCase()}`}>
-                        {tip.category}
-                      </div>
-                      <div className="tip-info">
-                        <h4>{tip.title}</h4>
-                        <p>{tip.description}</p>
-                      </div>
-                    </div>
-                    <div className="tip-meta">
-                      <span className="tip-time">{tip.timeEstimate}</span>
-                      <button className="tip-btn" onClick={() => handleTipLearnMore(tip)}>
-                        Learn More
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <div className="no-recommendations">
+                  <p>All current security recommendations have been implemented. New recommendations will appear here as needed.</p>
+                </div>
               </div>
             </div>
 
@@ -2131,7 +1995,7 @@ Thank you,
                 <div className="activity-item success">
                   <span className="activity-icon"></span>
                   <div className="activity-content">
-                    <div className="activity-title">Privacy Score Improved</div>
+                    <div className="activity-title">Security Score Improved</div>
                     <div className="activity-description">
                       Your score increased by 5 points this week
                     </div>
@@ -2324,44 +2188,6 @@ Thank you,
           </div>
         )}
 
-        {activeTab === 'tips' && (
-          <div className="tips-view">
-            <div className="tips-header">
-              <h2>Privacy Tips & Best Practices</h2>
-              <p>Improve your privacy score with these actionable tips</p>
-            </div>
-            <div className="tips-grid">
-              {privacyTips.map(tip => (
-                <div key={tip.id} className="tip-card">
-                  <div className="tip-header">
-                    <div className="tip-category-badge">{tip.category}</div>
-                    <div className="tip-difficulty" style={{ 
-                      backgroundColor: tip.difficulty === 'EASY' ? '#10B981' : 
-                                    tip.difficulty === 'MEDIUM' ? '#F59E0B' : '#EF4444' 
-                    }}>
-                      {tip.difficulty}
-                    </div>
-                  </div>
-                  <div className="tip-body">
-                    <h3>{tip.title}</h3>
-                    <p>{tip.description}</p>
-                    <div className="tip-meta">
-                      <span className="tip-time">{tip.timeEstimate}</span>
-                      {tip.completed && <span className="completed-badge">Completed</span>}
-                    </div>
-                  </div>
-                  <div className="tip-actions">
-                    {!tip.completed ? (
-                      <button className="tip-btn primary">Get Started</button>
-                    ) : (
-                      <button className="tip-btn secondary">Review</button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {activeTab === 'apps' && (
           <div className="apps-view">
@@ -2479,19 +2305,19 @@ Thank you,
             <div className="exposure-info">
               <p>Comprehensive scan results showing your organization's publicly visible data, credentials, and potential security exposures across the web.</p>
             </div>
-            {ghostProfiles.length === 0 ? (
+            <div>
               <div className="no-exposure">
                 <div className="empty-state">
                   <span className="empty-icon"></span>
-                  <h3>Excellent Security Posture</h3>
-                  <p>Our comprehensive scan found no publicly exposed credentials, data leaks, or security vulnerabilities associated with your organization. Your digital footprint appears well-secured.</p>
+                  <h3>Secure External Posture</h3>
+                  <p>External attack surface monitoring found no publicly exposed organizational credentials, API keys, or sensitive data leaks across monitored sources.</p>
                   <div className="security-metrics">
                     <div className="metric">
-                      <span className="metric-label">Domains Scanned</span>
+                      <span className="metric-label">Domains Monitored</span>
                       <span className="metric-value">15</span>
                     </div>
                     <div className="metric">
-                      <span className="metric-label">Data Sources Checked</span>
+                      <span className="metric-label">Threat Intel Sources</span>
                       <span className="metric-value">47</span>
                     </div>
                     <div className="metric">
@@ -2499,53 +2325,12 @@ Thank you,
                       <span className="metric-value">2 hours ago</span>
                     </div>
                   </div>
-                  <button className="scan-button" onClick={() => alert('Enhanced deep scan initiated - monitoring 150+ additional sources')}>
-                    Run Enhanced Deep Scan
+                  <button className="scan-button" onClick={() => alert('Enhanced external attack surface scan initiated - monitoring 150+ threat intelligence sources')}>
+                    Run Enhanced External Scan
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="exposure-list">
-                {ghostProfiles.map(profile => (
-                  <div key={profile.id} className="exposure-card">
-                    <div className="exposure-header">
-                      <h3>{profile.platform}</h3>
-                      <span className="confidence-badge">
-                        {Math.round(profile.confidence * 100)}% confidence
-                      </span>
-                    </div>
-                    <div className="exposure-details">
-                      <div className="detail-row">
-                        <span className="detail-label">Email:</span>
-                        <span className="detail-value">{profile.email}</span>
-                      </div>
-                      {profile.username && (
-                        <div className="detail-row">
-                          <span className="detail-label">Username:</span>
-                          <span className="detail-value">{profile.username}</span>
-                        </div>
-                      )}
-                      <div className="detail-row">
-                        <span className="detail-label">Found via:</span>
-                        <span className="detail-value">{profile.foundVia}</span>
-                      </div>
-                      <div className="detail-row data-exposed">
-                        <span className="detail-label">Data exposed:</span>
-                        <div className="data-tags">
-                          {profile.dataExposed.map((data, index) => (
-                            <span key={index} className="data-tag">{data}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="exposure-actions">
-                      <button className="exposure-action">Verify</button>
-                      <button className="exposure-action">Request Removal</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            </div>
           </div>
         )}
 
