@@ -71,7 +71,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
   if (activeTab === 'threat-feeds') {
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>🚨 Live Threat Intelligence Feeds</h2>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Live Threat Intelligence Feeds</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Real-time security intelligence from trusted sources</p>
         
         {threatFeeds.map(feed => (
@@ -110,13 +110,13 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
                 marginBottom: '1rem',
                 fontSize: '0.9rem',
                 fontWeight: 'bold'
-              }}>🔒 {feed.cve}</div>
+              }}>{feed.cve}</div>
             )}
             <p style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>{feed.description}</p>
             
             {feed.affectedApps.length > 0 && (
               <div style={{ marginBottom: '1rem' }}>
-                <strong>🎯 Affected Apps: </strong>
+                <strong>Affected Apps: </strong>
                 {feed.affectedApps.map(app => (
                   <span key={app} style={{
                     background: 'var(--bg-tertiary)',
@@ -130,7 +130,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             )}
             
             <div>
-              <strong style={{ color: 'var(--text-primary)' }}>🛡️ Recommended Actions:</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>Recommended Actions:</strong>
               <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
                 {feed.mitigations.map((action, idx) => (
                   <li key={idx} style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{action}</li>
@@ -146,7 +146,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
   if (activeTab === 'security-alerts') {
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>🚨 Security Alert Center</h2>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Security Alert Center</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Active security incidents requiring immediate attention</p>
         
         {securityAlerts.map(alert => (
@@ -190,7 +190,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             
             {alert.affectedApps.length > 0 && (
               <div style={{ marginBottom: '1rem' }}>
-                <strong>🎯 Affected Apps: </strong>
+                <strong>Affected Apps: </strong>
                 {alert.affectedApps.map(app => (
                   <span key={app} style={{
                     background: 'var(--bg-tertiary)',
@@ -204,7 +204,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             )}
             
             <div>
-              <strong style={{ color: 'var(--text-primary)' }}>⚡ Recommended Actions:</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>Recommended Actions:</strong>
               <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
                 {alert.recommendedActions.map((action, idx) => (
                   <li key={idx} style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{action}</li>
@@ -214,7 +214,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             
             {alert.assignedTo && (
               <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--bg-tertiary)', borderRadius: '6px' }}>
-                <strong>👤 Assigned to: </strong>{alert.assignedTo}
+                <strong>Assigned to: </strong>{alert.assignedTo}
               </div>
             )}
           </div>
@@ -226,7 +226,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
   if (activeTab === 'vulnerability-scans') {
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>🔍 Vulnerability Scans</h2>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Vulnerability Scans</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Automated security assessments of your applications</p>
         
         {vulnerabilityScans.map(scan => (
@@ -239,7 +239,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
-                <h3 style={{ color: 'var(--text-primary)', margin: 0 }}>🖥️ {scan.appId}</h3>
+                <h3 style={{ color: 'var(--text-primary)', margin: 0 }}>{scan.appId}</h3>
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                   Started: {new Date(scan.startTime).toLocaleString()}
                 </div>
@@ -257,7 +257,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             {scan.status === 'COMPLETED' && (
               <>
                 <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
-                  <strong style={{ color: 'var(--text-primary)' }}>🎯 Risk Score: </strong>
+                  <strong style={{ color: 'var(--text-primary)' }}>Risk Score: </strong>
                   <span style={{
                     fontSize: '1.5rem',
                     fontWeight: 'bold',
@@ -266,7 +266,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
                 </div>
                 
                 <div>
-                  <strong style={{ color: 'var(--text-primary)' }}>🚨 Findings:</strong>
+                  <strong style={{ color: 'var(--text-primary)' }}>Findings:</strong>
                   {scan.findings.map((finding: VulnerabilityFinding) => (
                     <div key={finding.id} style={{
                       marginTop: '1rem',
@@ -295,7 +295,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
                           borderRadius: '6px',
                           color: '#DC2626',
                           fontWeight: 'bold'
-                        }}>⚠️ Actively exploitable</div>
+                        }}>Actively exploitable</div>
                       )}
                     </div>
                   ))}
@@ -320,7 +320,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
   if (activeTab === 'incidents') {
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>📋 Incident Response Center</h2>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Incident Response Center</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Active security incidents and coordinated response efforts</p>
         
         {incidents.map(incident => (
@@ -360,7 +360,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             <p style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>{incident.description}</p>
             
             <div style={{ marginBottom: '1rem' }}>
-              <strong>👥 Response Team: </strong>
+              <strong>Response Team: </strong>
               {incident.assignedTeam.map((member: string, idx: number) => (
                 <span key={idx} style={{
                   background: 'var(--bg-tertiary)',
@@ -373,7 +373,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             </div>
             
             <div style={{ marginBottom: '1rem' }}>
-              <strong>🖥️ Affected Systems: </strong>
+              <strong>Affected Systems: </strong>
               {incident.affectedSystems.map((system: string) => (
                 <span key={system} style={{
                   background: 'var(--bg-tertiary)',
@@ -386,7 +386,7 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
             </div>
             
             <div>
-              <strong style={{ color: 'var(--text-primary)' }}>📅 Recent Activity:</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>Recent Activity:</strong>
               <div style={{ marginTop: '0.5rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border-color)' }}>
                 {incident.timeline.slice(-2).map((event: IncidentEvent) => (
                   <div key={event.id} style={{ marginBottom: '1rem', position: 'relative' }}>
