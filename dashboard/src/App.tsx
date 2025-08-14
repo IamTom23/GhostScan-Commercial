@@ -86,7 +86,6 @@ interface SecurityScoreBreakdown {
   dimensions: {
     oauthRiskScore: number;
     dataExposureScore: number;
-    complianceScore: number;
     accessControlScore: number;
   };
   recommendations: string[];
@@ -158,54 +157,36 @@ const calculateDataExposureScore = (apps: SaaSApp[], ghostProfiles: GhostProfile
   return Math.max(0, Math.min(100, Math.round(baseScore)));
 };
 
-const calculateComplianceScore = (apps: SaaSApp[]): number => {
-  let baseScore = 70; // Neutral starting point
-  
-  if (apps.length === 0) return 95; // High score for clean state
-  
-  // Check for compliance-friendly practices
-  const lowRiskApps = apps.filter(app => app.riskLevel === 'LOW');
-  const highRiskApps = apps.filter(app => ['HIGH', 'CRITICAL'].includes(app.riskLevel));
-  
-  // Scoring based on risk distribution
-  const lowRiskRatio = lowRiskApps.length / apps.length;
-  const highRiskRatio = highRiskApps.length / apps.length;
-  
-  baseScore += lowRiskRatio * 25; // Bonus for low risk apps
-  baseScore -= highRiskRatio * 30; // Penalty for high risk apps
-  
-  // Additional compliance factors
-  const noBreachApps = apps.filter(app => !app.hasBreaches);
-  const noSharingApps = apps.filter(app => !app.thirdPartySharing);
-  
-  baseScore += (noBreachApps.length / apps.length) * 15;
-  baseScore += (noSharingApps.length / apps.length) * 10;
-  
-  return Math.max(30, Math.min(100, Math.round(baseScore)));
-};
 
 const calculateAccessControlScore = (apps: SaaSApp[]): number => {
-  let baseScore = 80;
+  let baseScore = 75; // Adjusted baseline
   
-  if (apps.length === 0) return 95;
+  if (apps.length === 0) return 90; // Good score for clean state
   
-  // Check authentication strength
-  const strongAuthApps = apps.filter(app => app.passwordStrength === 'STRONG');
+  // Multi-factor authentication coverage (primary factor)
+  const mfaEnabledApps = apps.filter(app => app.passwordStrength === 'STRONG'); // Assuming strong = MFA
+  const mfaCoverage = apps.length > 0 ? mfaEnabledApps.length / apps.length : 0;
+  baseScore += mfaCoverage * 20; // Major bonus for MFA coverage
+  
+  // Password strength assessment
   const weakAuthApps = apps.filter(app => app.passwordStrength === 'WEAK');
+  const weakAuthPenalty = apps.length > 0 ? (weakAuthApps.length / apps.length) * 15 : 0;
+  baseScore -= weakAuthPenalty;
   
-  baseScore += (strongAuthApps.length / apps.length) * 15;
-  baseScore -= (weakAuthApps.length / apps.length) * 25;
-  
-  // Active vs inactive accounts
+  // Account hygiene - inactive accounts are security risks
   const inactiveApps = apps.filter(app => app.accountStatus === 'INACTIVE');
+  baseScore -= Math.min(20, inactiveApps.length * 3); // Cap penalty at 20 points
   
-  baseScore -= inactiveApps.length * 5; // Penalty for unused accounts
-  
-  // OAuth provider diversity (single sign-on is better)
+  // Single Sign-On bonus (reduces attack surface)
   const oauthProviders = new Set(apps.map(app => app.oauthProvider).filter(Boolean));
-  if (oauthProviders.size === 1 && oauthProviders.has('Google')) baseScore += 10;
+  if (oauthProviders.size === 1) baseScore += 8; // Bonus for SSO consolidation
   
-  return Math.max(40, Math.min(100, Math.round(baseScore)));
+  // High-risk app penalty (access control concern)
+  const highRiskApps = apps.filter(app => ['HIGH', 'CRITICAL'].includes(app.riskLevel));
+  const highRiskPenalty = apps.length > 0 ? (highRiskApps.length / apps.length) * 12 : 0;
+  baseScore -= highRiskPenalty;
+  
+  return Math.max(30, Math.min(100, Math.round(baseScore)));
 };
 
 const getSecurityGrade = (score: number): { grade: string; color: string; description: string } => {
@@ -229,21 +210,18 @@ const calculateEnhancedSecurityScore = (
   // Calculate individual dimension scores
   const oauthRiskScore = calculateOAuthRiskScore(apps);
   const dataExposureScore = calculateDataExposureScore(apps, ghostProfiles);
-  const complianceScore = calculateComplianceScore(apps);
   const accessControlScore = calculateAccessControlScore(apps);
   
-  // Weight the scores (similar to Defender for Cloud)
+  // Updated weights without compliance (redistributed)
   const weights = {
-    oauth: 0.40,      // 40% - Most critical for SaaS security
-    dataExposure: 0.25, // 25% - Data protection is crucial
-    compliance: 0.20,   // 20% - Regulatory requirements
-    accessControl: 0.15 // 15% - Authentication and access
+    oauth: 0.50,        // 50% - Most critical for SaaS security (increased)
+    dataExposure: 0.30, // 30% - Data protection is crucial (increased)
+    accessControl: 0.20 // 20% - Authentication and access (increased)
   };
   
   const overallScore = Math.round(
     oauthRiskScore * weights.oauth +
     dataExposureScore * weights.dataExposure +
-    complianceScore * weights.compliance +
     accessControlScore * weights.accessControl
   );
   
@@ -266,11 +244,6 @@ const calculateEnhancedSecurityScore = (
     improvements.shortTerm.push('Review apps with data sharing enabled');
   }
   
-  if (complianceScore < 70) {
-    recommendations.push('Improve compliance posture');
-    riskFactors.push('Non-compliant applications in use');
-    improvements.longTerm.push('Implement compliance monitoring');
-  }
   
   if (accessControlScore < 70) {
     recommendations.push('Strengthen access controls');
@@ -288,7 +261,6 @@ const calculateEnhancedSecurityScore = (
     dimensions: {
       oauthRiskScore,
       dataExposureScore,
-      complianceScore,
       accessControlScore
     },
     recommendations,
@@ -483,7 +455,7 @@ function App() {
   });
 
   // State for security score modals
-  const [activeScoreModal, setActiveScoreModal] = useState<string | null>(null);
+  const [activeScoreModal, setActiveScoreModal] = useState<'oauth' | 'exposure' | 'access' | null>(null);
   
   // State for apps filtering and sorting
   const [searchTerm, setSearchTerm] = useState('');
@@ -1351,7 +1323,7 @@ Thank you,
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
                     <h3>OAuth Risk</h3>
-                    <span className="dimension-weight">40%</span>
+                    <span className="dimension-weight">50%</span>
                   </div>
                   <div className="dimension-score">
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.oauthRiskScore).color }}>
@@ -1381,7 +1353,7 @@ Thank you,
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
                     <h3>Data Exposure</h3>
-                    <span className="dimension-weight">25%</span>
+                    <span className="dimension-weight">30%</span>
                   </div>
                   <div className="dimension-score">
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.dataExposureScore).color }}>
@@ -1404,35 +1376,6 @@ Thank you,
                   <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
-                <div 
-                  className="score-dimension-card clickable"
-                  onClick={() => setActiveScoreModal('compliance')}
-                >
-                  <div className="dimension-header">
-                    <span className="dimension-icon"></span>
-                    <h3>Compliance</h3>
-                    <span className="dimension-weight">20%</span>
-                  </div>
-                  <div className="dimension-score">
-                    <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color }}>
-                      <span className="score-grade">{getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).grade}</span>
-                    </div>
-                    <div className="score-progress">
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill" 
-                          style={{ 
-                            width: `${securityScoreBreakdown.dimensions.complianceScore}%`,
-                            backgroundColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color
-                          }}
-                        ></div>
-                      </div>
-                      <span className="score-number">{securityScoreBreakdown.dimensions.complianceScore}/100</span>
-                    </div>
-                  </div>
-                  <p className="dimension-description">Regulatory compliance status</p>
-                  <div className="card-hover-indicator">Click for details →</div>
-                </div>
                 
                 <div 
                   className="score-dimension-card clickable"
@@ -1441,7 +1384,7 @@ Thank you,
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
                     <h3>Access Control</h3>
-                    <span className="dimension-weight">15%</span>
+                    <span className="dimension-weight">20%</span>
                   </div>
                   <div className="dimension-score">
                     <div className="score-circle-small" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.accessControlScore).color }}>
@@ -2628,7 +2571,6 @@ Thank you,
               <h2>
                 {activeScoreModal === 'oauth' && 'OAuth Risk Analysis'}
                 {activeScoreModal === 'exposure' && 'Data Exposure Assessment'}
-                {activeScoreModal === 'compliance' && 'Compliance Overview'}
                 {activeScoreModal === 'access' && 'Access Control Review'}
               </h2>
               <button className="modal-close" onClick={() => setActiveScoreModal(null)}>×</button>
@@ -2820,94 +2762,6 @@ Thank you,
                 </div>
               )}
 
-              {activeScoreModal === 'compliance' && (
-                <div className="score-detail">
-                  <div className="score-overview">
-                    <div className="score-circle-large" style={{ borderColor: getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).color }}>
-                      <span className="score-grade-large">{getSecurityGrade(securityScoreBreakdown.dimensions.complianceScore).grade}</span>
-                      <span className="score-number-large">{securityScoreBreakdown.dimensions.complianceScore}/100</span>
-                    </div>
-                    <div className="score-description">
-                      <h3>Compliance Assessment</h3>
-                      <p>Evaluation of your adherence to security frameworks and regulatory requirements across multiple standards.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="score-breakdown">
-                    <h4>Framework Compliance</h4>
-                    <div className="risk-factors">
-                      <div className="risk-factor risk-positive">
-                        <div className="factor-header">
-                          <span className="factor-icon"></span>
-                          <span className="factor-name">GDPR Compliance</span>
-                          <span className="factor-impact">+15 points</span>
-                        </div>
-                        <p>Strong data protection practices and comprehensive user consent management.</p>
-                        <div className="factor-details">
-                          <span className="detail-item">• Privacy policy updated and comprehensive</span>
-                          <span className="detail-item">• Cookie consent implemented</span>
-                          <span className="detail-item">• Data processing agreements in place</span>
-                          <span className="detail-item">• Right to deletion procedures established</span>
-                        </div>
-                      </div>
-                      <div className="risk-factor risk-medium">
-                        <div className="factor-header">
-                          <span className="factor-icon"></span>
-                          <span className="factor-name">SOC 2 Readiness</span>
-                          <span className="factor-impact">-5 points</span>
-                        </div>
-                        <p>Some security controls need documentation and formalization for SOC 2 compliance.</p>
-                        <div className="factor-details">
-                          <span className="detail-item">• Incident response plan needs documentation</span>
-                          <span className="detail-item">• Access control procedures require formalization</span>
-                          <span className="detail-item">• Monitoring and logging partially implemented</span>
-                        </div>
-                      </div>
-                      <div className="risk-factor risk-positive">
-                        <div className="factor-header">
-                          <span className="factor-icon"></span>
-                          <span className="factor-name">ISO 27001 Elements</span>
-                          <span className="factor-impact">+8 points</span>
-                        </div>
-                        <p>Several key information security management practices already in place.</p>
-                        <div className="factor-details">
-                          <span className="detail-item">• Risk assessment framework established</span>
-                          <span className="detail-item">• Security awareness training conducted</span>
-                          <span className="detail-item">• Regular security reviews performed</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="recommendations">
-                    <h4>Compliance Improvements</h4>
-                    <div className="recommendation-list">
-                      <div className="recommendation">
-                        <span className="rec-priority medium">Medium Priority</span>
-                        <div className="rec-content">
-                          <h5>Document Security Policies</h5>
-                          <p>Create formal documentation for incident response and access control procedures to improve SOC 2 readiness.</p>
-                          <div className="rec-actions">
-                            <span className="rec-time">Est. time: 4 hours</span>
-                            <span className="rec-impact">Impact: +8 compliance points</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="recommendation">
-                        <span className="rec-priority low">Low Priority</span>
-                        <div className="rec-content">
-                          <h5>Enhance Monitoring & Logging</h5>
-                          <p>Implement comprehensive security event logging and monitoring to meet SOC 2 requirements.</p>
-                          <div className="rec-actions">
-                            <span className="rec-time">Est. time: 6 hours</span>
-                            <span className="rec-impact">Impact: +5 compliance points</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {activeScoreModal === 'access' && (
                 <div className="score-detail">

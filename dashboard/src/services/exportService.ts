@@ -11,7 +11,6 @@ interface SecurityReport {
   dimensions: {
     oauthRiskScore: number;
     dataExposureScore: number;
-    complianceScore: number;
     accessControlScore: number;
   };
   recommendations: string[];
@@ -221,10 +220,6 @@ class ExportService {
             <div class="score-card">
               <div class="score-value">${data.dimensions.dataExposureScore}</div>
               <div class="score-label">Data Protection</div>
-            </div>
-            <div class="score-card">
-              <div class="score-value">${data.dimensions.complianceScore}</div>
-              <div class="score-label">Compliance</div>
             </div>
             <div class="score-card">
               <div class="score-value">${data.dimensions.accessControlScore}</div>
