@@ -1099,7 +1099,7 @@ body {
     font-size: 1.5rem;
   }
   
-  /* Sidebar Responsive */
+  /* Sidebar Responsive - Improved spacing */
   .app-layout {
     flex-direction: column;
     height: auto;
@@ -1111,24 +1111,66 @@ body {
     border-right: none;
     border-bottom: 1px solid var(--border-color);
     overflow-y: visible;
+    padding: 1rem 0; /* Reduced padding for mobile */
   }
   
-  /* Nav logo removed - logo now only in header */
+  .nav-section {
+    margin-bottom: 0.75rem; /* Tighter spacing on mobile */
+  }
+  
+  .nav-section:first-child {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
   
   .nav-section-header {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem; /* Adjusted for mobile */
+    font-size: 0.75rem;
   }
   
   .nav-item {
-    padding: 0.5rem 1rem 0.5rem 2rem;
+    padding: 0.75rem 1rem 0.75rem 2.25rem; /* Slightly reduced indent */
+    min-height: 40px; /* Smaller touch target for mobile */
   }
   
   .nav-section:first-child .nav-item {
-    padding-left: 1rem;
+    padding: 0.875rem 1rem; /* Reduced top-level padding */
   }
   
   .main-content {
     overflow-y: visible;
+  }
+  
+  .main {
+    padding: 1.5rem; /* Reduced padding for mobile */
+  }
+  
+  .header-content {
+    padding: 0 1.5rem; /* Match main content padding */
+    gap: 1rem; /* Tighter gap */
+  }
+  
+  .dashboard {
+    gap: 1.5rem; /* Tighter spacing between sections */
+  }
+  
+  .privacy-hero,
+  .security-hero {
+    padding: 1.5rem; /* Reduced padding */
+    gap: 1.5rem;
+    flex-direction: column; /* Stack on mobile */
+    text-align: center;
+  }
+  
+  .stats-grid,
+  .security-operations-grid {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 1.5rem;
+  }
+  
+  .stat-card,
+  .operation-card {
+    padding: 1.5rem; /* Reduced padding for mobile */
   }
 }
 
@@ -1149,25 +1191,27 @@ body {
   flex-direction: column;
   overflow-y: auto;
   flex-shrink: 0;
-  padding-top: 1rem;
+  padding: 1.5rem 0; /* Better top/bottom padding */
 }
 
-/* Remove nav-logo styles as logo is now in header only */
-
-/* Navigation Sections */
+/* Navigation Sections - Improved spacing */
 .nav-section {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.25rem; /* More space between sections */
+}
+
+.nav-section:last-child {
+  margin-bottom: 0; /* No margin on last section */
 }
 
 .nav-section-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: 0.875rem; /* Slightly larger gap */
+  padding: 1rem 1.25rem; /* More generous padding */
   background: var(--bg-tertiary);
   border: none;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem; /* Slightly larger font */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1175,6 +1219,7 @@ body {
   transition: all 0.2s ease;
   width: 100%;
   text-align: left;
+  margin-bottom: 0.5rem; /* Space below section header */
 }
 
 .nav-section-header:hover {
@@ -1183,7 +1228,9 @@ body {
 }
 
 .section-icon {
-  font-size: 1rem;
+  font-size: 1.125rem; /* Slightly larger icons */
+  width: 18px;
+  text-align: center;
 }
 
 .section-title {
@@ -1193,19 +1240,21 @@ body {
 .section-toggle {
   font-size: 0.75rem;
   transition: transform 0.2s ease;
+  opacity: 0.7;
 }
 
 .nav-section-items {
   background: var(--bg-secondary);
+  padding-bottom: 0.75rem; /* Space after nav items */
 }
 
-/* Navigation Items */
+/* Navigation Items - Better spacing */
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem; /* Larger gap between icon and text */
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem; /* Indent for section items */
+  padding: 0.875rem 1.25rem 0.875rem 3rem; /* More generous padding with deeper indent */
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -1215,12 +1264,20 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
+  min-height: 44px; /* Minimum touch target */
 }
 
-/* Top-level nav items (Dashboard) */
+/* Top-level nav items (Dashboard) - Special spacing */
+.nav-section:first-child {
+  margin-bottom: 2rem; /* Extra space after dashboard */
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
 .nav-section:first-child .nav-item {
-  padding-left: 1rem; /* No indent for top-level */
+  padding: 1.125rem 1.25rem; /* Larger padding for top-level */
   font-weight: 600;
+  font-size: 0.9375rem; /* Slightly larger font */
 }
 
 .nav-item:hover {
@@ -1237,9 +1294,10 @@ body {
 }
 
 .nav-icon {
-  font-size: 1rem;
-  width: 16px;
+  font-size: 1.125rem; /* Larger icons */
+  width: 18px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .nav-text {
@@ -1252,51 +1310,89 @@ body {
   color: white;
   font-size: 0.6875rem;
   font-weight: 600;
-  padding: 0.25rem 0.5rem;
+  padding: 0.375rem 0.625rem; /* More padding for badges */
   border-radius: 1rem;
-  min-width: 20px;
+  min-width: 24px; /* Larger minimum width */
   text-align: center;
+  margin-left: auto; /* Push to right edge */
 }
 
 .nav-item.active .nav-badge {
-  background: var(--primary-color);
+  background: var(--primary-dark);
 }
 
-/* Main Content Area */
+/* Main Content Area - Better spacing */
 .main-content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--bg-primary);
+  padding: 0; /* Remove default padding, handle in .main */
 }
 
-/* Legacy main class for compatibility */
+/* Legacy main class for compatibility - Improved spacing */
 .main {
-  padding: var(--spacing-lg);
+  padding: 2rem; /* More generous padding */
   width: 100%;
-  max-width: none; /* Remove max-width constraint */
-  margin: 0; /* Remove auto margin */
+  max-width: none;
+  margin: 0;
+  min-height: calc(100vh - 70px - 4rem); /* Account for header and padding */
 }
 
-/* Dashboard */
+/* Header - Better spacing */
+.header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0; /* More generous vertical padding */
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  min-height: 70px;
+}
+
+.header-content {
+  max-width: none; /* Remove max-width for full usage with sidebar */
+  margin: 0;
+  padding: 0 2rem; /* Match main content padding */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem; /* Larger gap between elements */
+}
+
+/* Logo area - Better spacing */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem; /* More space between logo and text */
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem; /* Slightly more space between brand name and tag */
+  align-items: flex-start;
+}
+
+/* Dashboard - Better spacing */
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  height: 100%;
+  gap: 2.5rem; /* More space between dashboard sections */
+  min-height: calc(100vh - 70px - 4rem);
 }
 
-/* Privacy Hero & Security Hero */
+/* Privacy Hero & Security Hero - Better spacing */
 .privacy-hero,
 .security-hero {
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--card-padding);
+  padding: 2rem; /* More generous padding */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-lg);
+  gap: 2.5rem; /* More space between content and visual */
+  box-shadow: var(--shadow-sm);
 }
 
 .hero-content {
@@ -1306,14 +1402,16 @@ body {
 .hero-content h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 1rem; /* More space below heading */
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .hero-content p {
   color: var(--text-secondary);
   font-size: 1rem;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1.5rem; /* More space before actions */
+  line-height: 1.5;
 }
 
 .hero-visual {
@@ -1387,25 +1485,26 @@ body {
   50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.05); }
 }
 
-/* Progress Section */
+/* Progress Section - Better spacing */
 .progress-section {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--card-padding);
-  margin-bottom: var(--section-gap);
+  padding: 2rem; /* More generous padding */
+  box-shadow: var(--shadow-sm);
 }
 
 .progress-section h2 {
-  font-size: 1.125rem;
+  font-size: 1.25rem; /* Slightly larger heading */
   font-weight: 600;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 1.5rem; /* More space below heading */
+  color: var(--text-primary);
 }
 
 .progress-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--element-gap);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Slightly larger cards */
+  gap: 1.5rem; /* More space between cards */
 }
 
 .progress-card {
@@ -1502,21 +1601,22 @@ body {
   border-color: var(--primary-color);
 }
 
-/* Security Operations */
+/* Security Operations - Better spacing */
 .security-operations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Larger minimum width */
+  gap: 2rem; /* More space between cards */
 }
 
 .operation-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 2rem; /* More generous padding */
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .operation-card::before {
@@ -1696,18 +1796,18 @@ body {
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
-/* Stats Grid */
+/* Stats Grid - Better spacing */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Larger minimum width */
+  gap: 2rem; /* More space between cards */
 }
 
 .stat-card {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 2rem; /* More generous padding */
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
