@@ -60,6 +60,101 @@ interface GhostProfile {
   dataExposed: string[];
 }
 
+// Threat Intelligence Interfaces
+interface ThreatFeed {
+  id: string;
+  source: string;
+  title: string;
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  category: 'MALWARE' | 'PHISHING' | 'BREACH' | 'VULNERABILITY' | 'APT' | 'SOCIAL_ENGINEERING';
+  published: Date;
+  affectedApps: string[];
+  cve?: string;
+  iocs: {
+    domains?: string[];
+    ips?: string[];
+    hashes?: string[];
+    urls?: string[];
+  };
+  mitigations: string[];
+  isActive: boolean;
+}
+
+interface SecurityAlert {
+  id: string;
+  type: 'THREAT_DETECTED' | 'VULNERABILITY_FOUND' | 'SUSPICIOUS_ACTIVITY' | 'POLICY_VIOLATION' | 'BREACH_DETECTED';
+  title: string;
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  timestamp: Date;
+  affectedApps: string[];
+  status: 'NEW' | 'ACKNOWLEDGED' | 'INVESTIGATING' | 'RESOLVED' | 'FALSE_POSITIVE';
+  assignedTo?: string;
+  evidence: {
+    logs?: string[];
+    screenshots?: string[];
+    metadata: Record<string, any>;
+  };
+  recommendedActions: string[];
+  relatedThreats?: string[];
+}
+
+interface VulnerabilityScanning {
+  id: string;
+  appId: string;
+  scanType: 'AUTOMATED' | 'MANUAL' | 'SCHEDULED';
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'QUEUED';
+  startTime: Date;
+  endTime?: Date;
+  findings: VulnerabilityFinding[];
+  riskScore: number;
+  nextScanDate?: Date;
+}
+
+interface VulnerabilityFinding {
+  id: string;
+  cve?: string;
+  title: string;
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  cvssScore?: number;
+  category: 'AUTHENTICATION' | 'AUTHORIZATION' | 'DATA_EXPOSURE' | 'INJECTION' | 'CONFIGURATION' | 'CRYPTOGRAPHY';
+  exploitable: boolean;
+  patchAvailable: boolean;
+  remediation: string;
+  references: string[];
+}
+
+interface IncidentResponse {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  status: 'DETECTED' | 'ANALYZING' | 'CONTAINING' | 'ERADICATING' | 'RECOVERING' | 'CLOSED';
+  createdAt: Date;
+  updatedAt: Date;
+  assignedTeam: string[];
+  affectedSystems: string[];
+  timeline: IncidentTimelineEvent[];
+  artifacts: {
+    logs: string[];
+    evidence: string[];
+    reports: string[];
+  };
+  lessonsLearned?: string;
+  postIncidentActions?: string[];
+}
+
+interface IncidentTimelineEvent {
+  id: string;
+  timestamp: Date;
+  event: string;
+  description: string;
+  actor: string;
+  category: 'DETECTION' | 'ANALYSIS' | 'CONTAINMENT' | 'ERADICATION' | 'RECOVERY' | 'COMMUNICATION';
+}
+
 // Local utility functions to avoid build issues
 const getRiskColor = (riskLevel: string): string => {
   const colors = {
@@ -420,6 +515,286 @@ const mockProgressData = {
   streakDays: 7,
 };
 
+// Threat Intelligence Mock Data
+const mockThreatFeeds: ThreatFeed[] = [
+  {
+    id: 'tf001',
+    source: 'CISA',
+    title: 'Critical Microsoft Exchange Server Vulnerability',
+    description: 'Zero-day vulnerability in Exchange Server allowing remote code execution. CVE-2024-21410 affects multiple versions.',
+    severity: 'CRITICAL',
+    category: 'VULNERABILITY',
+    published: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    affectedApps: ['microsoft-365', 'outlook'],
+    cve: 'CVE-2024-21410',
+    iocs: {
+      domains: ['malicious-exchange-exploit.com'],
+      ips: ['192.168.1.100', '10.0.0.50'],
+      hashes: ['sha256:a1b2c3d4e5f6...']
+    },
+    mitigations: [
+      'Apply security update immediately',
+      'Monitor exchange server logs',
+      'Implement network segmentation'
+    ],
+    isActive: true
+  },
+  {
+    id: 'tf002',
+    source: 'Mandiant',
+    title: 'APT29 Targeting SaaS Applications',
+    description: 'Advanced persistent threat group targeting cloud-based collaboration tools with sophisticated phishing campaigns.',
+    severity: 'HIGH',
+    category: 'APT',
+    published: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+    affectedApps: ['slack', 'microsoft-teams', 'google-workspace'],
+    iocs: {
+      domains: ['secure-login-validation.net', 'app-verification.org'],
+      urls: ['https://secure-login-validation.net/oauth', 'https://app-verification.org/auth']
+    },
+    mitigations: [
+      'Enhance user security awareness training',
+      'Implement conditional access policies',
+      'Monitor for unusual OAuth app requests'
+    ],
+    isActive: true
+  },
+  {
+    id: 'tf003',
+    source: 'US-CERT',
+    title: 'Slack Data Exposure Incident',
+    description: 'Security incident affecting Slack workspaces with improper access controls leading to potential data exposure.',
+    severity: 'MEDIUM',
+    category: 'BREACH',
+    published: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
+    affectedApps: ['slack'],
+    iocs: {},
+    mitigations: [
+      'Review workspace member permissions',
+      'Audit shared channels and external access',
+      'Enable two-factor authentication'
+    ],
+    isActive: true
+  },
+  {
+    id: 'tf004',
+    source: 'Microsoft Security',
+    title: 'Business Email Compromise Campaign',
+    description: 'Ongoing BEC campaign targeting financial departments using compromised vendor email accounts.',
+    severity: 'HIGH',
+    category: 'SOCIAL_ENGINEERING',
+    published: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    affectedApps: ['outlook', 'gmail'],
+    iocs: {
+      domains: ['invoice-processing.net', 'payment-secure.org']
+    },
+    mitigations: [
+      'Implement email authentication protocols',
+      'Train employees on BEC tactics',
+      'Establish out-of-band verification for financial requests'
+    ],
+    isActive: true
+  }
+];
+
+const mockSecurityAlerts: SecurityAlert[] = [
+  {
+    id: 'sa001',
+    type: 'VULNERABILITY_FOUND',
+    title: 'High-Risk OAuth Permission Detected',
+    description: 'Grammarly application has been granted excessive permissions including full email access and document modification rights.',
+    severity: 'HIGH',
+    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+    affectedApps: ['grammarly'],
+    status: 'NEW',
+    evidence: {
+      metadata: {
+        permissionScope: 'https://www.googleapis.com/auth/gmail.modify',
+        grantedDate: '2024-01-15',
+        lastUsed: '2024-01-20'
+      }
+    },
+    recommendedActions: [
+      'Review and reduce OAuth permissions',
+      'Consider using Grammarly Business with restricted access',
+      'Monitor email access patterns'
+    ]
+  },
+  {
+    id: 'sa002',
+    type: 'SUSPICIOUS_ACTIVITY',
+    title: 'Unusual Login Pattern Detected',
+    description: 'Multiple failed login attempts to Salesforce from unusual geographic locations.',
+    severity: 'MEDIUM',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    affectedApps: ['salesforce'],
+    status: 'ACKNOWLEDGED',
+    assignedTo: 'security-team@company.com',
+    evidence: {
+      logs: [
+        '2024-01-20 14:30: Failed login from IP 203.0.113.42 (Russia)',
+        '2024-01-20 14:35: Failed login from IP 198.51.100.28 (China)',
+        '2024-01-20 14:40: Failed login from IP 192.0.2.146 (Unknown)'
+      ],
+      metadata: {
+        attemptCount: 15,
+        timeWindow: '2 hours',
+        userAgent: 'Mozilla/5.0 (automated tools detected)'
+      }
+    },
+    recommendedActions: [
+      'Force password reset for affected account',
+      'Enable MFA if not already configured',
+      'Review and update IP allow lists'
+    ]
+  },
+  {
+    id: 'sa003',
+    type: 'BREACH_DETECTED',
+    title: 'MailChimp Data Exposure Confirmed',
+    description: 'Your organization\'s email list was included in the recent MailChimp security incident affecting 2,500 contacts.',
+    severity: 'CRITICAL',
+    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    affectedApps: ['mailchimp'],
+    status: 'INVESTIGATING',
+    assignedTo: 'incident-response@company.com',
+    evidence: {
+      metadata: {
+        recordsAffected: 2500,
+        dataTypes: ['email_addresses', 'names', 'subscription_status'],
+        breachDate: '2024-01-18',
+        notificationDate: '2024-01-20'
+      }
+    },
+    recommendedActions: [
+      'Notify affected customers within 72 hours',
+      'Review data processing agreements',
+      'Consider migrating to alternative email platform',
+      'Implement additional monitoring controls'
+    ],
+    relatedThreats: ['tf003']
+  },
+  {
+    id: 'sa004',
+    type: 'POLICY_VIOLATION',
+    title: 'Shadow IT Application Detected',
+    description: 'Unauthorized file sharing application (WeTransfer) detected in use by marketing team without security approval.',
+    severity: 'MEDIUM',
+    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+    affectedApps: ['wetransfer-unauthorized'],
+    status: 'NEW',
+    evidence: {
+      logs: [
+        'OAuth grant detected: marketing@company.com -> wetransfer.com',
+        'File upload detected: confidential-campaign-assets.zip (45MB)'
+      ],
+      metadata: {
+        userEmail: 'marketing@company.com',
+        fileTypes: ['zip', 'psd', 'docx'],
+        uploadCount: 3
+      }
+    },
+    recommendedActions: [
+      'Contact marketing team to cease usage',
+      'Provide approved alternative file sharing solution',
+      'Review and update shadow IT policy'
+    ]
+  }
+];
+
+const mockVulnerabilityScans: VulnerabilityScanning[] = [
+  {
+    id: 'vs001',
+    appId: 'google-workspace',
+    scanType: 'AUTOMATED',
+    status: 'COMPLETED',
+    startTime: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
+    endTime: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+    riskScore: 72,
+    nextScanDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+    findings: [
+      {
+        id: 'vf001',
+        title: 'Weak Password Policy Configuration',
+        description: 'Password policy allows passwords shorter than 12 characters and does not require special characters.',
+        severity: 'MEDIUM',
+        cvssScore: 5.4,
+        category: 'AUTHENTICATION',
+        exploitable: false,
+        patchAvailable: true,
+        remediation: 'Update organization password policy to require minimum 12 characters with complexity requirements.',
+        references: ['https://support.google.com/a/answer/139399']
+      },
+      {
+        id: 'vf002',
+        title: 'External Sharing Permissions Too Broad',
+        description: 'Domain allows external sharing of documents without approval workflow.',
+        severity: 'HIGH',
+        category: 'AUTHORIZATION',
+        exploitable: true,
+        patchAvailable: true,
+        remediation: 'Implement approval workflow for external document sharing and restrict default permissions.',
+        references: ['https://support.google.com/a/answer/60781']
+      }
+    ]
+  },
+  {
+    id: 'vs002',
+    appId: 'slack',
+    scanType: 'SCHEDULED',
+    status: 'RUNNING',
+    startTime: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+    riskScore: 0,
+    nextScanDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Next week
+    findings: []
+  }
+];
+
+const mockIncidents: IncidentResponse[] = [
+  {
+    id: 'ir001',
+    title: 'MailChimp Data Breach Response',
+    description: 'Coordinated response to MailChimp security incident affecting customer email lists.',
+    severity: 'HIGH',
+    status: 'ANALYZING',
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    updatedAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+    assignedTeam: ['incident-response@company.com', 'legal@company.com', 'communications@company.com'],
+    affectedSystems: ['mailchimp', 'customer-database'],
+    timeline: [
+      {
+        id: 'te001',
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+        event: 'Incident Detected',
+        description: 'MailChimp breach notification received',
+        actor: 'automated-monitoring',
+        category: 'DETECTION'
+      },
+      {
+        id: 'te002',
+        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+        event: 'Initial Assessment',
+        description: 'Confirmed 2,500 customer records potentially affected',
+        actor: 'security-analyst@company.com',
+        category: 'ANALYSIS'
+      },
+      {
+        id: 'te003',
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+        event: 'Stakeholder Notification',
+        description: 'Legal and communications teams briefed',
+        actor: 'incident-commander@company.com',
+        category: 'COMMUNICATION'
+      }
+    ],
+    artifacts: {
+      logs: ['mailchimp-breach-notification.pdf', 'affected-records-export.csv'],
+      evidence: ['oauth-audit-trail.log', 'data-access-patterns.json'],
+      reports: ['initial-impact-assessment.docx']
+    }
+  }
+];
+
 function App() {
   const { user, isLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -442,6 +817,12 @@ function App() {
   const [actionItems, setActionItems] = useState<any[]>([]);
   const [privacyTips, setPrivacyTips] = useState<any[]>([]);
   const [progressData] = useState(mockProgressData);
+  
+  // Threat Intelligence State
+  const [threatFeeds, setThreatFeeds] = useState<ThreatFeed[]>([]);
+  const [securityAlerts, setSecurityAlerts] = useState<SecurityAlert[]>([]);
+  const [vulnerabilityScans, setVulnerabilityScans] = useState<VulnerabilityScanning[]>([]);
+  const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isScanning, setIsScanning] = useState(false);
   const [hasData, setHasData] = useState(false);
@@ -681,6 +1062,13 @@ function App() {
         setUserProfile(fallbackProfile);
         setApps(fallbackApps);
         setActionItems(fallbackActions);
+        
+        // Load threat intelligence data
+        setThreatFeeds(mockThreatFeeds);
+        setSecurityAlerts(mockSecurityAlerts);
+        setVulnerabilityScans(mockVulnerabilityScans);
+        setIncidents(mockIncidents);
+        
         setHasData(true);
         
       } catch (error) {
@@ -711,6 +1099,13 @@ function App() {
             setBreachAlerts(dashboardData.breachAlerts);
             setActionItems(dashboardData.actions);
             setPrivacyTips(dashboardData.privacyTips);
+            
+            // Load threat intelligence data
+            setThreatFeeds(mockThreatFeeds);
+            setSecurityAlerts(mockSecurityAlerts);
+            setVulnerabilityScans(mockVulnerabilityScans);
+            setIncidents(mockIncidents);
+            
             setHasData(true);
             console.log('Scan completed with API data:', dashboardData);
             setIsScanning(false);
@@ -1240,18 +1635,36 @@ Thank you,
             </div>
             <div className={`nav-section-items ${expandedSections.threatIntelligence ? 'expanded' : 'collapsed'}`}>
               <button 
-                className={`nav-item ${activeTab === 'intel' ? 'active' : ''}`}
-                onClick={() => setActiveTab('intel')}
+                className={`nav-item ${activeTab === 'threat-feeds' ? 'active' : ''}`}
+                onClick={() => setActiveTab('threat-feeds')}
+              >
+                <span className="nav-icon"></span>
+                <span className="nav-text">Threat Feeds</span>
+                <span className="nav-badge">{threatFeeds.filter(f => f.isActive && f.severity === 'CRITICAL').length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'security-alerts' ? 'active' : ''}`}
+                onClick={() => setActiveTab('security-alerts')}
               >
                 <span className="nav-icon"></span>
                 <span className="nav-text">Security Alerts</span>
+                <span className="nav-badge">{securityAlerts.filter(a => a.status === 'NEW').length}</span>
               </button>
               <button 
-                className={`nav-item ${activeTab === 'threat-info' ? 'active' : ''}`}
-                onClick={() => setActiveTab('threat-info')}
+                className={`nav-item ${activeTab === 'vulnerability-scans' ? 'active' : ''}`}
+                onClick={() => setActiveTab('vulnerability-scans')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">Threat Guide</span>
+                <span className="nav-text">Vulnerability Scans</span>
+                <span className="nav-badge">{vulnerabilityScans.filter(s => s.status === 'COMPLETED').length}</span>
+              </button>
+              <button 
+                className={`nav-item ${activeTab === 'incidents' ? 'active' : ''}`}
+                onClick={() => setActiveTab('incidents')}
+              >
+                <span className="nav-icon"></span>
+                <span className="nav-text">Incidents</span>
+                <span className="nav-badge">{incidents.filter(i => i.status !== 'CLOSED').length}</span>
               </button>
             </div>
           </div>
