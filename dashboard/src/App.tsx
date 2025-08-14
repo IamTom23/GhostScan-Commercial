@@ -1,5 +1,5 @@
 // Cloudyx Dashboard - Security Management Platform - Functional Version
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Onboarding } from './components/Onboarding';
 import { useAuth } from './contexts/AuthContext';
@@ -485,6 +485,12 @@ function App() {
   // State for security score modals
   const [activeScoreModal, setActiveScoreModal] = useState<string | null>(null);
   
+  // State for apps filtering and sorting
+  const [searchTerm, setSearchTerm] = useState('');
+  const [riskFilter, setRiskFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
   // Debug log (temporary)
   if (activeScoreModal) {
     console.log('Active modal:', activeScoreModal);
@@ -497,6 +503,46 @@ function App() {
       [sectionKey]: !prev[sectionKey]
     }));
   };
+
+  // Filter and sort apps
+  const filteredAndSortedApps = React.useMemo(() => {
+    let filtered = apps.filter(app => {
+      // Search filter
+      const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           app.domain.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Risk filter
+      const matchesRisk = riskFilter === 'all' || 
+                         app.riskLevel.toLowerCase() === riskFilter.toLowerCase();
+      
+      return matchesSearch && matchesRisk;
+    });
+
+    // Sort apps
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'risk':
+          const riskOrder = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+          comparison = (riskOrder[a.riskLevel as keyof typeof riskOrder] || 0) - 
+                      (riskOrder[b.riskLevel as keyof typeof riskOrder] || 0);
+          break;
+        case 'lastAccessed':
+          comparison = new Date(b.lastAccessed!).getTime() - new Date(a.lastAccessed!).getTime();
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+
+    return filtered;
+  }, [apps, searchTerm, riskFilter, sortBy, sortOrder]);
 
   // Load demo data from backend API on component mount
   useEffect(() => {
@@ -1826,18 +1872,57 @@ Thank you,
         {activeTab === 'apps' && (
           <div className="apps-view">
             <div className="apps-header">
-              <h2>Your Apps</h2>
-              <div className="apps-filters">
-                <select className="filter-select">
-                  <option>All Risk Levels</option>
-                  <option>High Risk Only</option>
-                  <option>Medium Risk Only</option>
-                  <option>Low Risk Only</option>
-                </select>
+              <h2>Your Apps ({filteredAndSortedApps.length})</h2>
+              <div className="apps-controls">
+                <div className="search-container">
+                  <input
+                    type="text"
+                    placeholder="Search apps..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
+                <div className="apps-filters">
+                  <select 
+                    className="filter-select"
+                    value={riskFilter}
+                    onChange={(e) => setRiskFilter(e.target.value)}
+                  >
+                    <option value="all">All Risk Levels</option>
+                    <option value="high">High Risk Only</option>
+                    <option value="medium">Medium Risk Only</option>
+                    <option value="low">Low Risk Only</option>
+                  </select>
+                  <select 
+                    className="sort-select"
+                    value={`${sortBy}-${sortOrder}`}
+                    onChange={(e) => {
+                      const [newSortBy, newSortOrder] = e.target.value.split('-');
+                      setSortBy(newSortBy);
+                      setSortOrder(newSortOrder as 'asc' | 'desc');
+                    }}
+                  >
+                    <option value="name-asc">Name A-Z</option>
+                    <option value="name-desc">Name Z-A</option>
+                    <option value="risk-desc">Risk High-Low</option>
+                    <option value="risk-asc">Risk Low-High</option>
+                    <option value="lastAccessed-desc">Recently Used</option>
+                    <option value="lastAccessed-asc">Least Used</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div className="apps-grid">
-              {apps.map(app => (
+            
+            {filteredAndSortedApps.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🔍</div>
+                <h3>No apps found</h3>
+                <p>Try adjusting your search terms or filters</p>
+              </div>
+            ) : (
+              <div className="apps-grid">
+                {filteredAndSortedApps.map(app => (
                 <div key={app.id} className="app-card">
                   <div className="app-header">
                     <h3>{app.name}</h3>
@@ -1864,7 +1949,8 @@ Thank you,
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
