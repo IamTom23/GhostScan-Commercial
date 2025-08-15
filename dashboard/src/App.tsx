@@ -1656,7 +1656,7 @@ function App() {
               onClick={() => toggleSection('casb')}
             >
               <span className="section-icon"></span>
-              <span className="section-title">CASB Security</span>
+              <span className="section-title">Data Protection</span>
               <span className={`section-toggle ${expandedSections.casb ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.casb ? '▼' : '▶'}
               </span>
@@ -1667,7 +1667,7 @@ function App() {
                 onClick={() => setActiveTab('dlp-alerts')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">DLP Alerts</span>
+                <span className="nav-text">Data Protection</span>
                 <span className="nav-badge">{dlpAlerts.filter(a => a.status === 'NEW').length}</span>
               </button>
               <button 
@@ -1675,7 +1675,7 @@ function App() {
                 onClick={() => setActiveTab('shadow-it')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">Shadow IT</span>
+                <span className="nav-text">App Discovery</span>
                 <span className="nav-badge">{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</span>
               </button>
             </div>
@@ -2583,45 +2583,59 @@ function App() {
         {/* Enhanced CASB Security Sections */}
         {activeTab === 'dlp-alerts' && (
           <div style={{ padding: '2rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Data Loss Prevention Alerts</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Monitor and prevent unauthorized data sharing across SaaS applications</p>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Data Protection Alerts</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Keep your company data safe by monitoring when sensitive information is shared outside your organization</p>
+            <div style={{ 
+              background: 'var(--bg-tertiary)', 
+              border: '1px solid var(--border-color)', 
+              borderRadius: '8px', 
+              padding: '1rem', 
+              marginBottom: '2rem',
+              fontSize: '0.9rem'
+            }}>
+              <strong style={{ color: 'var(--text-primary)' }}>💡 What this does:</strong> 
+              <span style={{ color: 'var(--text-secondary)' }}>We watch your Google Drive, Office 365, and other business apps to make sure sensitive data like customer information, financial records, or confidential documents don't accidentally get shared with the wrong people.</span>
+            </div>
             <div className="security-score-section">
               <div className="score-dimensions-grid">
                 <div className="score-dimension-card critical">
                   <div className="dimension-header">
-                    <h3>Critical Alerts</h3>
+                    <h3>Urgent Issues</h3>
                     <span className="dimension-score">{dlpAlerts.filter(a => a.severity === 'CRITICAL').length}</span>
                   </div>
-                  <p>Require immediate attention</p>
+                  <p>Data at risk - action needed now</p>
                 </div>
                 <div className="score-dimension-card high">
                   <div className="dimension-header">
-                    <h3>High Risk</h3>
+                    <h3>Security Warnings</h3>
                     <span className="dimension-score">{dlpAlerts.filter(a => a.severity === 'HIGH').length}</span>
                   </div>
-                  <p>Policy violations detected</p>
+                  <p>Potential data sharing risks</p>
                 </div>
                 <div className="score-dimension-card blocked">
                   <div className="dimension-header">
-                    <h3>Blocked Actions</h3>
+                    <h3>Protected</h3>
                     <span className="dimension-score">{dlpAlerts.filter(a => a.actionTaken === 'BLOCKED').length}</span>
                   </div>
-                  <p>Threats automatically stopped</p>
+                  <p>Risky actions we blocked for you</p>
                 </div>
                 <div className="score-dimension-card total">
                   <div className="dimension-header">
-                    <h3>Total Alerts</h3>
+                    <h3>All Activity</h3>
                     <span className="dimension-score">{dlpAlerts.length}</span>
                   </div>
-                  <p>Last 30 days</p>
+                  <p>Data protection events this month</p>
                 </div>
               </div>
             </div>
             {dlpAlerts.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-content">
-                  <h3>No DLP Alerts</h3>
-                  <p>All data loss prevention policies are being followed. New alerts will appear here when detected.</p>
+                  <h3>All Good!</h3>
+                  <p>Your team is following good data protection practices. We'll let you know if anything needs your attention.</p>
+                  <div style={{ marginTop: '1rem' }}>
+                    <button className="scan-button primary">Set Up Alerts</button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -2662,7 +2676,7 @@ function App() {
                   </div>
                   
                   <div style={{ marginBottom: '1rem' }}>
-                    <strong>Policy Violated:</strong>
+                    <strong>What happened:</strong>
                     <p style={{ margin: '0.5rem 0' }}>{alert.policyViolated}</p>
                   </div>
                   
@@ -2674,7 +2688,7 @@ function App() {
                   )}
                   
                   <div style={{ marginBottom: '1rem' }}>
-                    <strong>Data Types:</strong>
+                    <strong>Sensitive data involved:</strong>
                     <div style={{ marginTop: '0.5rem' }}>
                       {alert.dataTypes.map(type => (
                         <span key={type} style={{
@@ -2706,9 +2720,9 @@ function App() {
                   )}
                   
                   <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <button className="scan-button primary">Investigate</button>
-                    <button className="scan-button secondary">Mark Resolved</button>
-                    <button className="scan-button secondary">False Positive</button>
+                    <button className="scan-button primary">Review Details</button>
+                    <button className="scan-button secondary">Mark as Safe</button>
+                    <button className="scan-button secondary">Not a Problem</button>
                   </div>
                 </div>
                 ))
@@ -2718,41 +2732,62 @@ function App() {
 
         {activeTab === 'shadow-it' && (
           <div style={{ padding: '2rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Shadow IT Discovery</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Monitor OAuth-connected applications and assess security risks</p>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>App Discovery</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>See what apps your team is using and make sure they're safe for your business data</p>
+            <div style={{ 
+              background: 'var(--bg-tertiary)', 
+              border: '1px solid var(--border-color)', 
+              borderRadius: '8px', 
+              padding: '1rem', 
+              marginBottom: '2rem',
+              fontSize: '0.9rem'
+            }}>
+              <strong style={{ color: 'var(--text-primary)' }}>💡 What this does:</strong> 
+              <span style={{ color: 'var(--text-secondary)' }}>Your team might connect third-party apps to Google Workspace or Office 365 for productivity. We help you see which apps have access to your business data so you can approve the safe ones and block risky ones.</span>
+            </div>
             <div className="security-score-section">
               <div className="score-dimensions-grid">
                 <div className="score-dimension-card total">
                   <div className="dimension-header">
-                    <h3>Apps Discovered</h3>
+                    <h3>Apps Found</h3>
                     <span className="dimension-score">{shadowITApps.length}</span>
                   </div>
-                  <p>OAuth-connected applications</p>
+                  <p>Connected to your business accounts</p>
                 </div>
                 <div className="score-dimension-card pending">
                   <div className="dimension-header">
-                    <h3>Awaiting Review</h3>
+                    <h3>Need Review</h3>
                     <span className="dimension-score">{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</span>
                   </div>
-                  <p>Require security assessment</p>
+                  <p>Apps that need your approval</p>
                 </div>
                 <div className="score-dimension-card high-risk">
                   <div className="dimension-header">
-                    <h3>High Risk</h3>
+                    <h3>Risky Apps</h3>
                     <span className="dimension-score">{shadowITApps.filter(app => app.riskScore > 70).length}</span>
                   </div>
-                  <p>Need immediate attention</p>
+                  <p>May not be safe for business data</p>
                 </div>
                 <div className="score-dimension-card spend">
                   <div className="dimension-header">
-                    <h3>Est. Annual Spend</h3>
+                    <h3>Monthly Cost</h3>
                     <span className="dimension-score">${shadowITApps.reduce((sum, app) => sum + (app.estimatedSpend || 0), 0).toLocaleString()}</span>
                   </div>
-                  <p>Total estimated cost</p>
+                  <p>What these apps cost your business</p>
                 </div>
               </div>
             </div>
-            {shadowITApps.map(app => (
+            {shadowITApps.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-content">
+                  <h3>No Apps Found Yet</h3>
+                  <p>We haven't found any third-party apps connected to your business accounts. This could mean your team isn't using any, or we need to scan your Google Workspace or Office 365.</p>
+                  <div style={{ marginTop: '1rem' }}>
+                    <button className="scan-button primary">Connect Your Accounts</button>
+                  </div>
+                </div>
+              </div>
+            ) : shadowITApps.map(app => (
               <div key={app.id} style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-color)',
@@ -2776,7 +2811,7 @@ function App() {
                       fontWeight: 'bold',
                       background: app.riskScore > 70 ? 'rgba(239, 68, 68, 0.2)' : app.riskScore > 40 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
                       color: app.riskScore > 70 ? '#DC2626' : app.riskScore > 40 ? '#D97706' : '#059669'
-                    }}>Risk: {app.riskScore}</span>
+                    }}>{app.riskScore > 70 ? 'High Risk' : app.riskScore > 40 ? 'Medium Risk' : 'Low Risk'}</span>
                     <span style={{
                       padding: '0.25rem 0.75rem',
                       borderRadius: '20px',
@@ -2826,7 +2861,7 @@ function App() {
                 </div>
                 {app.businessJustification && (
                   <div style={{ marginBottom: '1rem' }}>
-                    <strong>Business justification:</strong>
+                    <strong>Why your team uses this:</strong>
                     <p style={{ margin: '0.5rem 0' }}>{app.businessJustification}</p>
                   </div>
                 )}
