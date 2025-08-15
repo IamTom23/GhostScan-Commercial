@@ -2582,418 +2582,262 @@ function App() {
 
         {/* Enhanced CASB Security Sections */}
         {activeTab === 'dlp-alerts' && (
-          <div className="dlp-alerts-view">
-            <div className="page-header">
-              <div className="header-content">
-                <div className="header-icon">🛡️</div>
-                <div className="header-text">
-                  <h2>Data Loss Prevention</h2>
-                  <p className="header-subtitle">Monitor and prevent unauthorized data sharing across SaaS applications</p>
-                </div>
-              </div>
-              <div className="header-actions">
-                <button className="action-btn primary">
-                  <span className="btn-icon">⚙️</span>
-                  Configure Policies
-                </button>
-                <button className="action-btn secondary">
-                  <span className="btn-icon">📊</span>
-                  Export Report
-                </button>
-              </div>
-            </div>
-            <div className="metrics-grid">
-              <div className="metric-card critical">
-                <div className="metric-icon">🚨</div>
-                <div className="metric-content">
-                  <h3>{dlpAlerts.filter(a => a.severity === 'CRITICAL').length}</h3>
-                  <p>Critical Alerts</p>
-                  <span className="metric-trend">+2 this week</span>
-                </div>
-              </div>
-              <div className="metric-card high">
-                <div className="metric-icon">⚠️</div>
-                <div className="metric-content">
-                  <h3>{dlpAlerts.filter(a => a.severity === 'HIGH').length}</h3>
-                  <p>High Risk</p>
-                  <span className="metric-trend">-1 this week</span>
-                </div>
-              </div>
-              <div className="metric-card blocked">
-                <div className="metric-icon">🚫</div>
-                <div className="metric-content">
-                  <h3>{dlpAlerts.filter(a => a.actionTaken === 'BLOCKED').length}</h3>
-                  <p>Blocked Actions</p>
-                  <span className="metric-trend">+5 today</span>
-                </div>
-              </div>
-              <div className="metric-card total">
-                <div className="metric-icon">📋</div>
-                <div className="metric-content">
-                  <h3>{dlpAlerts.length}</h3>
-                  <p>Total Alerts</p>
-                  <span className="metric-trend">Last 30 days</span>
-                </div>
-              </div>
-            </div>
-            <div className="content-section">
-              <div className="section-header">
-                <h3>Recent Alerts</h3>
-                <div className="filters">
-                  <select className="filter-select">
-                    <option>All Severities</option>
-                    <option>Critical</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                  </select>
-                  <select className="filter-select">
-                    <option>All Apps</option>
-                    <option>Google Drive</option>
-                    <option>Office 365</option>
-                    <option>Slack</option>
-                  </select>
-                </div>
-              </div>
-              <div className="alerts-list">
-                {dlpAlerts.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">🎉</div>
-                    <div className="empty-state-content">
-                      <h3>All Clear!</h3>
-                      <p>No data loss prevention alerts detected. Your policies are protecting your data effectively.</p>
-                      <button className="action-btn primary">Review Policies</button>
-                    </div>
+          <div style={{ padding: '2rem' }}>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Data Loss Prevention Alerts</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Monitor and prevent unauthorized data sharing across SaaS applications</p>
+            <div className="security-score-section">
+              <div className="score-dimensions-grid">
+                <div className="score-dimension-card critical">
+                  <div className="dimension-header">
+                    <h3>Critical Alerts</h3>
+                    <span className="dimension-score">{dlpAlerts.filter(a => a.severity === 'CRITICAL').length}</span>
                   </div>
-                ) : (
+                  <p>Require immediate attention</p>
+                </div>
+                <div className="score-dimension-card high">
+                  <div className="dimension-header">
+                    <h3>High Risk</h3>
+                    <span className="dimension-score">{dlpAlerts.filter(a => a.severity === 'HIGH').length}</span>
+                  </div>
+                  <p>Policy violations detected</p>
+                </div>
+                <div className="score-dimension-card blocked">
+                  <div className="dimension-header">
+                    <h3>Blocked Actions</h3>
+                    <span className="dimension-score">{dlpAlerts.filter(a => a.actionTaken === 'BLOCKED').length}</span>
+                  </div>
+                  <p>Threats automatically stopped</p>
+                </div>
+                <div className="score-dimension-card total">
+                  <div className="dimension-header">
+                    <h3>Total Alerts</h3>
+                    <span className="dimension-score">{dlpAlerts.length}</span>
+                  </div>
+                  <p>Last 30 days</p>
+                </div>
+              </div>
+            </div>
+            {dlpAlerts.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-content">
+                  <h3>No DLP Alerts</h3>
+                  <p>All data loss prevention policies are being followed. New alerts will appear here when detected.</p>
+                </div>
+              </div>
+            ) : (
                 dlpAlerts.map(alert => (
-                <div key={alert.id} className={`alert-card severity-${alert.severity.toLowerCase()} enhanced`}>
-                  <div className="alert-priority-indicator"></div>
-                  <div className="alert-header">
-                    <div className="alert-meta">
-                      <div className="app-icon">
-                        {alert.appName.includes('Google') ? '🗏' : alert.appName.includes('Office') ? '📄' : '📊'}
-                      </div>
-                      <div className="alert-info">
-                        <h3>{alert.appName}</h3>
-                        <p className="alert-type">{alert.alertType.replace(/_/g, ' ')}</p>
-                        <div className="alert-context">
-                          <span className="user-info">👤 {alert.userEmail}</span>
-                          <span className="time-info">🕰️ {new Date(alert.timestamp).toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="alert-status">
-                      <span className={`severity-badge ${alert.severity.toLowerCase()}`}>
-                        <span className="badge-icon">{alert.severity === 'CRITICAL' ? '🚨' : alert.severity === 'HIGH' ? '⚠️' : '🟡'}</span>
-                        {alert.severity}
-                      </span>
-                      <span className={`action-badge ${alert.actionTaken.toLowerCase()}`}>
-                        <span className="badge-icon">{alert.actionTaken === 'BLOCKED' ? '🚫' : alert.actionTaken === 'QUARANTINED' ? '🛡️' : '✅'}</span>
-                        {alert.actionTaken}
-                      </span>
-                      <div className="risk-score">
-                        <span className="risk-label">Risk</span>
-                        <span className="risk-value">{alert.riskScore}/100</span>
+                <div key={alert.id} style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderLeft: `4px solid ${alert.severity === 'CRITICAL' ? '#DC2626' : alert.severity === 'HIGH' ? '#D97706' : '#60a5fa'}`,
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div>
+                      <strong style={{ color: 'var(--text-primary)' }}>{alert.appName} - {alert.alertType.replace(/_/g, ' ')}</strong>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                        {alert.userEmail} • {new Date(alert.timestamp).toLocaleString()}
                       </div>
                     </div>
-                  </div>
-                  <div className="alert-details">
-                    <div className="detail-grid">
-                      <div className="detail-item">
-                        <div className="detail-label">
-                          <span className="detail-icon">📋</span>
-                          Policy Violated
-                        </div>
-                        <div className="detail-value">{alert.policyViolated}</div>
-                      </div>
-                      
-                      {alert.fileName && (
-                        <div className="detail-item">
-                          <div className="detail-label">
-                            <span className="detail-icon">📁</span>
-                            File Details
-                          </div>
-                          <div className="detail-value">
-                            <span className="file-name">{alert.fileName}</span>
-                            <span className="file-size">({alert.fileSize}MB)</span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="detail-item full-width">
-                        <div className="detail-label">
-                          <span className="detail-icon">🔍</span>
-                          Sensitive Data Detected
-                        </div>
-                        <div className="detail-tags">
-                          {alert.dataTypes.map(type => (
-                            <span key={type} className="data-type-tag enhanced">
-                              <span className="tag-icon">
-                                {type.toLowerCase().includes('credit') ? '💳' : 
-                                 type.toLowerCase().includes('ssn') ? '🆔' : 
-                                 type.toLowerCase().includes('email') ? '📧' : '📄'}
-                              </span>
-                              {type}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {alert.externalDomains && (
-                        <div className="detail-item full-width">
-                          <div className="detail-label">
-                            <span className="detail-icon">🌐</span>
-                            External Domains
-                          </div>
-                          <div className="detail-tags">
-                            {alert.externalDomains.map(domain => (
-                              <span key={domain} className="domain-tag enhanced">
-                                <span className="tag-icon">🔗</span>
-                                {domain}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <span style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        background: alert.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.2)' : alert.severity === 'HIGH' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(96, 165, 250, 0.2)',
+                        color: alert.severity === 'CRITICAL' ? '#DC2626' : alert.severity === 'HIGH' ? '#D97706' : '#2563EB'
+                      }}>{alert.severity}</span>
+                      <span style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        background: alert.actionTaken === 'BLOCKED' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                        color: alert.actionTaken === 'BLOCKED' ? '#DC2626' : '#059669'
+                      }}>{alert.actionTaken}</span>
                     </div>
                   </div>
-                  <div className="alert-actions">
-                    <button className="action-btn primary">
-                      <span className="btn-icon">🔍</span>
-                      Investigate
-                    </button>
-                    <button className="action-btn secondary">
-                      <span className="btn-icon">✅</span>
-                      Resolve
-                    </button>
-                    <button className="action-btn tertiary">
-                      <span className="btn-icon">❌</span>
-                      False Positive
-                    </button>
-                    <button className="action-btn tertiary">
-                      <span className="btn-icon">📝</span>
-                      Add Note
-                    </button>
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong>Policy Violated:</strong>
+                    <p style={{ margin: '0.5rem 0' }}>{alert.policyViolated}</p>
+                  </div>
+                  
+                  {alert.fileName && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <strong>File:</strong>
+                      <p style={{ margin: '0.5rem 0' }}>{alert.fileName} ({alert.fileSize}MB)</p>
+                    </div>
+                  )}
+                  
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong>Data Types:</strong>
+                    <div style={{ marginTop: '0.5rem' }}>
+                      {alert.dataTypes.map(type => (
+                        <span key={type} style={{
+                          background: 'var(--bg-tertiary)',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '16px',
+                          marginRight: '0.5rem',
+                          fontSize: '0.9rem'
+                        }}>{type}</span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {alert.externalDomains && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <strong>External Domains:</strong>
+                      <div style={{ marginTop: '0.5rem' }}>
+                        {alert.externalDomains.map(domain => (
+                          <span key={domain} style={{
+                            background: 'var(--bg-tertiary)',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '16px',
+                            marginRight: '0.5rem',
+                            fontSize: '0.9rem'
+                          }}>{domain}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button className="scan-button primary">Investigate</button>
+                    <button className="scan-button secondary">Mark Resolved</button>
+                    <button className="scan-button secondary">False Positive</button>
                   </div>
                 </div>
                 ))
-              )}
-              </div>
-            </div>
+            )}
           </div>
         )}
 
         {activeTab === 'shadow-it' && (
-          <div className="shadow-it-view">
-            <div className="page-header">
-              <div className="header-content">
-                <div className="header-icon">🕵️</div>
-                <div className="header-text">
-                  <h2>Shadow IT Discovery</h2>
-                  <p className="header-subtitle">Monitor OAuth-connected applications and assess security risks</p>
+          <div style={{ padding: '2rem' }}>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Shadow IT Discovery</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Monitor OAuth-connected applications and assess security risks</p>
+            <div className="security-score-section">
+              <div className="score-dimensions-grid">
+                <div className="score-dimension-card total">
+                  <div className="dimension-header">
+                    <h3>Apps Discovered</h3>
+                    <span className="dimension-score">{shadowITApps.length}</span>
+                  </div>
+                  <p>OAuth-connected applications</p>
                 </div>
-              </div>
-              <div className="header-actions">
-                <button className="action-btn primary">
-                  <span className="btn-icon">🔄</span>
-                  Refresh Scan
-                </button>
-                <button className="action-btn secondary">
-                  <span className="btn-icon">⚙️</span>
-                  OAuth Settings
-                </button>
-              </div>
-            </div>
-            <div className="metrics-grid">
-              <div className="metric-card total">
-                <div className="metric-icon">📱</div>
-                <div className="metric-content">
-                  <h3>{shadowITApps.length}</h3>
-                  <p>Apps Discovered</p>
-                  <span className="metric-trend">+3 this month</span>
+                <div className="score-dimension-card pending">
+                  <div className="dimension-header">
+                    <h3>Awaiting Review</h3>
+                    <span className="dimension-score">{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</span>
+                  </div>
+                  <p>Require security assessment</p>
                 </div>
-              </div>
-              <div className="metric-card pending">
-                <div className="metric-icon">⏳</div>
-                <div className="metric-content">
-                  <h3>{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</h3>
-                  <p>Awaiting Review</p>
-                  <span className="metric-trend">Needs attention</span>
+                <div className="score-dimension-card high-risk">
+                  <div className="dimension-header">
+                    <h3>High Risk</h3>
+                    <span className="dimension-score">{shadowITApps.filter(app => app.riskScore > 70).length}</span>
+                  </div>
+                  <p>Need immediate attention</p>
                 </div>
-              </div>
-              <div className="metric-card high-risk">
-                <div className="metric-icon">⚠️</div>
-                <div className="metric-content">
-                  <h3>{shadowITApps.filter(app => app.riskScore > 70).length}</h3>
-                  <p>High Risk</p>
-                  <span className="metric-trend">Review required</span>
-                </div>
-              </div>
-              <div className="metric-card spend">
-                <div className="metric-icon">💰</div>
-                <div className="metric-content">
-                  <h3>${shadowITApps.reduce((sum, app) => sum + (app.estimatedSpend || 0), 0).toLocaleString()}</h3>
-                  <p>Est. Annual Spend</p>
-                  <span className="metric-trend">+$240 this month</span>
+                <div className="score-dimension-card spend">
+                  <div className="dimension-header">
+                    <h3>Est. Annual Spend</h3>
+                    <span className="dimension-score">${shadowITApps.reduce((sum, app) => sum + (app.estimatedSpend || 0), 0).toLocaleString()}</span>
+                  </div>
+                  <p>Total estimated cost</p>
                 </div>
               </div>
             </div>
-            <div className="content-section">
-              <div className="section-header">
-                <h3>Discovered Applications</h3>
-                <div className="filters">
-                  <select className="filter-select">
-                    <option>All Apps</option>
-                    <option>High Risk</option>
-                    <option>Pending Review</option>
-                    <option>Approved</option>
-                  </select>
-                  <select className="filter-select">
-                    <option>All Providers</option>
-                    <option>Google</option>
-                    <option>Microsoft</option>
-                    <option>Third Party</option>
-                  </select>
+            {shadowITApps.map(app => (
+              <div key={app.id} style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderLeft: `4px solid ${app.riskScore > 70 ? '#DC2626' : app.riskScore > 40 ? '#D97706' : '#059669'}`,
+                borderRadius: '12px',
+                padding: '1.5rem',
+                marginBottom: '1.5rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>{app.name}</strong>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      {app.domain} • {app.userCount} users
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      background: app.riskScore > 70 ? 'rgba(239, 68, 68, 0.2)' : app.riskScore > 40 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                      color: app.riskScore > 70 ? '#DC2626' : app.riskScore > 40 ? '#D97706' : '#059669'
+                    }}>Risk: {app.riskScore}</span>
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      background: app.approvalStatus === 'APPROVED' ? 'rgba(16, 185, 129, 0.2)' : app.approvalStatus === 'PENDING' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                      color: app.approvalStatus === 'APPROVED' ? '#059669' : app.approvalStatus === 'PENDING' ? '#D97706' : '#DC2626'
+                    }}>{app.approvalStatus}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="shadow-apps-list">
-                {shadowITApps.map(app => (
-                  <div key={app.id} className="shadow-app-card enhanced">
-                    <div className="app-priority-indicator"></div>
-                    <div className="app-header">
-                      <div className="app-meta">
-                        <div className="app-icon">
-                          {app.name.toLowerCase().includes('google') ? '🗏' : 
-                           app.name.toLowerCase().includes('microsoft') || app.name.toLowerCase().includes('office') ? '📄' : 
-                           app.name.toLowerCase().includes('slack') ? '💬' : 
-                           app.name.toLowerCase().includes('zoom') ? '📹' : '📊'}
-                        </div>
-                        <div className="app-info">
-                          <h3>{app.name}</h3>
-                          <p className="app-domain">{app.domain}</p>
-                          <div className="app-context">
-                            <span className="user-count">👥 {app.userCount} users</span>
-                            <span className="discovery-method">🔍 {app.discoveredVia.replace(/_/g, ' ')}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="app-status">
-                        <div className="risk-score-visual">
-                          <div className="risk-circle" style={{
-                            background: `conic-gradient(${app.riskScore > 70 ? '#ef4444' : app.riskScore > 40 ? '#f59e0b' : '#10b981'} ${app.riskScore * 3.6}deg, #e5e7eb 0deg)`
-                          }}>
-                            <span className="risk-number">{app.riskScore}</span>
-                          </div>
-                          <span className="risk-label">Risk Score</span>
-                        </div>
-                        <div className="status-badges">
-                          <span className={`approval-badge ${app.approvalStatus.toLowerCase()}`}>
-                            <span className="badge-icon">
-                              {app.approvalStatus === 'APPROVED' ? '✅' : 
-                               app.approvalStatus === 'PENDING' ? '⏳' : 
-                               app.approvalStatus === 'REJECTED' ? '❌' : '🔍'}
-                            </span>
-                            {app.approvalStatus}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="app-details">
-                      <div className="detail-grid">
-                        <div className="detail-item">
-                          <div className="detail-label">
-                            <span className="detail-icon">🗓️</span>
-                            First Seen
-                          </div>
-                          <div className="detail-value">{new Date(app.firstSeen).toLocaleDateString()}</div>
-                        </div>
-                        
-                        <div className="detail-item">
-                          <div className="detail-label">
-                            <span className="detail-icon">⏰</span>
-                            Last Activity
-                          </div>
-                          <div className="detail-value">{new Date(app.lastActivity).toLocaleString()}</div>
-                        </div>
-                        
-                        {app.estimatedSpend && (
-                          <div className="detail-item">
-                            <div className="detail-label">
-                              <span className="detail-icon">💰</span>
-                              Monthly Cost
-                            </div>
-                            <div className="detail-value">${app.estimatedSpend}</div>
-                          </div>
-                        )}
-                        
-                        <div className="detail-item full-width">
-                          <div className="detail-label">
-                            <span className="detail-icon">📄</span>
-                            Data Access
-                          </div>
-                          <div className="detail-tags">
-                            {app.dataTypes.map(type => (
-                              <span key={type} className="data-type-tag enhanced">
-                                <span className="tag-icon">
-                                  {type.toLowerCase().includes('document') ? '📄' : 
-                                   type.toLowerCase().includes('email') ? '📧' : 
-                                   type.toLowerCase().includes('contact') ? '📇' : 
-                                   type.toLowerCase().includes('calendar') ? '📅' : '📊'}
-                                </span>
-                                {type}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="detail-item full-width">
-                          <div className="detail-label">
-                            <span className="detail-icon">⚠️</span>
-                            Risk Factors
-                          </div>
-                          <div className="risk-factors-grid">
-                            {app.riskFactors.map(factor => (
-                              <div key={factor} className="risk-factor-item">
-                                <span className="risk-icon">🚩</span>
-                                {factor}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        {app.businessJustification && (
-                          <div className="detail-item full-width">
-                            <div className="detail-label">
-                              <span className="detail-icon">📋</span>
-                              Business Justification
-                            </div>
-                            <div className="detail-value justify-text">{app.businessJustification}</div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="app-actions">
-                      <button className="action-btn primary">
-                        <span className="btn-icon">✅</span>
-                        Approve
-                      </button>
-                      <button className="action-btn secondary">
-                        <span className="btn-icon">📝</span>
-                        Request Info
-                      </button>
-                      <button className="action-btn tertiary">
-                        <span className="btn-icon">🔍</span>
-                        Investigate
-                      </button>
-                      <button className="action-btn danger">
-                        <span className="btn-icon">🚫</span>
-                        Block
-                      </button>
-                    </div>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>Discovered via:</strong> {app.discoveredVia.replace(/_/g, ' ')}
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>First seen:</strong> {new Date(app.firstSeen).toLocaleDateString()}
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>Last activity:</strong> {new Date(app.lastActivity).toLocaleString()}
+                </div>
+                {app.estimatedSpend && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong>Estimated spend:</strong> ${app.estimatedSpend}/month
+                  </div>
+                )}
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>Data types:</strong>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    {app.dataTypes.map(type => (
+                      <span key={type} style={{
+                        background: 'var(--bg-tertiary)',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '16px',
+                        marginRight: '0.5rem',
+                        fontSize: '0.9rem'
+                      }}>{type}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>Risk factors:</strong>
+                  <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
+                    {app.riskFactors.map(factor => (
+                      <li key={factor}>{factor}</li>
+                    ))}
+                  </ul>
+                </div>
+                {app.businessJustification && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong>Business justification:</strong>
+                    <p style={{ margin: '0.5rem 0' }}>{app.businessJustification}</p>
+                  </div>
+                )}
+                
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button className="scan-button primary">Approve</button>
+                  <button className="scan-button secondary">Request Justification</button>
+                  <button className="scan-button danger">Block</button>
+                </div>
                 </div>
               ))}
-            </div>
-              </div>
           </div>
         )}
 
