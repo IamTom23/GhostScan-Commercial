@@ -65,9 +65,12 @@ interface Props {
   securityAlerts: SecurityAlert[];
   vulnerabilityScans: VulnerabilityScan[];
   incidents: Incident[];
+  onThreatAction?: (feedId: string, action: string) => void;
+  onSecurityAction?: (alertId: string, action: string) => void;
+  onVulnerabilityAction?: (scanId: string, action: string) => void;
 }
 
-export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vulnerabilityScans, incidents }: Props) {
+export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vulnerabilityScans, incidents, onThreatAction, onSecurityAction, onVulnerabilityAction }: Props) {
   if (activeTab === 'threat-feeds') {
     return (
       <div style={{ padding: '2rem' }}>
@@ -140,13 +143,51 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
               </div>
             )}
             
-            <div>
+            <div style={{ marginBottom: '1.5rem' }}>
               <strong style={{ color: 'var(--text-primary)' }}>What you should do:</strong>
               <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
                 {feed.mitigations.map((action, idx) => (
                   <li key={idx} style={{ color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{action}</li>
                 ))}
               </ul>
+            </div>
+            
+            <div style={{ padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>Action Required:</strong>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Priority: {feed.severity}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button 
+                  className="scan-button primary"
+                  onClick={() => onThreatAction?.(feed.id, 'acknowledge')}
+                >
+                  ✅ Acknowledged
+                </button>
+                <button 
+                  className="scan-button secondary"
+                  onClick={() => onThreatAction?.(feed.id, 'investigate')}
+                >
+                  🔍 Investigate Impact
+                </button>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => onThreatAction?.(feed.id, 'dismiss')}
+                >
+                  ❌ Not Applicable
+                </button>
+                <button 
+                  className="scan-button secondary"
+                  onClick={() => onThreatAction?.(feed.id, 'share')}
+                >
+                  📤 Share with Team
+                </button>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                Taking action helps improve your security score and shows stakeholders you're managing risks proactively.
+              </div>
             </div>
           </div>
         ))}
@@ -239,6 +280,84 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
                 <strong>Assigned to: </strong>{alert.assignedTo}
               </div>
             )}
+            
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>Incident Response:</strong>
+                <span style={{ 
+                  padding: '0.25rem 0.75rem', 
+                  borderRadius: '12px', 
+                  fontSize: '0.75rem', 
+                  background: alert.status === 'NEW' ? 'rgba(239, 68, 68, 0.2)' : alert.status === 'INVESTIGATING' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                  color: alert.status === 'NEW' ? '#DC2626' : alert.status === 'INVESTIGATING' ? '#D97706' : '#059669'
+                }}>{alert.status}</span>
+              </div>
+              
+              {alert.status === 'NEW' && (
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <button 
+                    className="scan-button primary"
+                    onClick={() => onSecurityAction?.(alert.id, 'investigate')}
+                  >
+                    🔍 Start Investigation
+                  </button>
+                  <button 
+                    className="scan-button danger"
+                    onClick={() => onSecurityAction?.(alert.id, 'block')}
+                  >
+                    🚫 Block Threat
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => onSecurityAction?.(alert.id, 'assign')}
+                  >
+                    👤 Assign to Security Team
+                  </button>
+                </div>
+              )}
+              
+              {alert.status === 'INVESTIGATING' && (
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <button 
+                    className="scan-button primary"
+                    onClick={() => onSecurityAction?.(alert.id, 'resolve')}
+                  >
+                    ✅ Mark as Resolved
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => onSecurityAction?.(alert.id, 'escalate')}
+                  >
+                    ⬆️ Escalate Priority
+                  </button>
+                  <button 
+                    className="scan-button tertiary"
+                    onClick={() => onSecurityAction?.(alert.id, 'update')}
+                  >
+                    📝 Add Update
+                  </button>
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => onSecurityAction?.(alert.id, 'notify')}
+                >
+                  📧 Notify Stakeholders
+                </button>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => onSecurityAction?.(alert.id, 'export')}
+                >
+                  📊 Export Report
+                </button>
+              </div>
+              
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                <strong>Impact:</strong> {alert.severity === 'CRITICAL' ? 'Immediate business disruption risk' : alert.severity === 'HIGH' ? 'Significant security exposure' : 'Moderate security concern'}
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -344,6 +463,83 @@ export function ThreatIntelligence({ activeTab, threatFeeds, securityAlerts, vul
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Checking your app security...</div>
               </div>
             )}
+            
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>Vulnerability Management:</strong>
+                <span style={{ 
+                  padding: '0.25rem 0.75rem', 
+                  borderRadius: '12px', 
+                  fontSize: '0.75rem', 
+                  background: scan.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.2)' : scan.status === 'RUNNING' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(107, 114, 128, 0.2)',
+                  color: scan.status === 'COMPLETED' ? '#059669' : scan.status === 'RUNNING' ? '#2563EB' : '#6B7280'
+                }}>{scan.status}</span>
+              </div>
+              
+              {scan.status === 'COMPLETED' && (
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <button 
+                    className="scan-button primary"
+                    onClick={() => onVulnerabilityAction?.(scan.id, 'fix')}
+                  >
+                    🔧 Apply Fixes
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => onVulnerabilityAction?.(scan.id, 'schedule')}
+                  >
+                    📅 Schedule Maintenance
+                  </button>
+                  <button 
+                    className="scan-button tertiary"
+                    onClick={() => onVulnerabilityAction?.(scan.id, 'ignore')}
+                  >
+                    ❌ Accept Risk
+                  </button>
+                </div>
+              )}
+              
+              {scan.status === 'RUNNING' && (
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <button className="scan-button secondary" disabled>⏳ Scan in Progress</button>
+                  <button 
+                    className="scan-button tertiary"
+                    onClick={() => onVulnerabilityAction?.(scan.id, 'cancel')}
+                  >
+                    🛑 Cancel Scan
+                  </button>
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => onVulnerabilityAction?.(scan.id, 'rescan')}
+                >
+                  🔄 Run New Scan
+                </button>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => onVulnerabilityAction?.(scan.id, 'report')}
+                >
+                  📊 Download Report
+                </button>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => onVulnerabilityAction?.(scan.id, 'notify')}
+                >
+                  📧 Notify IT Team
+                </button>
+              </div>
+              
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                {scan.status === 'COMPLETED' && (
+                  <div>
+                    <strong>Risk Level:</strong> {scan.riskScore > 70 ? 'High - Immediate attention required' : scan.riskScore > 40 ? 'Medium - Schedule fixes within 30 days' : 'Low - Monitor for changes'}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>

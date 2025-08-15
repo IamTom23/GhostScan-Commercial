@@ -1045,6 +1045,71 @@ function App() {
     }
   }, [actionItems, threatFilter]);
 
+  // Action handlers for demo functionality
+  const handleDLPAction = (alertId: string, action: string) => {
+    setDlpAlerts(prev => prev.map(alert => 
+      alert.id === alertId ? { ...alert, status: action === 'resolve' ? 'RESOLVED' : action === 'investigate' ? 'INVESTIGATING' : action === 'false-positive' ? 'FALSE_POSITIVE' : alert.status } : alert
+    ));
+    alert(`DLP Alert ${action.toUpperCase()}: Alert ${alertId} has been ${action === 'resolve' ? 'resolved' : action === 'investigate' ? 'marked for investigation' : action === 'false-positive' ? 'marked as false positive' : action}`);
+  };
+
+  const handlePermissionAction = (itemId: string, action: string) => {
+    setActionItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, completed: action === 'revoke' || action === 'resolve', status: action } : item
+    ));
+    alert(`Permission ${action.toUpperCase()}: ${action === 'revoke' ? 'Access has been revoked' : action === 'modify' ? 'Permissions modified' : action === 'monitor' ? 'Monitoring enabled' : 'Action completed'}`);
+  };
+
+  const handleAppAction = (appId: string, action: string) => {
+    setApps(prev => prev.map(app => 
+      app.id === appId ? { 
+        ...app, 
+        accountStatus: action === 'revoke' ? 'INACTIVE' : app.accountStatus,
+        riskLevel: action === 'secure' ? 'LOW' : app.riskLevel 
+      } : app
+    ));
+    alert(`App ${action.toUpperCase()}: ${action === 'revoke' ? 'OAuth access revoked' : action === 'modify' ? 'Permissions modified' : action === 'monitor' ? 'Enhanced monitoring enabled' : action === 'secure' ? 'Security settings updated' : 'Action completed'}`);
+  };
+
+  const handleShadowITAction = (appId: string, action: string) => {
+    setShadowITApps(prev => prev.map(app => 
+      app.id === appId ? { 
+        ...app, 
+        approvalStatus: action === 'approve' ? 'APPROVED' : action === 'reject' ? 'REJECTED' : action === 'review' ? 'UNDER_REVIEW' : app.approvalStatus 
+      } : app
+    ));
+    alert(`Shadow IT ${action.toUpperCase()}: App ${action === 'approve' ? 'approved for use' : action === 'reject' ? 'blocked for security reasons' : action === 'review' ? 'sent for security review' : 'action completed'}`);
+  };
+
+  const handleThreatAction = (feedId: string, action: string) => {
+    setThreatFeeds(prev => prev.map(feed => 
+      feed.id === feedId ? { ...feed, status: action === 'acknowledge' ? 'ACKNOWLEDGED' : action === 'dismiss' ? 'DISMISSED' : feed.status } : feed
+    ));
+    alert(`Threat ${action.toUpperCase()}: Security alert ${action === 'acknowledge' ? 'acknowledged and being addressed' : action === 'dismiss' ? 'dismissed as not applicable' : action === 'investigate' ? 'marked for investigation' : 'processed'}`);
+  };
+
+  const handleSecurityAction = (alertId: string, action: string) => {
+    setSecurityAlerts(prev => prev.map(alert => 
+      alert.id === alertId ? { ...alert, status: action === 'resolve' ? 'RESOLVED' : action === 'investigate' ? 'INVESTIGATING' : alert.status } : alert
+    ));
+    alert(`Security Alert ${action.toUpperCase()}: ${action === 'resolve' ? 'Alert resolved and systems secured' : action === 'investigate' ? 'Investigation initiated' : action === 'block' ? 'Threat blocked automatically' : 'Action completed'}`);
+  };
+
+  const handleVulnerabilityAction = (scanId: string, action: string) => {
+    setVulnerabilityScans(prev => prev.map(scan => 
+      scan.id === scanId ? { ...scan, status: action === 'fix' ? 'FIXED' : action === 'schedule' ? 'SCHEDULED' : scan.status } : scan
+    ));
+    alert(`Vulnerability ${action.toUpperCase()}: ${action === 'fix' ? 'Vulnerability patched successfully' : action === 'schedule' ? 'Fix scheduled for next maintenance window' : action === 'ignore' ? 'Marked as acceptable risk' : 'Action completed'}`);
+  };
+
+  const handleBulkAction = (items: string[], action: string) => {
+    alert(`Bulk ${action.toUpperCase()}: Processing ${items.length} items. This would normally ${action === 'resolve' ? 'resolve all selected alerts' : action === 'export' ? 'export selected data' : action === 'approve' ? 'approve all selected items' : 'process all items'}.`);
+  };
+
+  const handleExportAction = (type: string) => {
+    alert(`EXPORT ${type.toUpperCase()}: Generating ${type === 'pdf' ? 'PDF report' : type === 'csv' ? 'CSV data export' : type === 'compliance' ? 'compliance report' : 'security report'}. Download will begin shortly.`);
+  };
+
   // Load demo data from backend API on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -1760,8 +1825,32 @@ function App() {
             {/* Security Status Hero */}
             <div className="security-hero">
               <div className="hero-content">
-                <h2>Your Business Security: {securityGrade.grade}</h2>
-                <p>Protecting your company data across all business apps - 12 team members secured</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div>
+                    <h2>Your Business Security: {securityGrade.grade}</h2>
+                    <p>Protecting your company data across all business apps - 12 team members secured</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button 
+                      className="scan-button secondary"
+                      onClick={() => handleExportAction('security-summary')}
+                    >
+                      📊 Security Summary
+                    </button>
+                    <button 
+                      className="scan-button secondary"
+                      onClick={() => handleExportAction('executive-report')}
+                    >
+                      📈 Executive Report
+                    </button>
+                    <button 
+                      className="scan-button secondary"
+                      onClick={() => handleExportAction('compliance')}
+                    >
+                      📋 Compliance Report
+                    </button>
+                  </div>
+                </div>
                 <div className="scan-controls">
                   <button 
                     className="scan-button primary"
@@ -2212,7 +2301,29 @@ function App() {
         {activeTab === 'threats' && (
           <div className="threats-view">
             <div className="threats-header">
-              <h2>Active Security Threats</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Active Security Threats</h2>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button 
+                    className="scan-button primary"
+                    onClick={() => handleBulkAction(actionItems.filter(item => !item.completed).map(a => a.id), 'resolve')}
+                  >
+                    ✅ Resolve All Open
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => handleExportAction('threats-report')}
+                  >
+                    📊 Export Threat Report
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => handleExportAction('compliance')}
+                  >
+                    📋 Compliance Report
+                  </button>
+                </div>
+              </div>
               <div className="threat-summary">
                 <button 
                   className={`summary-item all clickable ${threatFilter === 'all' ? 'active' : ''}`}
@@ -2351,12 +2462,42 @@ function App() {
                       {item.completed && <span className="completed-badge">Completed</span>}
                     </div>
                   </div>
-                  <div className="action-actions">
+                  <div className="action-actions" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {!item.completed ? (
-                      <button className="action-btn primary">Fix This</button>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button 
+                          className="action-btn primary" 
+                          onClick={() => handlePermissionAction(item.id, 'revoke')}
+                        >
+                          🚫 Revoke Access
+                        </button>
+                        <button 
+                          className="action-btn secondary" 
+                          onClick={() => handlePermissionAction(item.id, 'modify')}
+                        >
+                          ⚙️ Modify Permissions
+                        </button>
+                        <button 
+                          className="action-btn tertiary" 
+                          onClick={() => handlePermissionAction(item.id, 'monitor')}
+                        >
+                          👁️ Add Monitoring
+                        </button>
+                      </div>
                     ) : (
-                      <button className="action-btn secondary">See Details</button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button className="action-btn secondary">✅ Resolved</button>
+                        <button 
+                          className="action-btn tertiary" 
+                          onClick={() => handlePermissionAction(item.id, 'details')}
+                        >
+                          📋 View Details
+                        </button>
+                      </div>
                     )}
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                      <strong>Risk Impact:</strong> {item.priority === 'CRITICAL' ? 'Immediate data breach risk' : item.priority === 'HIGH' ? 'High privacy exposure' : 'Moderate security concern'}
+                    </div>
                   </div>
                 </div>
               )))}
@@ -2368,7 +2509,29 @@ function App() {
         {activeTab === 'apps' && (
           <div className="apps-view">
             <div className="apps-header">
-              <h2>Your Apps ({filteredAndSortedApps.length})</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Your Apps ({filteredAndSortedApps.length})</h2>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button 
+                    className="scan-button tertiary"
+                    onClick={() => handleBulkAction(apps.filter(app => app.riskLevel === 'HIGH').map(a => a.id), 'secure')}
+                  >
+                    🔒 Secure All High-Risk Apps
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => handleExportAction('apps-inventory')}
+                  >
+                    📊 App Inventory Report
+                  </button>
+                  <button 
+                    className="scan-button secondary"
+                    onClick={() => handleExportAction('csv')}
+                  >
+                    📄 Export to CSV
+                  </button>
+                </div>
+              </div>
               <div className="apps-controls">
                 <div className="search-container">
                   <input
@@ -2439,9 +2602,57 @@ function App() {
                       <p className="password-warning">Password reused</p>
                     )}
                   </div>
-                  <div className="app-actions">
-                    <button className="app-action">View Details</button>
-                    <button className="app-action">Privacy Request</button>
+                  <div className="app-actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button 
+                        className="app-action primary"
+                        onClick={() => handleAppAction(app.id, 'details')}
+                      >
+                        📋 View Details
+                      </button>
+                      <button 
+                        className="app-action secondary"
+                        onClick={() => handleAppAction(app.id, 'modify')}
+                      >
+                        ⚙️ Edit Permissions
+                      </button>
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {app.accountStatus === 'ACTIVE' ? (
+                        <button 
+                          className="app-action danger"
+                          onClick={() => handleAppAction(app.id, 'revoke')}
+                        >
+                          🚫 Revoke OAuth Access
+                        </button>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>❌ Access Revoked</span>
+                      )}
+                      
+                      {app.riskLevel !== 'LOW' && (
+                        <button 
+                          className="app-action secondary"
+                          onClick={() => handleAppAction(app.id, 'secure')}
+                        >
+                          🔒 Enhance Security
+                        </button>
+                      )}
+                      
+                      <button 
+                        className="app-action tertiary"
+                        onClick={() => handleAppAction(app.id, 'monitor')}
+                      >
+                        👁️ Monitor Usage
+                      </button>
+                    </div>
+                    
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                      <div><strong>Data Access:</strong> {app.dataTypes.join(', ')}</div>
+                      <div><strong>Password:</strong> {app.passwordStrength} strength{app.isReused ? ' (REUSED - Risk!)' : ''}</div>
+                      {app.thirdPartySharing && <div style={{ color: '#D97706' }}><strong>⚠️ Shares data with third parties</strong></div>}
+                      {app.hasBreaches && <div style={{ color: '#DC2626' }}><strong>⚠️ History of data breaches</strong></div>}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -2583,7 +2794,29 @@ function App() {
         {/* Enhanced CASB Security Sections */}
         {activeTab === 'dlp-alerts' && (
           <div style={{ padding: '2rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Data Protection Alerts</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>Data Protection Alerts</h2>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button 
+                  className="scan-button tertiary"
+                  onClick={() => handleBulkAction(dlpAlerts.map(a => a.id), 'resolve')}
+                >
+                  ✅ Resolve All
+                </button>
+                <button 
+                  className="scan-button secondary"
+                  onClick={() => handleExportAction('dlp-report')}
+                >
+                  📊 Export Report
+                </button>
+                <button 
+                  className="scan-button secondary"
+                  onClick={() => handleExportAction('csv')}
+                >
+                  📄 Export CSV
+                </button>
+              </div>
+            </div>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Keep your company data safe by monitoring when sensitive information is shared outside your organization</p>
             <div style={{ 
               background: 'var(--bg-tertiary)', 
@@ -2719,10 +2952,79 @@ function App() {
                     </div>
                   )}
                   
-                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <button className="scan-button primary">Review Details</button>
-                    <button className="scan-button secondary">Mark as Safe</button>
-                    <button className="scan-button secondary">Not a Problem</button>
+                  <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>Action Required:</strong>
+                      <span style={{ 
+                        padding: '0.25rem 0.75rem', 
+                        borderRadius: '12px', 
+                        fontSize: '0.75rem', 
+                        background: alert.status === 'NEW' ? 'rgba(239, 68, 68, 0.2)' : alert.status === 'INVESTIGATING' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                        color: alert.status === 'NEW' ? '#DC2626' : alert.status === 'INVESTIGATING' ? '#D97706' : '#059669'
+                      }}>{alert.status}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      {alert.status === 'NEW' && (
+                        <>
+                          <button 
+                            className="scan-button primary" 
+                            onClick={() => handleDLPAction(alert.id, 'investigate')}
+                          >
+                            🔍 Investigate
+                          </button>
+                          <button 
+                            className="scan-button secondary" 
+                            onClick={() => handleDLPAction(alert.id, 'resolve')}
+                          >
+                            ✅ Resolve Issue
+                          </button>
+                          <button 
+                            className="scan-button secondary" 
+                            onClick={() => handleDLPAction(alert.id, 'false-positive')}
+                          >
+                            ❌ False Positive
+                          </button>
+                        </>
+                      )}
+                      {alert.status === 'INVESTIGATING' && (
+                        <>
+                          <button 
+                            className="scan-button primary" 
+                            onClick={() => handleDLPAction(alert.id, 'resolve')}
+                          >
+                            ✅ Complete Investigation
+                          </button>
+                          <button 
+                            className="scan-button secondary" 
+                            onClick={() => handleDLPAction(alert.id, 'escalate')}
+                          >
+                            ⬆️ Escalate to Security Team
+                          </button>
+                        </>
+                      )}
+                      {(alert.actionTaken === 'QUARANTINED' || alert.actionTaken === 'PENDING_REVIEW') && (
+                        <>
+                          <button 
+                            className="scan-button primary" 
+                            onClick={() => handleDLPAction(alert.id, 'release')}
+                          >
+                            🔓 Release File
+                          </button>
+                          <button 
+                            className="scan-button danger" 
+                            onClick={() => handleDLPAction(alert.id, 'block-permanent')}
+                          >
+                            🚫 Block Permanently
+                          </button>
+                        </>
+                      )}
+                      <button 
+                        className="scan-button tertiary" 
+                        onClick={() => handleDLPAction(alert.id, 'add-exception')}
+                      >
+                        ⚙️ Add Policy Exception
+                      </button>
+                    </div>
                   </div>
                 </div>
                 ))
@@ -2732,7 +3034,29 @@ function App() {
 
         {activeTab === 'shadow-it' && (
           <div style={{ padding: '2rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>App Discovery</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>App Discovery</h2>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button 
+                  className="scan-button primary"
+                  onClick={() => handleBulkAction(shadowITApps.filter(app => app.approvalStatus === 'PENDING').map(a => a.id), 'approve')}
+                >
+                  ✅ Approve All Pending
+                </button>
+                <button 
+                  className="scan-button danger"
+                  onClick={() => handleBulkAction(shadowITApps.filter(app => app.approvalStatus === 'PENDING').map(a => a.id), 'reject')}
+                >
+                  🚫 Block All Pending
+                </button>
+                <button 
+                  className="scan-button secondary"
+                  onClick={() => handleExportAction('shadow-it-report')}
+                >
+                  📊 Export Discovery Report
+                </button>
+              </div>
+            </div>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>See what apps your team is using and make sure they're safe for your business data</p>
             <div style={{ 
               background: 'var(--bg-tertiary)', 
@@ -2866,10 +3190,89 @@ function App() {
                   </div>
                 )}
                 
-                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button className="scan-button primary">Approve</button>
-                  <button className="scan-button secondary">Request Justification</button>
-                  <button className="scan-button danger">Block</button>
+                <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Approval Decision:</strong>
+                    <span style={{ 
+                      padding: '0.25rem 0.75rem', 
+                      borderRadius: '12px', 
+                      fontSize: '0.75rem', 
+                      background: app.approvalStatus === 'PENDING' ? 'rgba(245, 158, 11, 0.2)' : app.approvalStatus === 'APPROVED' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                      color: app.approvalStatus === 'PENDING' ? '#D97706' : app.approvalStatus === 'APPROVED' ? '#059669' : '#DC2626'
+                    }}>{app.approvalStatus}</span>
+                  </div>
+                  
+                  {app.approvalStatus === 'PENDING' && (
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                      <button 
+                        className="scan-button primary"
+                        onClick={() => handleShadowITAction(app.id, 'approve')}
+                      >
+                        ✅ Approve for Business Use
+                      </button>
+                      <button 
+                        className="scan-button secondary"
+                        onClick={() => handleShadowITAction(app.id, 'review')}
+                      >
+                        📋 Send for Security Review
+                      </button>
+                      <button 
+                        className="scan-button danger"
+                        onClick={() => handleShadowITAction(app.id, 'reject')}
+                      >
+                        🚫 Block Access
+                      </button>
+                    </div>
+                  )}
+                  
+                  {app.approvalStatus === 'APPROVED' && (
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                      <button className="scan-button secondary">✅ Currently Approved</button>
+                      <button 
+                        className="scan-button tertiary"
+                        onClick={() => handleShadowITAction(app.id, 'monitor')}
+                      >
+                        👁️ Monitor Usage
+                      </button>
+                      <button 
+                        className="scan-button danger"
+                        onClick={() => handleShadowITAction(app.id, 'revoke')}
+                      >
+                        🚫 Revoke Approval
+                      </button>
+                    </div>
+                  )}
+                  
+                  {app.approvalStatus === 'REJECTED' && (
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                      <button className="scan-button danger">🚫 Access Blocked</button>
+                      <button 
+                        className="scan-button tertiary"
+                        onClick={() => handleShadowITAction(app.id, 'reconsider')}
+                      >
+                        🔄 Reconsider Decision
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button 
+                      className="scan-button tertiary"
+                      onClick={() => handleShadowITAction(app.id, 'request-justification')}
+                    >
+                      📋 Request User Justification
+                    </button>
+                    <button 
+                      className="scan-button tertiary"
+                      onClick={() => handleShadowITAction(app.id, 'alternative')}
+                    >
+                      🔄 Suggest Alternative
+                    </button>
+                  </div>
+                  
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                    <strong>Decision Impact:</strong> {app.approvalStatus === 'APPROVED' ? 'Users can continue using this app' : app.approvalStatus === 'REJECTED' ? 'Network access will be blocked' : 'Awaiting security team decision'}
+                  </div>
                 </div>
                 </div>
               ))}
@@ -2885,6 +3288,9 @@ function App() {
           securityAlerts={securityAlerts}
           vulnerabilityScans={vulnerabilityScans}
           incidents={incidents}
+          onThreatAction={handleThreatAction}
+          onSecurityAction={handleSecurityAction}
+          onVulnerabilityAction={handleVulnerabilityAction}
         />
 
         {activeTab === 'policies' && (
