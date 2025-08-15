@@ -1616,7 +1616,7 @@ function App() {
               onClick={() => toggleSection('securityManagement')}
             >
               <span className="section-icon"></span>
-              <span className="section-title">Security Management</span>
+              <span className="section-title">Security Overview</span>
               <span className={`section-toggle ${expandedSections.securityManagement ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.securityManagement ? '▼' : '▶'}
               </span>
@@ -1688,7 +1688,7 @@ function App() {
               onClick={() => toggleSection('threatIntelligence')}
             >
               <span className="section-icon"></span>
-              <span className="section-title">Threat Intelligence</span>
+              <span className="section-title">Security Alerts</span>
               <span className={`section-toggle ${expandedSections.threatIntelligence ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.threatIntelligence ? '▼' : '▶'}
               </span>
@@ -1699,7 +1699,7 @@ function App() {
                 onClick={() => setActiveTab('threat-feeds')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">Threat Feeds</span>
+                <span className="nav-text">Security Updates</span>
                 <span className="nav-badge">{threatFeeds.filter(f => f.isActive && f.severity === 'CRITICAL').length}</span>
               </button>
               <button 
@@ -1707,7 +1707,7 @@ function App() {
                 onClick={() => setActiveTab('security-alerts')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">Security Alerts</span>
+                <span className="nav-text">Active Threats</span>
                 <span className="nav-badge">{securityAlerts.filter(a => a.status === 'NEW').length}</span>
               </button>
               <button 
@@ -1715,7 +1715,7 @@ function App() {
                 onClick={() => setActiveTab('vulnerability-scans')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">Vulnerability Scans</span>
+                <span className="nav-text">Security Checks</span>
                 <span className="nav-badge">{vulnerabilityScans.filter(s => s.status === 'COMPLETED').length}</span>
               </button>
               <button 
@@ -1723,7 +1723,7 @@ function App() {
                 onClick={() => setActiveTab('incidents')}
               >
                 <span className="nav-icon"></span>
-                <span className="nav-text">Incidents</span>
+                <span className="nav-text">Security Issues</span>
                 <span className="nav-badge">{incidents.filter(i => i.status !== 'CLOSED').length}</span>
               </button>
             </div>
@@ -1736,7 +1736,7 @@ function App() {
               onClick={() => toggleSection('compliance')}
             >
               <span className="section-icon"></span>
-              <span className="section-title">Compliance</span>
+              <span className="section-title">Access Controls</span>
               <span className={`section-toggle ${expandedSections.compliance ? 'expanded' : 'collapsed'}`}>
                 {expandedSections.compliance ? '▼' : '▶'}
               </span>
@@ -1760,18 +1760,18 @@ function App() {
             {/* Security Status Hero */}
             <div className="security-hero">
               <div className="hero-content">
-                <h2>Organization Security Grade: {securityGrade.grade}</h2>
-                <p>Cloud security assessment for TechFlow Startup - 12 employees monitored</p>
+                <h2>Your Business Security: {securityGrade.grade}</h2>
+                <p>Protecting your company data across all business apps - 12 team members secured</p>
                 <div className="scan-controls">
                   <button 
                     className="scan-button primary"
                     onClick={startScan}
                     disabled={isScanning}
                   >
-                    {isScanning ? 'Scanning Cloud Apps...' : 'Run Security Scan'}
+                    {isScanning ? 'Checking Your Apps...' : 'Check Security Now'}
                   </button>
                   <div className="scan-status">
-                    <span className="last-scan-label">Last scan:</span>
+                    <span className="last-scan-label">Last checked:</span>
                     <span className="last-scan-time">{userProfile?.lastScanDate ? formatDate(userProfile.lastScanDate) : '2 days ago'}</span>
                   </div>
                 </div>
@@ -1787,7 +1787,7 @@ function App() {
 
             {/* Enhanced Security Score Breakdown */}
             <div className="security-score-section">
-              <h2>Security Score Breakdown</h2>
+              <h2>How We Rate Your Security</h2>
               <div className="score-dimensions-grid">
                 <div 
                   className="score-dimension-card clickable"
@@ -1795,7 +1795,7 @@ function App() {
                 >
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
-                    <h3>OAuth Risk</h3>
+                    <h3>App Safety</h3>
                     <span className="dimension-weight">50%</span>
                   </div>
                   <div className="dimension-score">
@@ -1815,7 +1815,7 @@ function App() {
                       <span className="score-number">{securityScoreBreakdown.dimensions.oauthRiskScore}/100</span>
                     </div>
                   </div>
-                  <p className="dimension-description">App permissions and OAuth connections</p>
+                  <p className="dimension-description">How safe are the apps your team uses</p>
                   <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
@@ -1825,7 +1825,7 @@ function App() {
                 >
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
-                    <h3>Data Exposure</h3>
+                    <h3>Data Protection</h3>
                     <span className="dimension-weight">30%</span>
                   </div>
                   <div className="dimension-score">
@@ -1845,7 +1845,7 @@ function App() {
                       <span className="score-number">{securityScoreBreakdown.dimensions.dataExposureScore}/100</span>
                     </div>
                   </div>
-                  <p className="dimension-description">Data breaches and sharing risks</p>
+                  <p className="dimension-description">How well your data is protected</p>
                   <div className="card-hover-indicator">Click for details →</div>
                 </div>
                 
@@ -1856,7 +1856,7 @@ function App() {
                 >
                   <div className="dimension-header">
                     <span className="dimension-icon"></span>
-                    <h3>Access Control</h3>
+                    <h3>Team Access</h3>
                     <span className="dimension-weight">20%</span>
                   </div>
                   <div className="dimension-score">
@@ -1876,7 +1876,7 @@ function App() {
                       <span className="score-number">{securityScoreBreakdown.dimensions.accessControlScore}/100</span>
                     </div>
                   </div>
-                  <p className="dimension-description">Authentication and authorization</p>
+                  <p className="dimension-description">Who can access what in your business</p>
                   <div className="card-hover-indicator">Click for details →</div>
                 </div>
               </div>
@@ -1884,7 +1884,7 @@ function App() {
               {/* Security Recommendations */}
               {securityScoreBreakdown.recommendations.length > 0 && (
                 <div className="security-recommendations">
-                  <h3>Priority Recommendations</h3>
+                  <h3>How to Improve Your Security</h3>
                   <div className="recommendations-list">
                     {securityScoreBreakdown.recommendations.map((recommendation, index) => (
                       <div key={index} className="recommendation-item">
@@ -2122,7 +2122,7 @@ function App() {
                     <div className="action-meta">
                       <span className="action-time">{item.estimatedTime}</span>
                       <button className="action-btn" onClick={() => handleActionFix(item)}>
-                        Fix Now
+                        Fix This
                       </button>
                     </div>
                   </div>
@@ -2353,9 +2353,9 @@ function App() {
                   </div>
                   <div className="action-actions">
                     {!item.completed ? (
-                      <button className="action-btn primary">Fix Now</button>
+                      <button className="action-btn primary">Fix This</button>
                     ) : (
-                      <button className="action-btn secondary">View Details</button>
+                      <button className="action-btn secondary">See Details</button>
                     )}
                   </div>
                 </div>
@@ -2889,19 +2889,30 @@ function App() {
 
         {activeTab === 'policies' && (
           <div className="policies-view">
-            <h2>SaaS Access Controls</h2>
-            <p className="section-description">Control who can access your business data across all your SaaS applications</p>
+            <h2>Team Access Controls</h2>
+            <p className="section-description">Manage who in your team can access what business data and apps</p>
+            <div style={{ 
+              background: 'var(--bg-tertiary)', 
+              border: '1px solid var(--border-color)', 
+              borderRadius: '8px', 
+              padding: '1rem', 
+              marginBottom: '2rem',
+              fontSize: '0.9rem'
+            }}>
+              <strong style={{ color: 'var(--text-primary)' }}>💡 What this does:</strong> 
+              <span style={{ color: 'var(--text-secondary)' }}>This helps you control which team members can access sensitive business data in apps like Google Drive, Office 365, or Slack. It ensures people only see what they need for their job.</span>
+            </div>
             
             <div className="policies-grid">
               <div className="policy-section">
-                <h3>App Permission Management</h3>
+                <h3>App Safety Controls</h3>
                 <div className="policy-cards">
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>Connected App Monitoring</h4>
+                      <h4>App Safety Monitoring</h4>
                       <span className="policy-status active">ACTIVE</span>
                     </div>
-                    <p>Track all third-party applications connected to your Google Workspace, Microsoft 365, and Slack. Get alerts when new apps request access to sensitive business data.</p>
+                    <p>Keep track of all apps your team connects to your business accounts. Get alerted when risky apps try to access your company data.</p>
                     <div className="policy-stats">
                       <span>23 apps being monitored</span>
                       <span>2 apps need attention</span>
@@ -2922,10 +2933,10 @@ function App() {
                   
                   <div className="policy-card active">
                     <div className="policy-header">
-                      <h4>User Access Governance</h4>
+                      <h4>Team Access Management</h4>
                       <span className="policy-status active">MANAGED</span>
                     </div>
-                    <p>Ensure employees only have access to the business applications they need for their role. Automatically detect when former employees still have app access.</p>
+                    <p>Make sure team members only access the business apps they need for their job. Automatically spot when former employees still have access to your data.</p>
                     <div className="policy-stats">
                       <span>15 users properly managed</span>
                       <span>Access reviews up to date</span>
@@ -2939,30 +2950,30 @@ function App() {
                 <div className="quick-actions-grid">
                   <div className="quick-action-card">
                     <div className="action-icon"></div>
-                    <h4>Revoke Suspicious Apps</h4>
-                    <p>2 apps have excessive permissions</p>
-                    <button className="action-btn primary">Review Now</button>
+                    <h4>Block Risky Apps</h4>
+                    <p>2 apps have too much access to your data</p>
+                    <button className="action-btn primary">Check Apps</button>
                   </div>
                   
                   <div className="quick-action-card">
                     <div className="action-icon"></div>
-                    <h4>Audit User Access</h4>
+                    <h4>Review Team Access</h4>
                     <p>Quarterly access review is due</p>
-                    <button className="action-btn">Start Review</button>
+                    <button className="action-btn">Check Access</button>
                   </div>
                   
                   <div className="quick-action-card">
                     <div className="action-icon"></div>
                     <h4>Enable SSO</h4>
                     <p>4 apps can use single sign-on</p>
-                    <button className="action-btn">Configure</button>
+                    <button className="action-btn">Set Up</button>
                   </div>
                   
                   <div className="quick-action-card">
                     <div className="action-icon"></div>
                     <h4>Generate Report</h4>
                     <p>Create access control summary</p>
-                    <button className="action-btn">Export PDF</button>
+                    <button className="action-btn">Download Report</button>
                   </div>
                 </div>
               </div>
@@ -2984,7 +2995,7 @@ function App() {
                         </div>
                       </div>
                       <span className="risk-badge high">High Risk</span>
-                      <button className="manage-btn">Manage</button>
+                      <button className="manage-btn">Review</button>
                     </div>
                     
                     <div className="inventory-item medium-risk">
@@ -2996,7 +3007,7 @@ function App() {
                         </div>
                       </div>
                       <span className="risk-badge medium">Medium Risk</span>
-                      <button className="manage-btn">Manage</button>
+                      <button className="manage-btn">Review</button>
                     </div>
                     
                     <div className="inventory-item low-risk">
@@ -3008,7 +3019,7 @@ function App() {
                         </div>
                       </div>
                       <span className="risk-badge low">Low Risk</span>
-                      <button className="manage-btn">Manage</button>
+                      <button className="manage-btn">Review</button>
                     </div>
                     
                     <div className="inventory-more">
