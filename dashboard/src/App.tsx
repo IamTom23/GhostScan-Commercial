@@ -86,37 +86,6 @@ interface ShadowITApp {
   estimatedSpend?: number;
 }
 
-interface UserBehaviorAnalytic {
-  id: string;
-  userId: string;
-  userEmail: string;
-  anomalyType: 'UNUSUAL_LOGIN_TIME' | 'UNUSUAL_LOCATION' | 'MASS_DOWNLOAD' | 'EXTERNAL_SHARING_SPIKE' | 'NEW_APP_ACCESS';
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  timestamp: Date;
-  description: string;
-  baselinePeriod: string;
-  currentActivity: string;
-  confidenceScore: number;
-  affectedApps: string[];
-  ipAddress?: string;
-  location?: string;
-  deviceInfo?: string;
-}
-
-interface ThreatProtectionAlert {
-  id: string;
-  appId: string;
-  appName: string;
-  threatType: 'MALWARE_DETECTED' | 'PHISHING_ATTEMPT' | 'SUSPICIOUS_LOGIN' | 'DATA_EXFILTRATION' | 'ACCOUNT_TAKEOVER';
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  timestamp: Date;
-  userEmail: string;
-  threatSource: string;
-  indicators: string[];
-  actionTaken: 'BLOCKED' | 'QUARANTINED' | 'USER_NOTIFIED' | 'ADMIN_REVIEW';
-  status: 'ACTIVE' | 'MITIGATED' | 'FALSE_POSITIVE';
-  remediationSteps: string[];
-}
 
 // Threat Intelligence Interfaces
 interface ThreatFeed {
@@ -667,97 +636,7 @@ const mockShadowITApps: ShadowITApp[] = [
   }
 ];
 
-const mockUserBehaviorAnalytics: UserBehaviorAnalytic[] = [
-  {
-    id: 'uba001',
-    userId: 'u001',
-    userEmail: 'john.doe@company.com',
-    anomalyType: 'MASS_DOWNLOAD',
-    severity: 'HIGH',
-    timestamp: new Date(Date.now() - 45 * 60 * 1000),
-    description: 'Downloaded 47 files (2.3GB) from Google Drive in 10 minutes',
-    baselinePeriod: 'Average: 3 files per day',
-    currentActivity: '47 files in 10 minutes',
-    confidenceScore: 94,
-    affectedApps: ['Google Drive'],
-    ipAddress: '192.168.1.45',
-    location: 'San Francisco, CA',
-    deviceInfo: 'MacBook Pro (Chrome)'
-  },
-  {
-    id: 'uba002',
-    userId: 'u002',
-    userEmail: 'lisa.wang@company.com',
-    anomalyType: 'UNUSUAL_LOGIN_TIME',
-    severity: 'MEDIUM',
-    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    description: 'Login to Office 365 at 2:47 AM (outside normal hours)',
-    baselinePeriod: 'Typical login: 8:30 AM - 6:00 PM',
-    currentActivity: 'Login at 2:47 AM',
-    confidenceScore: 78,
-    affectedApps: ['Office 365', 'SharePoint'],
-    ipAddress: '203.45.67.12',
-    location: 'Bangkok, Thailand',
-    deviceInfo: 'Unknown Device (Firefox)'
-  },
-  {
-    id: 'uba003',
-    userId: 'u003',
-    userEmail: 'carlos.rivera@company.com',
-    anomalyType: 'EXTERNAL_SHARING_SPIKE',
-    severity: 'HIGH',
-    timestamp: new Date(Date.now() - 90 * 60 * 1000),
-    description: 'Shared 15 documents externally in past hour',
-    baselinePeriod: 'Average: 1 external share per week',
-    currentActivity: '15 external shares in 1 hour',
-    confidenceScore: 89,
-    affectedApps: ['Google Drive', 'Slack'],
-    ipAddress: '10.0.1.123',
-    location: 'Austin, TX',
-    deviceInfo: 'Windows 11 (Edge)'
-  }
-];
 
-const mockThreatProtectionAlerts: ThreatProtectionAlert[] = [
-  {
-    id: 'threat001',
-    appId: 'outlook001',
-    appName: 'Office 365',
-    threatType: 'PHISHING_ATTEMPT',
-    severity: 'CRITICAL',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000),
-    userEmail: 'jennifer.kim@company.com',
-    threatSource: 'malicious-sender@fake-bank.com',
-    indicators: ['Suspicious URL', 'Credential Harvesting', 'Domain Spoofing'],
-    actionTaken: 'BLOCKED',
-    status: 'ACTIVE',
-    remediationSteps: [
-      'Email blocked and quarantined',
-      'User notified of phishing attempt',
-      'IT security team alerted',
-      'Domain added to block list'
-    ]
-  },
-  {
-    id: 'threat002',
-    appId: 'gdrive001',
-    appName: 'Google Drive',
-    threatType: 'MALWARE_DETECTED',
-    severity: 'HIGH',
-    timestamp: new Date(Date.now() - 60 * 60 * 1000),
-    userEmail: 'david.johnson@company.com',
-    threatSource: 'uploaded_presentation.pptx',
-    indicators: ['Macro Malware', 'Trojan.Win32.Agent', 'Suspicious Behavior'],
-    actionTaken: 'QUARANTINED',
-    status: 'MITIGATED',
-    remediationSteps: [
-      'File quarantined automatically',
-      'Endpoint security scan initiated',
-      'User device isolated from network',
-      'Incident response team engaged'
-    ]
-  }
-];
 
 // Threat Intelligence Mock Data
 const mockThreatFeeds: ThreatFeed[] = [
@@ -1063,8 +942,6 @@ function App() {
   // Enhanced CASB State
   const [dlpAlerts, setDlpAlerts] = useState<DLPAlert[]>([]);
   const [shadowITApps, setShadowITApps] = useState<ShadowITApp[]>([]);
-  const [userBehaviorAnalytics, setUserBehaviorAnalytics] = useState<UserBehaviorAnalytic[]>([]);
-  const [threatProtectionAlerts, setThreatProtectionAlerts] = useState<ThreatProtectionAlert[]>([]);
 
   // Threat Intelligence State
   const [threatFeeds, setThreatFeeds] = useState<ThreatFeed[]>([]);
@@ -1314,8 +1191,6 @@ function App() {
         // Load CASB and threat intelligence data
         setDlpAlerts(mockDLPAlerts);
         setShadowITApps(mockShadowITApps);
-        setUserBehaviorAnalytics(mockUserBehaviorAnalytics);
-        setThreatProtectionAlerts(mockThreatProtectionAlerts);
         setThreatFeeds(mockThreatFeeds);
         setSecurityAlerts(mockSecurityAlerts);
         setVulnerabilityScans(mockVulnerabilityScans);
@@ -1354,8 +1229,6 @@ function App() {
             // Load CASB and threat intelligence data
             setDlpAlerts(mockDLPAlerts);
             setShadowITApps(mockShadowITApps);
-            setUserBehaviorAnalytics(mockUserBehaviorAnalytics);
-            setThreatProtectionAlerts(mockThreatProtectionAlerts);
             setThreatFeeds(mockThreatFeeds);
             setSecurityAlerts(mockSecurityAlerts);
             setVulnerabilityScans(mockVulnerabilityScans);
@@ -1804,22 +1677,6 @@ function App() {
                 <span className="nav-icon"></span>
                 <span className="nav-text">Shadow IT</span>
                 <span className="nav-badge">{shadowITApps.filter(app => app.approvalStatus === 'PENDING').length}</span>
-              </button>
-              <button 
-                className={`nav-item ${activeTab === 'behavior-analytics' ? 'active' : ''}`}
-                onClick={() => setActiveTab('behavior-analytics')}
-              >
-                <span className="nav-icon"></span>
-                <span className="nav-text">User Behavior</span>
-                <span className="nav-badge">{userBehaviorAnalytics.filter(uba => uba.severity === 'HIGH' || uba.severity === 'CRITICAL').length}</span>
-              </button>
-              <button 
-                className={`nav-item ${activeTab === 'threat-protection' ? 'active' : ''}`}
-                onClick={() => setActiveTab('threat-protection')}
-              >
-                <span className="nav-icon"></span>
-                <span className="nav-text">Threat Protection</span>
-                <span className="nav-badge">{threatProtectionAlerts.filter(t => t.status === 'ACTIVE').length}</span>
               </button>
             </div>
           </div>
@@ -2891,158 +2748,7 @@ function App() {
           </div>
         )}
 
-        {activeTab === 'behavior-analytics' && (
-          <div className="behavior-analytics-view">
-            <h2>User Behavior Analytics</h2>
-            <div className="analytics-summary">
-              <div className="summary-card critical">
-                <h3>{userBehaviorAnalytics.filter(uba => uba.severity === 'CRITICAL').length}</h3>
-                <p>Critical Anomalies</p>
-              </div>
-              <div className="summary-card high">
-                <h3>{userBehaviorAnalytics.filter(uba => uba.severity === 'HIGH').length}</h3>
-                <p>High Risk</p>
-              </div>
-              <div className="summary-card active">
-                <h3>{userBehaviorAnalytics.length}</h3>
-                <p>Active Alerts</p>
-              </div>
-            </div>
-            <div className="analytics-list">
-              {userBehaviorAnalytics.map(analytic => (
-                <div key={analytic.id} className={`analytic-card severity-${analytic.severity.toLowerCase()}`}>
-                  <div className="analytic-header">
-                    <div className="user-info">
-                      <h3>{analytic.userEmail}</h3>
-                      <p>{analytic.anomalyType.replace(/_/g, ' ')} • {new Date(analytic.timestamp).toLocaleString()}</p>
-                    </div>
-                    <div className="analytic-badges">
-                      <span className={`severity-badge ${analytic.severity.toLowerCase()}`}>{analytic.severity}</span>
-                      <span className="confidence-badge">
-                        {analytic.confidenceScore}% confidence
-                      </span>
-                    </div>
-                  </div>
-                  <div className="analytic-details">
-                    <div className="description">
-                      <strong>Description:</strong>
-                      <p>{analytic.description}</p>
-                    </div>
-                    <div className="comparison">
-                      <div className="baseline">
-                        <strong>Baseline:</strong>
-                        <p>{analytic.baselinePeriod}</p>
-                      </div>
-                      <div className="current">
-                        <strong>Current Activity:</strong>
-                        <p>{analytic.currentActivity}</p>
-                      </div>
-                    </div>
-                    <div className="context-info">
-                      {analytic.location && (
-                        <div className="context-item">
-                          <strong>Location:</strong> {analytic.location}
-                        </div>
-                      )}
-                      {analytic.ipAddress && (
-                        <div className="context-item">
-                          <strong>IP Address:</strong> {analytic.ipAddress}
-                        </div>
-                      )}
-                      {analytic.deviceInfo && (
-                        <div className="context-item">
-                          <strong>Device:</strong> {analytic.deviceInfo}
-                        </div>
-                      )}
-                      <div className="context-item">
-                        <strong>Affected Apps:</strong>
-                        <div className="apps-list">
-                          {analytic.affectedApps.map(app => (
-                            <span key={app} className="app-tag">{app}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="analytic-actions">
-                    <button className="action-btn primary">Investigate</button>
-                    <button className="action-btn secondary">Contact User</button>
-                    <button className="action-btn tertiary">Mark Safe</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {activeTab === 'threat-protection' && (
-          <div className="threat-protection-view">
-            <h2>Advanced Threat Protection</h2>
-            <div className="protection-summary">
-              <div className="summary-card critical">
-                <h3>{threatProtectionAlerts.filter(t => t.severity === 'CRITICAL').length}</h3>
-                <p>Critical Threats</p>
-              </div>
-              <div className="summary-card active">
-                <h3>{threatProtectionAlerts.filter(t => t.status === 'ACTIVE').length}</h3>
-                <p>Active Threats</p>
-              </div>
-              <div className="summary-card blocked">
-                <h3>{threatProtectionAlerts.filter(t => t.actionTaken === 'BLOCKED').length}</h3>
-                <p>Threats Blocked</p>
-              </div>
-            </div>
-            <div className="threat-alerts-list">
-              {threatProtectionAlerts.map(threat => (
-                <div key={threat.id} className={`threat-card severity-${threat.severity.toLowerCase()}`}>
-                  <div className="threat-header">
-                    <div className="threat-info">
-                      <h3>{threat.appName} - {threat.threatType.replace(/_/g, ' ')}</h3>
-                      <p>{threat.userEmail} • {new Date(threat.timestamp).toLocaleString()}</p>
-                    </div>
-                    <div className="threat-badges">
-                      <span className={`severity-badge ${threat.severity.toLowerCase()}`}>{threat.severity}</span>
-                      <span className={`status-badge ${threat.status.toLowerCase()}`}>{threat.status}</span>
-                    </div>
-                  </div>
-                  <div className="threat-details">
-                    <div className="detail-section">
-                      <strong>Threat Source:</strong>
-                      <p>{threat.threatSource}</p>
-                    </div>
-                    <div className="detail-section">
-                      <strong>Indicators:</strong>
-                      <div className="indicators">
-                        {threat.indicators.map(indicator => (
-                          <span key={indicator} className="indicator-tag">{indicator}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="detail-section">
-                      <strong>Action Taken:</strong>
-                      <span className={`action-badge ${threat.actionTaken.toLowerCase()}`}>
-                        {threat.actionTaken.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                    <div className="detail-section">
-                      <strong>Remediation Steps:</strong>
-                      <ul className="remediation-steps">
-                        {threat.remediationSteps.map((step, index) => (
-                          <li key={index}>{step}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="threat-actions">
-                    <button className="action-btn primary">View Details</button>
-                    <button className="action-btn secondary">Create Incident</button>
-                    <button className="action-btn tertiary">Mark Resolved</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Threat Intelligence Demo Sections */}
         <ThreatIntelligence 

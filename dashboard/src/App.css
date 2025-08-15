@@ -5448,8 +5448,7 @@ button {
 /* Common CASB Layouts */
 .dlp-alerts-view,
 .shadow-it-view,
-.behavior-analytics-view,
-.threat-protection-view {
+
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -5457,8 +5456,6 @@ button {
 
 .dlp-alerts-view h2,
 .shadow-it-view h2,
-.behavior-analytics-view h2,
-.threat-protection-view h2 {
   color: var(--text-primary);
   font-size: 1.875rem;
   font-weight: 700;
@@ -5468,7 +5465,7 @@ button {
 /* Summary Cards */
 .alerts-summary,
 .shadow-summary,
-.analytics-summary,
+
 .protection-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -5518,7 +5515,7 @@ button {
 /* Main Content Lists */
 .alerts-list,
 .shadow-apps-list,
-.analytics-list,
+
 .threat-alerts-list {
   display: flex;
   flex-direction: column;
@@ -5528,8 +5525,7 @@ button {
 /* Card Styling */
 .alert-card,
 .shadow-app-card,
-.analytic-card,
-.threat-card {
+
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
@@ -5540,8 +5536,6 @@ button {
 
 .alert-card:hover,
 .shadow-app-card:hover,
-.analytic-card:hover,
-.threat-card:hover {
   background: var(--bg-hover);
   border-color: var(--border-light);
   transform: translateY(-2px);
@@ -5550,33 +5544,25 @@ button {
 
 /* Severity-based left border indicators */
 .alert-card.severity-critical,
-.analytic-card.severity-critical,
-.threat-card.severity-critical {
   border-left: 4px solid var(--danger-color);
 }
 
 .alert-card.severity-high,
-.analytic-card.severity-high,
-.threat-card.severity-high {
   border-left: 4px solid var(--warning-color);
 }
 
 .alert-card.severity-medium,
-.analytic-card.severity-medium,
-.threat-card.severity-medium {
   border-left: 4px solid #60a5fa;
 }
 
 .alert-card.severity-low,
-.analytic-card.severity-low,
-.threat-card.severity-low {
   border-left: 4px solid var(--success-color);
 }
 
 /* Card Headers */
 .alert-header,
 .app-header,
-.analytic-header,
+
 .threat-header {
   display: flex;
   justify-content: space-between;
@@ -5587,7 +5573,7 @@ button {
 
 .alert-info h3,
 .app-info h3,
-.user-info h3,
+
 .threat-info h3 {
   color: var(--text-primary);
   font-size: 1.125rem;
@@ -6055,8 +6041,7 @@ button {
 .summary-card,
 .alert-card,
 .shadow-app-card,
-.analytic-card,
-.threat-card {
+
   animation: fadeInUp 0.3s ease-out;
 }
 
@@ -6090,21 +6075,20 @@ button {
 @media (max-width: 768px) {
   .dlp-alerts-view,
   .shadow-it-view,
-  .behavior-analytics-view,
-  .threat-protection-view {
+  
     padding: 1rem;
   }
   
   .alerts-summary,
   .shadow-summary,
-  .analytics-summary,
+  
   .protection-summary {
     grid-template-columns: repeat(2, 1fr);
   }
   
   .alert-header,
   .app-header,
-  .analytic-header,
+  
   .threat-header {
     flex-direction: column;
     align-items: flex-start;
@@ -6136,7 +6120,7 @@ button {
 @media (max-width: 480px) {
   .alerts-summary,
   .shadow-summary,
-  .analytics-summary,
+  
   .protection-summary {
     grid-template-columns: 1fr;
   }
