@@ -106,6 +106,7 @@ interface ThreatFeed {
   };
   mitigations: string[];
   isActive: boolean;
+  status?: 'NEW' | 'ACKNOWLEDGED' | 'DISMISSED' | 'INVESTIGATING';
 }
 
 interface SecurityAlert {
@@ -131,7 +132,7 @@ interface VulnerabilityScanning {
   id: string;
   appId: string;
   scanType: 'AUTOMATED' | 'MANUAL' | 'SCHEDULED';
-  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'QUEUED';
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'QUEUED' | 'SCHEDULED' | 'FIXED';
   startTime: Date;
   endTime?: Date;
   findings: VulnerabilityFinding[];

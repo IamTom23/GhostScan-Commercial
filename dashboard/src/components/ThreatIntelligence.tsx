@@ -36,7 +36,7 @@ interface VulnerabilityScan {
   id: string;
   appId: string;
   startTime: Date;
-  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'QUEUED';
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'QUEUED' | 'SCHEDULED' | 'FIXED';
   riskScore: number;
   findings: VulnerabilityFinding[];
 }
